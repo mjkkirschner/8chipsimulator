@@ -1,0 +1,14 @@
+{
+  "name": "8chips",
+  "version": "1.0.0",
+  "description": "a software implementation of an 8bit computer built using mostly 7400 series TTL ics",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "typescript": "^2.3.4"
+  }
+}
