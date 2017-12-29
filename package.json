@@ -9,6 +9,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "typescript": "^2.3.4"
+    "@types/underscore": "^1.8.6",
+    "typescript": "^2.3.4",
+    "underscore": "^1.8.3"
   }
 }
