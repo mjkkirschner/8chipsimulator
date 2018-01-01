@@ -51,6 +51,7 @@ export interface Ipart {
 
 export interface IAggregatePart {
     parts: Ipart[];
+    getDataAsInteger(): number
 }
 
 /**
@@ -89,7 +90,7 @@ class binaryCell implements Ipart {
     // determine their state.
     public update() {
 
-        let clockPinValue = this.clockPin.value;  
+        let clockPinValue = this.clockPin.value;
 
         //when the clock pin goes from false to true, and the enable pin is true:
         //set the current input to the output and update the state to that value.
@@ -132,7 +133,7 @@ class buffer implements Ipart {
         }
     }
     assignInputPin(pin: pin, index: number) {
-        this.dataPin[0] = pin;
+        this.dataPin = pin;
     }
 
 }
@@ -164,6 +165,10 @@ export class nBuffer implements Ipart, IAggregatePart {
     }
     assignInputPin(pin: pin, index: number) {
         this.parts[index].assignInputPin(pin, 0);
+    }
+
+    public getDataAsInteger() {
+        return parseInt(this.outputPins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
 
 }
@@ -212,13 +217,18 @@ export class nRegister implements Ipart, IAggregatePart {
         this.parts[index].assignInputPin(pin, 0);
     }
 
+
+    public getDataAsInteger() {
+        return parseInt(this.outputPins.map(pin => { return Number(pin.value) }).join(""), 2);
+    }
+
     public update() {
 
         let clockPinValue = this.clockPin.value;
 
         this.parts.forEach(part => { part.update() });
 
-        var outputAsInt = parseInt(this.outputPins.map(pin => { return Number(pin.value) }).join(""), 2);
+        var outputAsInt = this.getDataAsInteger();
         this.timeSeries.append(new Date().getTime(), outputAsInt);
 
         console.log("register state is", outputAsInt);
