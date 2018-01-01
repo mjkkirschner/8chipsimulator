@@ -1,5 +1,5 @@
 import * as _ from "underscore";
-import {SmoothieChart,TimeSeries} from 'smoothie';
+import { SmoothieChart, TimeSeries } from 'smoothie';
 
 
 /**
@@ -25,17 +25,19 @@ export class toggleSwitch {
     private num
     public outputPin: pin = new pin();
 
-    constructor(displayContainer: HTMLElement, uniqueID: string) {
+    constructor(uniqueID: string, displayContainer?: HTMLElement) {
         this.outputPin.value = this.state;
-
-        $(displayContainer).append($('<p>' + uniqueID + '</p>'));
 
         let button = $('<input type="button" value="test">');
         button.click(() => {
             this.state = !this.state;
             this.outputPin.value = this.state;
-        })
-        $(displayContainer).append(button);
+        });
+        if (displayContainer) {
+            $(displayContainer).append($('<p>' + uniqueID + '</p>'));
+            $(displayContainer).append(button);
+        }
+
     }
 }
 
@@ -69,12 +71,14 @@ class binaryCell implements Ipart {
 
 
     constructor(signalDrawing?: HTMLCanvasElement) {
+
+        //TODO rethink using smoothie here... maybe this should not be part of the model constructors.
+        this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
         if (signalDrawing) {
-            this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
             this.smoothieChart.streamTo(signalDrawing);
-            this.timeSeries = new TimeSeries();
-            this.smoothieChart.addTimeSeries(this.timeSeries);
         }
+        this.timeSeries = new TimeSeries();
+        this.smoothieChart.addTimeSeries(this.timeSeries);
     }
 
     public assignInputPin(pin: pin, index: number) {
@@ -85,13 +89,12 @@ class binaryCell implements Ipart {
     // determine their state.
     public update() {
 
-        let clockPinValue = this.clockPin.value;
+        let clockPinValue = this.clockPin.value;  
 
         //when the clock pin goes from false to true, and the enable pin is true:
         //set the current input to the output and update the state to that value.
 
         if ((clockPinValue == true && this.lastClockpinValue == false) && this.enablePin.value == true) {
-            //this.state = this.dataPin ? this.dataPin.value : false;
             this.state = this.dataPin.value;
         }
         //TODO is this correct?
@@ -108,7 +111,64 @@ class binaryCell implements Ipart {
 
 }
 
-export class byteRegister implements Ipart, IAggregatePart {
+class buffer implements Ipart {
+
+    //default input pin disconnected;
+    private dataPin = new pin();
+
+    private loadPin: pin;
+    private outputEnablePin: pin;
+    public outputPin: pin = new pin();
+
+    constructor(loadPin: pin, outputEnablePin: pin) {
+        this.loadPin = loadPin;
+        this.outputEnablePin = outputEnablePin;
+    }
+
+    update() {
+        //if the load pin and output enable pin are high - output the input value.
+        if (this.loadPin && this.loadPin.value == true && this.outputEnablePin && this.outputEnablePin.value == true) {
+            this.outputPin.value = this.dataPin.value;
+        }
+    }
+    assignInputPin(pin: pin, index: number) {
+        this.dataPin[0] = pin;
+    }
+
+}
+
+export class nBuffer implements Ipart, IAggregatePart {
+    parts: buffer[];
+    private dataPins: pin[] = [];
+    public outputPins: pin[] = [];
+    public outputEnablePin: pin;
+    public loadPin: pin;
+
+
+    constructor(loadPin: pin, outputEnablePin: pin, n = 8) {
+        this.loadPin = loadPin;
+        this.outputEnablePin = outputEnablePin;
+
+        this.parts = _.range(0, n).map((x, index) => {
+            let part = new buffer(this.loadPin, this.outputEnablePin);
+            this.outputPins[index] = part.outputPin;
+            return part;
+        });
+
+        //as default state, connect the inputs of this part to some floating pins.
+        this.parts.forEach((part, index) => this.assignInputPin(new pin(), index));
+    }
+
+    update() {
+        this.parts.forEach(part => { part.update(); })
+    }
+    assignInputPin(pin: pin, index: number) {
+        this.parts[index].assignInputPin(pin, 0);
+    }
+
+}
+
+export class nRegister implements Ipart, IAggregatePart {
 
     public clockPin: pin;
     private dataPins: pin[] = [];
@@ -123,17 +183,19 @@ export class byteRegister implements Ipart, IAggregatePart {
     private timeSeries;
 
 
-    constructor(clockpin: pin, enablePin: pin, signalDrawing?: HTMLCanvasElement, ) {
+    constructor(clockpin: pin, enablePin: pin, n = 8, signalDrawing?: HTMLCanvasElement, ) {
+
+        this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
         if (signalDrawing) {
-            this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
             this.smoothieChart.streamTo(signalDrawing);
-            this.timeSeries = new TimeSeries();
-            this.smoothieChart.addTimeSeries(this.timeSeries);
         }
+        this.timeSeries = new TimeSeries();
+        this.smoothieChart.addTimeSeries(this.timeSeries);
+
         this.clockPin = clockpin;
         this.enablePin = enablePin;
 
-        this.parts = _.range(0, 8).map((x, index) => {
+        this.parts = _.range(0, n).map((x, index) => {
             let part = new binaryCell();
             part.clockPin = this.clockPin;
             part.enablePin = this.enablePin;

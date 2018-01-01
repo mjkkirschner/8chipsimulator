@@ -1,5 +1,5 @@
 import { pin } from "./primitives";
-import {SmoothieChart,TimeSeries} from 'smoothie';
+import { SmoothieChart, TimeSeries } from 'smoothie';
 
 
 /**
@@ -8,33 +8,55 @@ import {SmoothieChart,TimeSeries} from 'smoothie';
  */
 export class clock {
 
-    private smoothieChart;
-    private timeSeries;
+    private smoothieChart: SmoothieChart;
+    private timeSeries: TimeSeries;
     private cycle;
     private state = false;
+    private intervalID: NodeJS.Timer
 
     public outputPin: pin = new pin();
 
-    constructor(canvas: HTMLCanvasElement, cycle: number) {
+    constructor(cycle: number, canvas?: HTMLCanvasElement) {
         this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
-        this.smoothieChart.streamTo(canvas);
+        if (canvas) {
+            this.smoothieChart.streamTo(canvas);
+        }
         this.timeSeries = new TimeSeries();
         this.cycle = cycle
         this.smoothieChart.addTimeSeries(this.timeSeries);
     }
 
     public startClock() {
-        setInterval(() => {
-            //set 0  
-            this.tick()
-            //still zero at cycle *2
-            setTimeout(() => { this.tick() }, this.cycle);
-            setTimeout(() => { this.tock() }, this.cycle + 1);
-            setTimeout(() => { this.tock() }, (this.cycle * 2) + 1);
-            setTimeout(() => { this.tick() }, this.cycle * 3);
+        this.intervalID = setInterval(() => {
+            this.increment();
 
         }, this.cycle * 4)
 
+    }
+
+    public stopClock() {
+        clearInterval(this.intervalID);
+    }
+
+    /**
+     * pulses the clock for the cycle time and calls the 
+     * provided callback if it exists.
+     * @param callback 
+     */
+    public increment(callback?: Function) {
+
+        //set clock to 0  
+        this.tick();
+        //still zero at cycle *2
+        setTimeout(() => { this.tick() }, this.cycle);
+        setTimeout(() => { this.tock() }, this.cycle + 1);
+        setTimeout(() => { this.tock() }, (this.cycle * 2) + 1);
+        setTimeout(() => {
+            this.tick();
+            if (callback) {
+                callback();
+            }
+        }, this.cycle * 3);
     }
 
     private tick() {
@@ -47,7 +69,6 @@ export class clock {
         this.state = true;
         this.outputPin.value = this.state;
     }
-
 }
 
 

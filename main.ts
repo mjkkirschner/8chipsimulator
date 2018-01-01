@@ -1,12 +1,12 @@
-import { toggleSwitch, byteRegister } from "./primitives";
+import { toggleSwitch, nRegister } from "./primitives";
 import { clock } from "./clock";
 
 
 
-var clockComponent = new clock(document.getElementById("timeline") as HTMLCanvasElement, 200);
+var clockComponent = new clock(200,document.getElementById("timeline") as HTMLCanvasElement);
 var enableButton = new toggleSwitch(document.getElementById("componentsCanvas"), "enable");
 
-var register = new byteRegister(clockComponent.outputPin, enableButton.outputPin, document.getElementById("timeline2") as HTMLCanvasElement);
+var register = new nRegister(clockComponent.outputPin, enableButton.outputPin,8, document.getElementById("timeline2") as HTMLCanvasElement);
 var dataButton = new toggleSwitch(document.getElementById("componentsCanvas"), "data128");
 
 var dataButton2 = new toggleSwitch(document.getElementById("componentsCanvas"), "data64");
