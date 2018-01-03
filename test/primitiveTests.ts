@@ -1,6 +1,6 @@
 import { clock } from "../clock";
 import * as assert from 'assert';
-import { nRegister, pin, nBuffer } from "../primitives";
+import { nRegister, pin, nBuffer, bus } from "../primitives";
 import { fail } from "assert";
 
 describe('clock component', function () {
@@ -15,6 +15,57 @@ describe('clock component', function () {
             assert.equal(clockComp.outputPin.value, 0);
             done()
         });
+    });
+});
+
+describe('bus component', function () {
+    it('should return the enabled signal', function () {
+
+        let buscomp = new bus(8);
+        let buffer1enable = new pin();
+        let buffer1 = new nBuffer(buffer1enable, 8);
+
+        let buffer2enable = new pin();
+        let buffer2 = new nBuffer(buffer2enable, 8);
+
+        let b1pins = [new pin(), new pin()];
+        let b2pins = [new pin(), new pin()];
+
+        buffer1.assignInputPin(b1pins, null);
+        buffer2.assignInputPin(b2pins, null);
+
+        buscomp.assignInputPin(buffer1.outputPins, 0);
+        buscomp.assignInputPin(buffer2.outputPins, 1);
+
+        buffer1enable.value = true;
+        b1pins.forEach(pin => pin.value = true);
+        b2pins[1].value = true;
+
+        buffer1.update();
+        buffer2.update();
+        buscomp.update();
+        assert.equal(buffer1.getDataAsInteger(), 192);
+        assert.equal(buscomp.getDataAsInteger(), 192);
+
+        //switch active
+        buffer1enable.value = false;
+        buffer2enable.value = true;
+
+
+        buffer1.update();
+        buffer2.update();
+        buscomp.update();
+        assert.equal(buscomp.getDataAsInteger(), 64);
+
+
+    });
+
+    it('should throw if owner not assigned', function () {
+
+    });
+
+    it('should throw if multiple inputs enabled', function () {
+
     });
 });
 
@@ -101,13 +152,11 @@ describe('register component', function () {
 
 describe('buffer component', function () {
     it('output shoud be 0 when inputs are 0', function () {
-        var loadPin = new pin();
         var enablePin = new pin();
-        var buffer = new nBuffer(loadPin, enablePin, 8);
+        var buffer = new nBuffer(enablePin, 8);
         var input = new pin();
         buffer.assignInputPin(input, 0);
 
-        loadPin.value = true;
         enablePin.value = true;
         buffer.update();
 
@@ -115,31 +164,27 @@ describe('buffer component', function () {
     });
 
     it('output shoud be 0 when inputs are 1 but not enabled', function () {
-        var loadPin = new pin();
         var enablePin = new pin();
-        var buffer = new nBuffer(loadPin, enablePin, 8);
+        var buffer = new nBuffer(enablePin, 8);
         var input = new pin();
         buffer.assignInputPin(input, 0);
         input.value = true;
 
         buffer.update();
-        loadPin.value = true;
         enablePin.value = false;
         buffer.update();
 
         assert.equal(buffer.outputPins[0].value, 0);
     });
 
-    it('output shoud be 1 when inputs are 1 and load and outenabled', function () {
-        var loadPin = new pin();
+    it('output shoud be 1 when inputs are 1 and outenabled', function () {
         var enablePin = new pin();
-        var buffer = new nBuffer(loadPin, enablePin, 8);
+        var buffer = new nBuffer(enablePin, 8);
         var input = new pin();
         buffer.assignInputPin(input, 0);
         input.value = true;
 
         buffer.update();
-        loadPin.value = true;
         enablePin.value = true;
         buffer.update();
         assert.equal(buffer.outputPins[0].value, 1);
@@ -147,9 +192,8 @@ describe('buffer component', function () {
 
 
     it('it should have the correct value after input pin values are changed', function () {
-        var loadPin = new pin();
         var enablePin = new pin();
-        var buffer = new nBuffer(loadPin, enablePin, 8);
+        var buffer = new nBuffer(enablePin, 8);
         var input = new pin();
         var input2 = new pin();
 
@@ -159,7 +203,6 @@ describe('buffer component', function () {
         input2.value = true;
 
         buffer.update();
-        loadPin.value = true;
         enablePin.value = true;
         buffer.update();
 

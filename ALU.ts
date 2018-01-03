@@ -6,8 +6,8 @@ import * as _ from "underscore";
 export class fullAdder implements Ipart {
 
     private datapins: pin[] = [new pin(), new pin()];
-    public sumPin = new pin();
-    public carryOut = new pin();
+    public sumPin = new pin("SumOut", this);
+    public carryOut = new pin("carryOut", this);
     public carryIn: pin;
 
     update() {
@@ -39,7 +39,7 @@ export class nbitAdder implements Ipart, IAggregatePart {
     //0->N-1 are Apins, N -> (N*2)-1 are Bpins
     private datapins: pin[] = [];
     public carryIn: pin;
-    private n:number;
+    private n: number;
 
 
     public sumOutPins: pin[] = [];
@@ -54,6 +54,8 @@ export class nbitAdder implements Ipart, IAggregatePart {
         this.parts = _.range(0, n).map((x, index) => {
             let part = new fullAdder(this.carryIn);
             this.sumOutPins[index] = part.sumPin;
+            part.sumPin.owner = this;
+
             return part;
         });
 
@@ -71,7 +73,7 @@ export class nbitAdder implements Ipart, IAggregatePart {
         _.last(this.parts).carryIn = this.carryIn;
         //hookup the coutput of this chip to the MSB coutput. 
         this.carryOut = _.first(this.parts).carryOut;
-
+        this.carryOut.owner = this;
 
         this.parts.forEach((part, index) => this.assignInputPin(new pin(), index));
 

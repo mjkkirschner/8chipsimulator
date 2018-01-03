@@ -1,4 +1,4 @@
-import { pin } from "./primitives";
+import { pin, Ipart } from "./primitives";
 import { SmoothieChart, TimeSeries } from 'smoothie';
 
 
@@ -6,7 +6,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
  * clock is a time based oscillator which provides a binary output pin - 
  * it also has a view which draws a timeSeries chart of the clock signal over time.
  */
-export class clock {
+export class clock implements Ipart {
 
     private smoothieChart: SmoothieChart;
     private timeSeries: TimeSeries;
@@ -14,7 +14,7 @@ export class clock {
     private state = false;
     private intervalID: NodeJS.Timer
 
-    public outputPin: pin = new pin();
+    public outputPin: pin = new pin("clock", this);
 
     constructor(cycle: number, canvas?: HTMLCanvasElement) {
         this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
@@ -36,6 +36,14 @@ export class clock {
 
     public stopClock() {
         clearInterval(this.intervalID);
+    }
+
+    public update() {
+        this.increment();
+    }
+
+    public assignInputPin() {
+        throw new Error("Not Implemented and also would do nothing :)");
     }
 
     /**

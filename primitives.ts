@@ -1,5 +1,6 @@
 import * as _ from "underscore";
 import { SmoothieChart, TimeSeries } from 'smoothie';
+import { error } from "util";
 
 
 /**
@@ -8,10 +9,16 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
 export class pin {
 
     value = false;
-    constructor() {
-
+    name: String;
+    owner: Ipart;
+    constructor(name?: string, owner?: Ipart) {
+        if (name) {
+            this.name = name;
+        }
+        if (owner) {
+            this.owner = owner;
+        }
     }
-
 }
 
 /**
@@ -45,7 +52,6 @@ export class toggleSwitch {
 export interface Ipart {
     update();
     assignInputPin(pin: pin, index: number);
-
 
 }
 
@@ -117,18 +123,16 @@ class buffer implements Ipart {
     //default input pin disconnected;
     private dataPin = new pin();
 
-    private loadPin: pin;
-    private outputEnablePin: pin;
+    public outputEnablePin: pin;
     public outputPin: pin = new pin();
 
-    constructor(loadPin: pin, outputEnablePin: pin) {
-        this.loadPin = loadPin;
+    constructor(outputEnablePin: pin) {
         this.outputEnablePin = outputEnablePin;
     }
 
     update() {
-        //if the load pin and output enable pin are high - output the input value.
-        if (this.loadPin && this.loadPin.value == true && this.outputEnablePin && this.outputEnablePin.value == true) {
+        //if the output enable pin are high - output the input value.
+        if (this.outputEnablePin && this.outputEnablePin.value == true) {
             this.outputPin.value = this.dataPin.value;
         }
     }
@@ -143,16 +147,14 @@ export class nBuffer implements Ipart, IAggregatePart {
     private dataPins: pin[] = [];
     public outputPins: pin[] = [];
     public outputEnablePin: pin;
-    public loadPin: pin;
 
-
-    constructor(loadPin: pin, outputEnablePin: pin, n = 8) {
-        this.loadPin = loadPin;
+    constructor(outputEnablePin: pin, n = 8) {
         this.outputEnablePin = outputEnablePin;
 
         this.parts = _.range(0, n).map((x, index) => {
-            let part = new buffer(this.loadPin, this.outputEnablePin);
+            let part = new buffer(this.outputEnablePin);
             this.outputPins[index] = part.outputPin;
+            part.outputPin.owner = this;
             return part;
         });
 
@@ -163,8 +165,18 @@ export class nBuffer implements Ipart, IAggregatePart {
     update() {
         this.parts.forEach(part => { part.update(); })
     }
-    assignInputPin(pin: pin, index: number) {
-        this.parts[index].assignInputPin(pin, 0);
+    //TODO do this same thing for other nbitParts.
+    assignInputPin(pin: pin | pin[], index: number) {
+        if (pin instanceof Array) {
+            if (pin.length != this.parts.length) {
+                console.log("mismatch between parts and pins, some internal pins will be disconnected.")
+            }
+            pin.forEach((pin, i) => { this.parts[i].assignInputPin(pin, 0) })
+        }
+        else {
+            this.parts[index].assignInputPin(pin, 0);
+
+        }
     }
 
     public getDataAsInteger() {
@@ -205,6 +217,8 @@ export class nRegister implements Ipart, IAggregatePart {
             part.clockPin = this.clockPin;
             part.enablePin = this.enablePin;
             this.outputPins[index] = part.outputPin;
+            part.outputPin.owner = this;
+
             return part;
         });
 
@@ -213,8 +227,17 @@ export class nRegister implements Ipart, IAggregatePart {
 
     }
 
-    public assignInputPin(pin: pin, index: number) {
-        this.parts[index].assignInputPin(pin, 0);
+    assignInputPin(pin: pin | pin[], index: number) {
+        if (pin instanceof Array) {
+            if (pin.length != this.parts.length) {
+                console.log("mismatch between parts and pins, some internal pins will be disconnected.")
+            }
+            pin.forEach((pin, i) => { this.parts[i].assignInputPin(pin, 0) })
+        }
+        else {
+            this.parts[index].assignInputPin(pin, 0);
+
+        }
     }
 
 
@@ -234,6 +257,73 @@ export class nRegister implements Ipart, IAggregatePart {
         console.log("register state is", outputAsInt);
         this.lastClockpinValue = this.clockPin.value;
 
+    }
+
+}
+
+/**
+ * this class represents a bus - it enables multiple input connections which
+ * are then routed to a single output - it acts almost like a data selector 
+ * but the input which is routed is implicitly controlled - not set with a selection
+ * signal. Any number of input groups (of n pins) can be routed to the n output pins,
+ * but only one will ever be active at a time.
+ */
+export class bus implements Ipart {
+
+    public outputPins: pin[] = [];
+    public inputGroups: Array<Array<pin>> = [];
+
+    update() {
+        // when the bus updates we need to identify which inputs are currently enabled(writing to the bus), if any - 
+        // then send those signals out on the outputs
+        //if we find two active input groups, then throw an exception for now.
+
+        //TODO consider adding triState logic to pins instead of bools, then we don't care who owns this pin.
+        let groupStates = this.inputGroups.map(group => {
+            return _.any(group, (pin) => {
+                if (pin.owner == null) {
+                    throw new Error("the pin does not have an owner assigned - we cannot compute which IC is writing to the bus.");
+                }
+                return (pin.owner as buffer).outputEnablePin.value == true
+            });
+        });
+
+        var activeGroupCount = groupStates.filter((active) => { return active }).length;
+        if (activeGroupCount > 1) {
+            throw new Error("there are multiple active input groups on this bus, undefined behavior.");
+        }
+
+        if (activeGroupCount == 1) {
+            let index = groupStates.indexOf(true);
+            let activeinput = this.inputGroups[index];
+            activeinput.forEach((pin, index) => this.outputPins[index].value = pin.value);
+        }
+        //if there is one writing to the bus, turn off all pins.
+        else {
+            this.outputPins.forEach(x => x.value = false);
+        }
+
+    }
+
+    assignInputPin(pin: pin | pin[], index: number) {
+
+        if (pin instanceof Array) {
+            this.inputGroups[index] = pin;
+        }
+        else {
+            throw new Error("have not implemented passing single pins to bus yet.");
+        }
+
+
+    }
+
+    getDataAsInteger(): number {
+        return parseInt(this.outputPins.map(pin => { return Number(pin.value) }).join(""), 2);
+    }
+
+    constructor(parity: number) {
+        //create output pins
+        this.outputPins = _.range(0, parity).map((x, index) => { return new pin("output" + index, this) });
     }
 
 }
