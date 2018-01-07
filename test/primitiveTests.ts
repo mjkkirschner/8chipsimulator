@@ -1,6 +1,6 @@
-import { clock } from "../clock";
+import { clock } from "../src/clock";
 import * as assert from 'assert';
-import { nRegister, pin, nBuffer, bus } from "../primitives";
+import { nRegister, pin, nBuffer, bus } from "../src/primitives";
 import { fail } from "assert";
 
 describe('clock component', function () {

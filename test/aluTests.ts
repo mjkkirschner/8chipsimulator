@@ -1,8 +1,8 @@
-import { clock } from "../clock";
+import { clock } from "../src/clock";
 import * as assert from 'assert';
-import { nRegister, pin, nBuffer } from "../primitives";
+import { nRegister, pin, nBuffer } from "../src/primitives";
 import { fail } from "assert";
-import { fullAdder, nbitAdder } from "../ALU";
+import { fullAdder, nbitAdder } from "../src/ALU";
 
 describe('fullAdder', function () {
     it('should return correct truth table for all inputs', function () {
