@@ -11,7 +11,7 @@ describe('clock component', function () {
 
     it('value should be 0 after pulsing', function (done) {
         var clockComp = new clock(100);
-        clockComp.increment(() => {
+        clockComp.increment(undefined, () => {
             assert.equal(clockComp.outputPin.value, 0);
             done()
         });

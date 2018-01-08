@@ -48,21 +48,27 @@ export class clock implements Ipart {
 
     /**
      * pulses the clock for the cycle time and calls the 
-     * provided callback if it exists.
+     * provided callbacks if they exist.
      * @param callback 
      */
-    public increment(callback?: Function) {
+    public increment(callbackHigh?: Function, callbackLow?: Function) {
 
         //set clock to 0  
         this.tick();
         //still zero at cycle *2
-        setTimeout(() => { this.tick() }, this.cycle);
-        setTimeout(() => { this.tock() }, this.cycle + 1);
+        setTimeout(() => { this.tick(); }, this.cycle);
+        setTimeout(() => {
+            this.tock(); 
+            if (callbackHigh) {
+                callbackHigh();
+            }
+        }, this.cycle + 1);
+
         setTimeout(() => { this.tock() }, (this.cycle * 2) + 1);
         setTimeout(() => {
             this.tick();
-            if (callback) {
-                callback();
+            if (callbackLow) {
+                callbackLow();
             }
         }, this.cycle * 3);
     }
