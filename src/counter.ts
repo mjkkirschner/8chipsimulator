@@ -52,6 +52,7 @@ export class binaryCounter implements Ipart {
 
         this.outputPins = _.range(0, n).map(x => { return new pin("output" + x) });
         this.rippleCarryOut = new pin("carryOut");
+        this.dataPins = [];
     }
 
     update() {
@@ -69,7 +70,7 @@ export class binaryCounter implements Ipart {
             //else if the clock pulsed, but we're not loading - increment the state
         } else if (clockPulsed && countEnabled) {
             this.currentState = this.currentState + 1;
-            let requiredBits = Math.floor(Math.log(Math.max(this.currentState - 1, 1)) * Math.LOG2E) + 1;
+            let requiredBits = Math.floor(Math.log(Math.max(this.currentState, 1)) * Math.LOG2E) + 1;
 
             if (requiredBits > this.outputPins.length) {
                 this.currentState = 0;

@@ -1,5 +1,7 @@
 import { pin, Ipart } from "./primitives";
 import { SmoothieChart, TimeSeries } from 'smoothie';
+import * as _ from "underscore";
+import { clearInterval, clearImmediate } from "timers";
 
 
 /**
@@ -14,6 +16,10 @@ export class clock implements Ipart {
     private state = false;
     private intervalID: NodeJS.Timer
 
+    private highCallbacks: Function[];
+    private lowCallbacks: Function[];
+
+
     public outputPin: pin = new pin("clock", this);
 
     constructor(cycle: number, canvas?: HTMLCanvasElement) {
@@ -24,6 +30,8 @@ export class clock implements Ipart {
         this.timeSeries = new TimeSeries();
         this.cycle = cycle
         this.smoothieChart.addTimeSeries(this.timeSeries);
+        this.highCallbacks = [];
+        this.lowCallbacks = [];
     }
 
     public startClock() {
@@ -58,19 +66,53 @@ export class clock implements Ipart {
         //still zero at cycle *2
         setTimeout(() => { this.tick(); }, this.cycle);
         setTimeout(() => {
-            this.tock(); 
+            this.tock();
             if (callbackHigh) {
                 callbackHigh();
             }
+            this.highCallbacks.forEach(x => x());
         }, this.cycle + 1);
 
         setTimeout(() => { this.tock() }, (this.cycle * 2) + 1);
         setTimeout(() => {
             this.tick();
+            this.lowCallbacks.forEach(x => x());
             if (callbackLow) {
                 callbackLow();
             }
         }, this.cycle * 3);
+    }
+
+    public registerHighCallback(cb: Function) {
+        this.highCallbacks.push(cb);
+    }
+
+    public registerLowCallback(cb: Function) {
+        this.lowCallbacks.push(cb);
+    }
+
+    //not sure if this method is actually working correctly...
+    public pulseNumberOfTimes(n: number, done?: Function) {
+        let count = 0;
+        let cycleComplete = true;
+
+        this.intervalID = setInterval(() => {
+            if (cycleComplete) {
+                //it's time to get out of here...
+                if (count > n - 1) {
+                    clearInterval(this.intervalID);
+                    done();
+                }
+                else {
+                    this.increment(undefined, () => {
+                        cycleComplete = true; count = count + 1
+                    });
+                    cycleComplete = false;
+                }
+            }
+
+        }, this.cycle * 4);
+
     }
 
     private tick() {
