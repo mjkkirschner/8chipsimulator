@@ -118,6 +118,30 @@ class binaryCell implements Ipart {
 
 }
 
+export class inverter implements Ipart {
+
+    //default input pin disconnected;
+    private dataPin = new pin();
+
+    public outputEnablePin: pin;
+    public outputPin: pin = new pin();
+
+    constructor(outputEnablePin: pin) {
+        this.outputEnablePin = outputEnablePin;
+    }
+
+    update() {
+        //if the output enable pin are high - output the input value.
+        if (this.outputEnablePin && this.outputEnablePin.value == true) {
+            this.outputPin.value = !(this.dataPin.value);
+        }
+    }
+    assignInputPin(pin: pin, index: number) {
+        this.dataPin = pin;
+    }
+
+}
+
 class buffer implements Ipart {
 
     //default input pin disconnected;

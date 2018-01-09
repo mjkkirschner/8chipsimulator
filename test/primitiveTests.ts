@@ -1,6 +1,6 @@
 import { clock } from "../src/clock";
 import * as assert from 'assert';
-import { nRegister, pin, nBuffer, bus } from "../src/primitives";
+import { nRegister, pin, nBuffer, bus, inverter } from "../src/primitives";
 import { fail } from "assert";
 
 describe('clock component', function () {
@@ -149,6 +149,22 @@ describe('register component', function () {
         assert.equal(reg.getDataAsInteger(), 128);
     });
 });
+
+describe('inverter component', function () {
+    it('output shoud be 0 when inputs are 1', function () {
+        var enablePin = new pin();
+        var inv = new inverter(enablePin);
+        var input = new pin();
+        inv.assignInputPin(input, 0);
+        input.value = true;
+
+        enablePin.value = true;
+        inv.update();
+
+        assert.equal(inv.outputPin.value, 0);
+    });
+});
+
 
 describe('buffer component', function () {
     it('output shoud be 0 when inputs are 0', function () {
