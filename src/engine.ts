@@ -40,6 +40,44 @@ export class graph {
             });
         });
     }
+
+    public DFS(start: node): node[] {
+        let stack = [start];
+        let visited: node[] = [];
+        while (stack.length > 0) {
+            let vertex = stack.pop();
+            if (!(_.contains(visited, vertex))) {
+                visited.push(vertex);
+                stack.concat(_.difference(vertex.adj, visited));
+            }
+        }
+        return visited;
+    }
+
+    public topoSortInternal(vertex: node, visited: node[], stack: node[]) {
+        visited.push(vertex);
+
+        //recurse on children that we have not already recursed on.
+        vertex.adj.forEach(x => {
+            if (!(_.contains(visited, x))) {
+                this.topoSortInternal(x, visited, stack)
+            }
+        });
+        stack.unshift(vertex);
+
+
+    }
+
+    public topoSort(): Ipart[] {
+        let visited:node[] = [];
+        let stack:node[] = [];
+        this.nodes.forEach(node => {
+            if (!(_.contains(visited, node))) {
+                this.topoSortInternal(node, visited, stack);
+            }
+        });
+        return stack.map(x=>x.pointer);
+    }
 }
 
 class node {
