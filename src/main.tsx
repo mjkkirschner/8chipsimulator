@@ -2,7 +2,7 @@ import { toggleSwitch, nRegister } from "./primitives";
 import { clock } from "./clock";
 
 
-
+/** 
 var clockComponent = new clock(200,document.getElementById("timeline") as HTMLCanvasElement);
 var enableButton = new toggleSwitch(document.getElementById("componentsCanvas"), "enable");
 
@@ -22,6 +22,19 @@ setInterval(() => {
 }, 100)
 
 clockComponent.startClock();
+*/
 
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
+const App = () => {
+  return (
+    <div>
+      <p>Hello world!</p>
+    </div>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('app'));
 
 

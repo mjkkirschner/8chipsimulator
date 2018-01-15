@@ -69,14 +69,14 @@ export class graph {
     }
 
     public topoSort(): Ipart[] {
-        let visited:node[] = [];
-        let stack:node[] = [];
+        let visited: node[] = [];
+        let stack: node[] = [];
         this.nodes.forEach(node => {
             if (!(_.contains(visited, node))) {
                 this.topoSortInternal(node, visited, stack);
             }
         });
-        return stack.map(x=>x.pointer);
+        return stack.map(x => x.pointer);
     }
 }
 
@@ -102,5 +102,4 @@ export class execution {
 
 
 
-}
 }
