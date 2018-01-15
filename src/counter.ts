@@ -37,6 +37,14 @@ export class binaryCounter implements Ipart {
 
     private lastClockpinValue;
 
+    public get inputs() {
+        return this.dataPins.concat(this.clearPin, this.clockPin,
+            this.outputEnablePin1, this.outputEnablePin2);
+    }
+
+    public get outputs() {
+        return this.outputPins.concat(this.rippleCarryOut);
+    }
 
     constructor(n: number) {
 

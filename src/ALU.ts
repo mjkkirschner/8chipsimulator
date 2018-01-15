@@ -11,6 +11,15 @@ export class fullAdder implements Ipart {
     public carryOut = new outputPin("carryOut", this);
     public carryIn = new inputPin();
 
+    public get inputs() {
+        return this.datapins.concat(this.carryIn);
+    }
+
+    public get outputs(): outputPin[] {
+        return [this.sumPin, this.carryOut];
+    }
+
+
     update() {
         //SUM = (A XOR B) XOR Cin = (A ⊕ B) ⊕ Cin
         //CARRY-OUT = A AND B OR Cin(A XOR B) = A.B + Cin(A ⊕ B)
@@ -43,6 +52,17 @@ export class nbitAdder implements Ipart, IAggregatePart {
     public sumOutPins: outputPin[] = [];
     public carryOut = new outputPin("carryOut", this);
     parts: fullAdder[];
+
+    public get inputs() {
+        let step1 = this.dataPinsA.concat(this.dataPinsB);
+        let step2 = step1.concat(this.carryIn);
+        return step2;
+    }
+
+    public get outputs() {
+        return this.sumOutPins.concat(this.carryOut);
+    }
+
 
     constructor(n: number) {
 

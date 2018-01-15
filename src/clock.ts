@@ -1,4 +1,4 @@
-import { pin, Ipart } from "./primitives";
+import {  Ipart } from "./primitives";
 import { SmoothieChart, TimeSeries } from 'smoothie';
 import * as _ from "underscore";
 import { clearInterval, clearImmediate } from "timers";
@@ -22,6 +22,14 @@ export class clock implements Ipart {
 
 
     public outputPin: outputPin = new outputPin("clock", this);
+
+    public get inputs() {
+        return [];
+    }
+
+    public get outputs() {
+        return [this.outputPin];
+    }
 
     constructor(cycle: number, canvas?: HTMLCanvasElement) {
         this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });

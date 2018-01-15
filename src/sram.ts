@@ -31,13 +31,23 @@ export class staticRam implements Ipart, Imemory {
     public wordSize: number;
     private lastWEstate: boolean = true;
 
+
+    public get inputs() {
+        let step1 = this.addressPins.concat(this.writeEnable, this.chipEnable,
+            this.outputEnable);
+        let step2 = step1.concat(this.InputOutputPins.map(x => { return x.internalInput }));
+        return step2;
+    }
+
+    public get outputs() {
+        return this.InputOutputPins.map(x => { return x.internalOutput });
+    }
+
+
     /**
      * 
      * @param wordSize size of the words this chip holds (usually 8bits).
      * @param length total number of words this chip can hold.
-     * @param writeEnable active low write enable
-     * @param chipEnable active low chip enable
-     * @param outputEnable active low output enable
      */
     constructor(wordSize: number, length: number) {
         //init data.

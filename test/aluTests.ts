@@ -1,6 +1,6 @@
 import { clock } from "../src/clock";
 import * as assert from 'assert';
-import { nRegister, pin, nBuffer } from "../src/primitives";
+import { nRegister, nBuffer } from "../src/primitives";
 import { fail } from "assert";
 import { fullAdder, nbitAdder } from "../src/ALU";
 import { outputPin, wire } from "../src/pins_wires";

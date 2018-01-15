@@ -9,6 +9,15 @@ export class twoLineToFourLinedecoder implements Ipart {
     public dataPins: inputPin[] = [];
     public outputPins: outputPin[] = [];
     public outputEnablePin = new inputPin("outputEnable", this, true);;
+
+    public get inputs() {
+        return this.dataPins.concat(this.outputEnablePin)
+    }
+
+    public get outputs() {
+        return this.outputPins;
+    }
+
     constructor() {
         //4 outputs
         this.outputPins = _.range(0, 4).map((x, i) => { return new outputPin("output" + i, this) });

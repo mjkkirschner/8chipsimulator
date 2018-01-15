@@ -35,6 +35,8 @@ export class toggleSwitch {
 
 export interface Ipart {
     update();
+    outputs: Array<outputPin>
+    inputs: Array<inputPin>
 }
 
 export interface IAggregatePart {
@@ -42,6 +44,24 @@ export interface IAggregatePart {
     getDataAsInteger(): number
     //internal wires are used to attach the external pins to the internal pins.
     internalWires: internalWire[];
+}
+
+
+export class VoltageRail implements Ipart {
+
+    public outputPin: outputPin;
+    constructor(name?: string) {
+        this.outputPin = new outputPin(name, this);
+    }
+    update() {
+
+    }
+    get outputs() {
+        return [this.outputPin];
+    }
+    get inputs() {
+        return [];
+    }
 }
 
 /**
@@ -59,6 +79,14 @@ class binaryCell implements Ipart {
     private lastClockpinValue;
     private smoothieChart;
     private timeSeries;
+
+    public get inputs() {
+        return [this.clockPin, this.dataPin, this.enablePin];
+    }
+
+    public get outputs() {
+        return [this.outputPin];
+    }
 
 
     constructor(signalDrawing?: HTMLCanvasElement) {
@@ -105,6 +133,14 @@ export class inverter implements Ipart {
     public outputEnablePin = new inputPin("outputEnable", this);
     public outputPin = new outputPin("invertedOut", this);
 
+    public get inputs() {
+        return [this.dataPin];
+    }
+
+    public get outputs() {
+        return [this.outputPin];
+    }
+
     constructor() {
     }
 
@@ -124,6 +160,13 @@ class buffer implements Ipart {
     public outputEnablePin = new inputPin("outputEnable", this);
     public outputPin = new outputPin("data out", this);
 
+    public get inputs() {
+        return [this.dataPin, this.outputEnablePin];
+    }
+
+    public get outputs() {
+        return [this.outputPin];
+    }
 
     constructor() {
     }
@@ -142,6 +185,14 @@ export class nBuffer implements Ipart, IAggregatePart {
     public dataPins: inputPin[] = [];
     public outputPins: outputPin[] = [];
     public outputEnablePin = new inputPin("outputEnable", this);
+
+    public get inputs() {
+        return this.dataPins.concat(this.outputEnablePin)
+    }
+
+    public get outputs() {
+        return this.outputPins;
+    }
 
     constructor(n = 8) {
 
@@ -187,6 +238,13 @@ export class nRegister implements Ipart, IAggregatePart {
     private smoothieChart;
     private timeSeries;
 
+    public get inputs() {
+        return this.dataPins.concat(this.clockPin, this.enablePin)
+    }
+
+    public get outputs() {
+        return this.outputPins;
+    }
 
     constructor(n = 8, signalDrawing?: HTMLCanvasElement) {
 
@@ -250,6 +308,14 @@ export class bus implements Ipart {
 
     public outputPins: outputPin[] = [];
     public inputGroups: Array<Array<inputPin>> = [];
+
+    public get inputs() {
+        return _.flatten(this.inputGroups);
+    }
+
+    public get outputs() {
+        return this.outputPins;
+    }
 
     update() {
         // when the bus updates we need to identify which inputs are currently enabled(writing to the bus), if any - 
