@@ -2,6 +2,7 @@ import { pin, Ipart } from "./primitives";
 import { SmoothieChart, TimeSeries } from 'smoothie';
 import * as _ from "underscore";
 import { clearInterval, clearImmediate } from "timers";
+import { outputPin } from "./pins_wires";
 
 
 /**
@@ -20,7 +21,7 @@ export class clock implements Ipart {
     private lowCallbacks: Function[];
 
 
-    public outputPin: pin = new pin("clock", this);
+    public outputPin: outputPin = new outputPin("clock", this);
 
     constructor(cycle: number, canvas?: HTMLCanvasElement) {
         this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });

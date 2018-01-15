@@ -3,15 +3,18 @@ import * as assert from 'assert';
 import { nRegister, pin, nBuffer } from "../src/primitives";
 import { fail } from "assert";
 import { fullAdder, nbitAdder } from "../src/ALU";
+import { outputPin, wire } from "../src/pins_wires";
 
 describe('fullAdder', function () {
     it('should return correct truth table for all inputs', function () {
-        let ci = new pin();
-        let ad = new fullAdder(ci);
-        let a = new pin();
-        let b = new pin();
-        ad.assignInputPin(a, 0);
-        ad.assignInputPin(b, 1);
+        let ci = new outputPin();
+        let ad = new fullAdder();
+        let a = new outputPin();
+        let b = new outputPin();
+
+        new wire(a, ad.datapins[0]);
+        new wire(b, ad.datapins[1]);
+        new wire(ci, ad.carryIn);
 
         ad.update();
         assert.equal(ad.sumPin.value, 0);
@@ -67,16 +70,17 @@ describe('fullAdder', function () {
 
 describe('8bitAdder', function () {
     it('should return correct value for simple cases', function () {
-        let ci = new pin();
-        let ad = new nbitAdder(ci, 8);
-        let a = new pin();
-        let b = new pin();
-        let c = new pin();
+        let ci = new outputPin();
+        let ad = new nbitAdder(8);
+        let a = new outputPin();
+        let b = new outputPin();
+        let c = new outputPin();
 
+        new wire(a, ad.dataPinsA[0]);
+        new wire(b, ad.dataPinsB[0]);
+        new wire(c, ad.dataPinsB[1]);
+        new wire(ci, ad.carryIn);
 
-        ad.assignInputPin(a, 0);
-        ad.assignInputPin(b, 8);
-        ad.assignInputPin(c, 9);
 
         ad.update();
         assert.equal(ad.getDataAsInteger(), 0);
@@ -107,16 +111,19 @@ describe('8bitAdder', function () {
     });
 
     it('should return correct value for complex cases', function () {
-        let ci = new pin();
-        let ad = new nbitAdder(ci, 8);
-        let a = new pin();
-        let b = new pin();
-        let c = new pin();
+        let ci = new outputPin();
+        let ad = new nbitAdder(8);
+        let a = new outputPin();
+        let b = new outputPin();
+        let c = new outputPin();
+
+        new wire(a, ad.dataPinsA[0]);
+        new wire(b, ad.dataPinsB[0]);
+        new wire(c, ad.dataPinsB[1]);
+        new wire(ci, ad.carryIn);
 
 
-        ad.assignInputPin(a, 0);
-        ad.assignInputPin(b, 8);
-        ad.assignInputPin(c, 9);
+
         ci.value = true;
 
         ad.update();
