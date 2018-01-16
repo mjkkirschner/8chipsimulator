@@ -1,10 +1,10 @@
-import { Ipart, IAggregatePart } from "./primitives";
+import { Ipart, IAggregatePart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { inputPin, outputPin, internalWire, wire } from "./pins_wires";
 
 
 
-export class fullAdder implements Ipart {
+export class fullAdder extends basePart implements Ipart {
 
     public datapins: inputPin[] = [new inputPin(), new inputPin()];
     public sumPin = new outputPin("SumOut", this);
@@ -36,11 +36,12 @@ export class fullAdder implements Ipart {
     }
 
     constructor() {
+        super();
     }
 
 }
 
-export class nbitAdder implements Ipart, IAggregatePart {
+export class nbitAdder extends basePart implements Ipart, IAggregatePart {
 
     //0->N-1 are Apins, N -> (N*2)-1 are Bpins
     public dataPinsA: inputPin[] = [];
@@ -65,6 +66,7 @@ export class nbitAdder implements Ipart, IAggregatePart {
 
 
     constructor(n: number) {
+        super();
 
         this.n = n;
 

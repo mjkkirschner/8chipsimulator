@@ -1,4 +1,4 @@
-import { Ipart } from "./primitives";
+import { Ipart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { clock } from "./clock";
 import { request } from "http";
@@ -20,7 +20,7 @@ function leadingNullString(value: string | number, minSize: number): string {
 }
 
 //modeled after the behavior of the 74ls161 async clear, sync load.
-export class binaryCounter implements Ipart {
+export class binaryCounter extends basePart implements Ipart {
 
     private currentState = 0;
     //default input pin disconnected;
@@ -47,6 +47,7 @@ export class binaryCounter implements Ipart {
     }
 
     constructor(n: number) {
+        super();
 
         this.outputPins = _.range(0, n).map(x => { return new outputPin("output" + x, this) });
         this.rippleCarryOut = new outputPin("carryOut", this);

@@ -1,11 +1,11 @@
-import { Ipart } from "./primitives";
+import { Ipart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { inputPin, outputPin } from "./pins_wires";
 
 /**
  * 2 to 4 line decoder - modeled after 74ls139 behavior.
  */
-export class twoLineToFourLinedecoder implements Ipart {
+export class twoLineToFourLinedecoder extends basePart implements Ipart {
     public dataPins: inputPin[] = [];
     public outputPins: outputPin[] = [];
     public outputEnablePin = new inputPin("outputEnable", this, true);;
@@ -19,6 +19,7 @@ export class twoLineToFourLinedecoder implements Ipart {
     }
 
     constructor() {
+        super();
         //4 outputs
         this.outputPins = _.range(0, 4).map((x, i) => { return new outputPin("output" + i, this) });
         this.dataPins = [new inputPin(), new inputPin()];

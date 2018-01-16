@@ -1,4 +1,4 @@
-import { Ipart } from "./primitives";
+import { Ipart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { error } from "util";
 import { inputPin, inputOutputPin, pinMode, outputPin, wire } from "./pins_wires";
@@ -20,7 +20,7 @@ export interface Imemory {
  * modeled after something like the:
  * CY7C199 32kx8 RAM module.
  */
-export class staticRam implements Ipart, Imemory {
+export class staticRam extends basePart implements Ipart, Imemory {
 
     private data: boolean[][];
     public writeEnable = new inputPin("writeEnable", this, true);
@@ -50,6 +50,7 @@ export class staticRam implements Ipart, Imemory {
      * @param length total number of words this chip can hold.
      */
     constructor(wordSize: number, length: number) {
+        super();
         //init data.
         this.wordSize = wordSize;
 

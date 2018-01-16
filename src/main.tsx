@@ -1,7 +1,6 @@
 import { toggleSwitch, nRegister } from "./primitives";
 import { clock } from "./clock";
 
-
 /** 
 var clockComponent = new clock(200,document.getElementById("timeline") as HTMLCanvasElement);
 var enableButton = new toggleSwitch(document.getElementById("componentsCanvas"), "enable");
@@ -26,11 +25,21 @@ clockComponent.startClock();
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { PartView } from "./views/partView";
+import { generateRegisterAndBuffer } from "../test/graphTestHelpers";
+
 
 const App = () => {
+
+  let parts = generateRegisterAndBuffer();
+  let views = parts.map(x => {
+    return <PartView key={x.id} model={x}
+      pos={{ x: Math.random() * 200, y: Math.random() * 400 }} />
+  });
+
   return (
     <div>
-      <p>Hello world!</p>
+      {views}
     </div>
   );
 };

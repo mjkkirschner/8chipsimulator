@@ -1,4 +1,4 @@
-import {  Ipart } from "./primitives";
+import {  Ipart, basePart } from "./primitives";
 import { SmoothieChart, TimeSeries } from 'smoothie';
 import * as _ from "underscore";
 import { clearInterval, clearImmediate } from "timers";
@@ -9,7 +9,7 @@ import { outputPin } from "./pins_wires";
  * clock is a time based oscillator which provides a binary output pin - 
  * it also has a view which draws a timeSeries chart of the clock signal over time.
  */
-export class clock implements Ipart {
+export class clock extends  basePart implements Ipart {
 
     private smoothieChart: SmoothieChart;
     private timeSeries: TimeSeries;
@@ -32,6 +32,7 @@ export class clock implements Ipart {
     }
 
     constructor(cycle: number, canvas?: HTMLCanvasElement) {
+        super();
         this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
         if (canvas) {
             this.smoothieChart.streamTo(canvas);

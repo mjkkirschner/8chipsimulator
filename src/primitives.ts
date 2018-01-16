@@ -37,6 +37,21 @@ export interface Ipart {
     update();
     outputs: Array<outputPin>
     inputs: Array<inputPin>
+    id:string
+}
+
+export abstract class basePart {
+    id: string
+    protected uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    constructor() {
+        this.id = this.uuidv4();
+    }
 }
 
 export interface IAggregatePart {
@@ -47,10 +62,11 @@ export interface IAggregatePart {
 }
 
 
-export class VoltageRail implements Ipart {
+export class VoltageRail extends basePart implements Ipart {
 
     public outputPin: outputPin;
     constructor(name?: string) {
+        super();
         this.outputPin = new outputPin(name, this);
     }
     update() {
@@ -68,7 +84,7 @@ export class VoltageRail implements Ipart {
  * a flipFlop - this component has a single bit of memory, 3 inputs, and an output.
  * It loads the input bit to the output if enable is true and if the clock moves from low to high.
  */
-class binaryCell implements Ipart {
+class binaryCell extends basePart implements Ipart {
 
     public clockPin: inputPin = new inputPin("clockPin", this);
     public dataPin: inputPin = new inputPin("data", this);
@@ -90,6 +106,7 @@ class binaryCell implements Ipart {
 
 
     constructor(signalDrawing?: HTMLCanvasElement) {
+        super();
 
         //TODO rethink using smoothie here... maybe this should not be part of the model constructors.
         this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
@@ -126,7 +143,7 @@ class binaryCell implements Ipart {
 
 }
 
-export class inverter implements Ipart {
+export class inverter extends basePart implements Ipart {
 
     //default input pin disconnected;
     public dataPin = new inputPin("data", this);
@@ -142,6 +159,7 @@ export class inverter implements Ipart {
     }
 
     constructor() {
+        super();
     }
 
     update() {
@@ -152,7 +170,7 @@ export class inverter implements Ipart {
     }
 }
 
-class buffer implements Ipart {
+class buffer extends basePart implements Ipart {
 
     //default input pin disconnected;
     public dataPin = new inputPin("data", this);
@@ -169,6 +187,7 @@ class buffer implements Ipart {
     }
 
     constructor() {
+        super();
     }
 
     update() {
@@ -179,7 +198,7 @@ class buffer implements Ipart {
     }
 }
 
-export class nBuffer implements Ipart, IAggregatePart {
+export class nBuffer extends basePart implements Ipart, IAggregatePart {
     internalWires: internalWire[] = [];
     parts: buffer[];
     public dataPins: inputPin[] = [];
@@ -195,6 +214,7 @@ export class nBuffer implements Ipart, IAggregatePart {
     }
 
     constructor(n = 8) {
+        super();
 
         this.parts = _.range(0, n).map((x, index) => {
             let part = new buffer();
@@ -224,7 +244,7 @@ export class nBuffer implements Ipart, IAggregatePart {
 
 }
 
-export class nRegister implements Ipart, IAggregatePart {
+export class nRegister extends basePart implements Ipart, IAggregatePart {
     internalWires: internalWire[] = [];
     public clockPin = new inputPin("clockPin", this);
     public dataPins: inputPin[] = [];
@@ -247,6 +267,7 @@ export class nRegister implements Ipart, IAggregatePart {
     }
 
     constructor(n = 8, signalDrawing?: HTMLCanvasElement) {
+        super();
 
         this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
         if (signalDrawing) {
@@ -304,7 +325,7 @@ export class nRegister implements Ipart, IAggregatePart {
  * signal. Any number of input groups (of n pins) can be routed to the n output pins,
  * but only one will ever be active at a time.
  */
-export class bus implements Ipart {
+export class bus extends basePart implements Ipart {
 
     public outputPins: outputPin[] = [];
     public inputGroups: Array<Array<inputPin>> = [];
@@ -355,6 +376,7 @@ export class bus implements Ipart {
     }
 
     constructor(busWidth: number, NumberOfInputGroups: number) {
+        super();
         //create output pins
         this.outputPins = _.range(0, busWidth).map((x, index) => { return new outputPin("output" + index, this) });
         this.inputGroups = _.range(0, NumberOfInputGroups).map((x, index) => {
