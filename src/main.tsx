@@ -30,41 +30,64 @@ import { generateRegisterAndBuffer } from "../test/graphTestHelpers";
 import * as _ from "underscore";
 import { WireView } from "./views/wireView";
 import { wire } from "./pins_wires";
+import { stat } from "fs";
 
 
-const App = () => {
+class App extends React.Component {
 
-  let parts = generateRegisterAndBuffer();
-  let views = parts.map(x => {
-    let props = {
-      pos: { x: Math.random() * 1000, y: Math.random() * 400 },
-      key: x.id,
-      model: x
-    }
-    return new PartView(props);
-  });
+  partElements: JSX.Element[];
+  wireElements: JSX.Element[];
 
-  let allWires: wire[] = _.flatten(parts.map(x => {
-    return x.outputs.map(pin => { return pin.attachedWires });
-  }));
+  boundsData: { [id: string]: ClientRect } = {};
 
-  let wireViews = allWires.map(x => {
+  constructor(props: any) {
+    super(props)
+    let parts = generateRegisterAndBuffer();
+    this.partElements = parts.map(x => {
+      let pos = { x: Math.random() * 1000, y: Math.random() * 400 };
 
-    //find startView
-    let start = _.find(views, (p) => { return p.props.model == x.startPin.owner });
-    //find endView
-    let end = _.find(views, (p) => { return p.props.model == x.endPin.owner });
+      //when all the parts are rendered, we will gather their attached wires
+      //and generate 
+      let onMount = (pinBoundsDataArray: { id: string, bounds: ClientRect }[]) => {
+        pinBoundsDataArray.forEach(data => {
+          this.boundsData[data.id] = data.bounds;
+        });
+      }
 
-    return <WireView model={x} startPos={start.props.pos} endPos={end.props.pos} />
-  });
+      return <PartView pos={pos} key={x.id} model={x} onMount={onMount} > </PartView>
+    });
+  }
 
-  return (
-    <div>
-      {views.map((x) => { return x.render(); })}
-      {wireViews}
+  //after this component is mounted, lets render the wires,
+  //as we know all the parts will be rendered...
+  componentDidMount() {
+    let allWires: wire[] = _.flatten(this.partElements.map((x) => {
+      return x.props.model.outputs.map(pin => { return pin.attachedWires });
+    }));
+    let wireElements = allWires.map(x => {
+
+      //find startView
+      let start = _.find(this.partElements, (p) => { return p.props.model == x.startPin.owner });
+      //find endView
+      let end = _.find(this.partElements, (p) => { return p.props.model == x.endPin.owner });
+
+      return <WireView model={x}
+        startPos={{ x: this.boundsData[x.startPin.id].right, y: this.boundsData[x.startPin.id].top }}
+        endPos={{ x: this.boundsData[x.endPin.id].left, y: this.boundsData[x.endPin.id].top }} />
+    });
+    this.wireElements = wireElements;
+    this.forceUpdate();
+  }
+
+  public render() {
+    return (<div>
+      {this.partElements}
+      {this.wireElements}
     </div>
-  );
-};
+    );
+  }
+}
+
 
 ReactDOM.render(<App />, document.getElementById('app'));
 
