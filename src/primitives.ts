@@ -306,7 +306,7 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
 
         let clockPinValue = this.clockPin.value;
 
-        this.parts.forEach(part => { part.update() });
+        this.parts.reverse().forEach(part => { part.update() });
 
         var outputAsInt = this.getDataAsInteger();
         this.timeSeries.append(new Date().getTime(), outputAsInt);

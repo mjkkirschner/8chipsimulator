@@ -55,12 +55,6 @@ export class WireView extends React.Component<IWireViewProps> {
         let finalPoints = _.range(0,100).map(x=>{return x/100}).map(x=>{
             return this.evaluateCubicHermiteAtParamter(pointsAndTans[0],pointsAndTans[2],pointsAndTans[1],pointsAndTans[3],x)});
 
-        let point1x = this.props.startPos.x
-        let point1y = this.props.startPos.y
-
-        let point2x =this.props.endPos.x
-        let point2y = this.props.endPos.y
-
       return (<svg style ={this.svgStyle}> <polyline style = {this.style}
         points = {finalPoints.join(" ")}/>
     </svg>);

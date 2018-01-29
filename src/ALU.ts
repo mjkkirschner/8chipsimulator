@@ -9,7 +9,7 @@ export class fullAdder extends basePart implements Ipart {
     public datapins: inputPin[] = [new inputPin(), new inputPin()];
     public sumPin = new outputPin("SumOut", this);
     public carryOut = new outputPin("carryOut", this);
-    public carryIn = new inputPin();
+    public carryIn:inputPin = new inputPin("carryIn",this);
 
     public get inputs() {
         return this.datapins.concat(this.carryIn);
@@ -28,7 +28,7 @@ export class fullAdder extends basePart implements Ipart {
         let C = this.carryIn.value;
         let AXORB = (Number(A) ^ Number(B))
         let SUM = AXORB ^ Number(C);
-        let CARRYOUT = (A && B) || (C && Boolean(AXORB));
+        let CARRYOUT = (A && B) || (Boolean(Number(C && A) ^ Number(C && B)));
 
         this.sumPin.value = Boolean(SUM);
         this.carryOut.value = CARRYOUT;
@@ -46,7 +46,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
     //0->N-1 are Apins, N -> (N*2)-1 are Bpins
     public dataPinsA: inputPin[] = [];
     public dataPinsB: inputPin[] = [];
-    public carryIn = new inputPin();
+    public carryIn = new inputPin("carryIn",this);
     private n: number;
     public internalWires: internalWire[] = [];
 
@@ -61,7 +61,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
     }
 
     public get outputs() {
-        return this.sumOutPins.concat(this.carryOut);
+        return this.sumOutPins//.concat(this.carryOut);
     }
 
 
@@ -107,7 +107,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
     }
 
     update() {
-        this.parts.forEach(part => { part.update(); })
+        this.parts.reverse().forEach(part => { part.update(); })
     }
 
     getDataAsInteger(): number {

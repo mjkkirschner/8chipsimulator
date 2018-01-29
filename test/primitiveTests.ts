@@ -17,6 +17,21 @@ describe('clock component', function () {
             done()
         });
     });
+
+    it('should have produced some values after pulsing for a while', function (done) {
+        this.timeout(15000);
+        var clockComp = new clock(100);
+        var data = [];
+        clockComp.registerHighCallback(() => { data.push(clockComp.outputPin.value) });
+        clockComp.startClock();
+        setTimeout(() => {
+            assert(data.length > 0);
+            console.log(data);
+            clockComp.stopClock();
+            done();
+        }, 10000);
+
+    });
 });
 
 describe('bus component', function () {

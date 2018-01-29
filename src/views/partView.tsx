@@ -29,7 +29,8 @@ export class PartView extends React.Component<IpartViewProps> {
         fontFamily: 'system-ui',
         position: 'absolute' as 'absolute',
         left: 0,
-        top: 0
+        top: 0,
+        fontSize: "9pt"
     }
 
     componentDidMount() {
@@ -58,6 +59,22 @@ export class PartView extends React.Component<IpartViewProps> {
         return parseInt(pins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
 
+    componentWillReceiveProps(props) {
+        //      this.forceUpdate();
+    }
+
+    private dataStyle(data: boolean) {
+
+
+        let style = {
+            backgroundColor: "#FF5733"
+        }
+        if (data) {
+            style.backgroundColor = "#DAF7A6";
+        }
+        return style;
+    }
+
     public render() {
 
         let spanStyle = {
@@ -71,12 +88,17 @@ export class PartView extends React.Component<IpartViewProps> {
             //top: '1px'
         }
 
+
+
         let tableStyle = {
             'font-weight': 'normal'
         }
 
-        this.style.left = this.props.pos.x;
-        this.style.top = this.props.pos.y;
+        if (Math.abs(this.style.left - this.props.pos.x) > 1) {
+            this.style.left = this.props.pos.x;
+            this.style.top = this.props.pos.y;
+        }
+
 
         return (<div style={this.style}>
 
@@ -98,6 +120,7 @@ export class PartView extends React.Component<IpartViewProps> {
 
                         return (<tr>
                             <td style={inputStyle} id={"outputPin"}> {x.name} </td>
+                            <td style={this.dataStyle(x.value)} id={"value"}> {Number(x.value)} </td>
                         </tr>)
                     })}
                 </th>
