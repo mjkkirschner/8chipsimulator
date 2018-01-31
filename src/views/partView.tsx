@@ -2,8 +2,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { Ipart } from '../primitives';
 import { outputPin } from '../pins_wires';
+import { staticRam } from '../sram';
+import { MemoryDataView } from './memoryPartView';
 
-interface IpartViewProps {
+export interface IpartViewProps {
     pos: { x: number, y: number },
     model: Ipart,
     key: string,
@@ -55,7 +57,7 @@ export class PartView extends React.Component<IpartViewProps> {
         this.props.onMount(allBounds);
     }
 
-    private pinsToInt(pins: outputPin[]) {
+    protected pinsToInt(pins: outputPin[]) {
         return parseInt(pins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
 
@@ -63,7 +65,7 @@ export class PartView extends React.Component<IpartViewProps> {
         //      this.forceUpdate();
     }
 
-    private dataStyle(data: boolean) {
+    protected dataStyle(data: boolean) {
 
 
         let style = {
@@ -73,6 +75,15 @@ export class PartView extends React.Component<IpartViewProps> {
             style.backgroundColor = "#DAF7A6";
         }
         return style;
+    }
+
+
+    private addSpecificPartView(model: Ipart) {
+        //TODO we want to check if its a memory...
+        if (model instanceof staticRam) {
+            return (<MemoryDataView model={model}>
+            </MemoryDataView>)
+        }
     }
 
     public render() {
@@ -114,6 +125,9 @@ export class PartView extends React.Component<IpartViewProps> {
                 </th>
                 <th>
                     <p>{this.props.model.constructor.name}</p>
+                    {
+                        this.addSpecificPartView(this.props.model)
+                    }
                 </th>
                 <th style={tableStyle}>
                     {this.props.model.outputs.map((x, i) => {

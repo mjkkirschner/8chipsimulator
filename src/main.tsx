@@ -56,7 +56,7 @@ class App extends React.Component {
 
   constructor(props: any) {
     super(props)
-    let parts = testHelpers.generate2RegistersAndAdder();
+    let parts = testHelpers.generate2RegistersAdderAndStaticRam();
     var clockcomp = (parts[0] as clock);
 
     let gra = new graph(parts);
@@ -77,7 +77,7 @@ class App extends React.Component {
       });
       this.partElements = newPartViews;
       this.forceUpdate();
-    }, 100);
+    }, 20);
 
     this.partElements = parts.map(x => {
       let pos = { x: Math.random() * 1000, y: Math.random() * 400 };

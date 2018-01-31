@@ -12,6 +12,7 @@ export interface Imemory {
     wireUpAddressPins(pins: outputPin[]);
     writeData(address: any, data: any)
     readData(address: any): any
+    data: boolean[][];
 }
 
 /**
@@ -22,7 +23,7 @@ export interface Imemory {
  */
 export class staticRam extends basePart implements Ipart, Imemory {
 
-    private data: boolean[][];
+    public data: boolean[][];
     public writeEnable = new inputPin("writeEnable", this, true);
     public chipEnable = new inputPin("chipEnable", this, true);
     public outputEnable = new inputPin("outEnable", this, true);
@@ -57,7 +58,7 @@ export class staticRam extends basePart implements Ipart, Imemory {
         //generate empty data cells.
         this.data = _.range(0, length).map(x => { return _.range(0, wordSize).map(ind => { return false }) });
         //generate the input output pins.
-        this.InputOutputPins = _.range(0, wordSize).map(ind => { return new inputOutputPin("in/out:" + ind) });
+        this.InputOutputPins = _.range(0, wordSize).map(ind => { return new inputOutputPin("in/out:" + ind, this) });
         //generate address pins
         let requiredBits = Math.floor(Math.log(this.data.length - 1) * Math.LOG2E) + 1;
         this.addressPins = _.range(0, requiredBits).map(x => { return new inputPin("address" + x, this) });
