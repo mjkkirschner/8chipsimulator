@@ -57,6 +57,27 @@ export class PartView extends React.Component<IpartViewProps> {
         this.props.onMount(allBounds);
     }
 
+    componentDidUpdate(){
+        let node = ReactDOM.findDOMNode(this);
+        let inputPins = node.querySelectorAll("#inputPin");
+        let outputPins = node.querySelectorAll("#outputPin");
+        let bounds1 = [].slice.call(inputPins).map((element: Element, index) => {
+            return {
+                id: this.props.model.inputs[index].id,
+                bounds: element.getBoundingClientRect()
+            }
+        });
+        let bounds2 = [].slice.call(outputPins).map((element: Element, index) => {
+            return {
+                id: this.props.model.outputs[index].id,
+                bounds: element.getBoundingClientRect()
+            }
+        });
+        let allBounds = (bounds1 as any[]).concat(bounds2);
+        console.log("gathered all pin bounds and positions...");
+        this.props.onMount(allBounds);
+    }
+
     protected pinsToInt(pins: outputPin[]) {
         return parseInt(pins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
@@ -105,13 +126,7 @@ export class PartView extends React.Component<IpartViewProps> {
             'font-weight': 'normal'
         }
 
-        if (Math.abs(this.style.left - this.props.pos.x) > 1) {
-            this.style.left = this.props.pos.x;
-            this.style.top = this.props.pos.y;
-        }
-
-
-        return (<div style={this.style}>
+        return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y }}>
 
 
             <table >

@@ -48,7 +48,8 @@ class App extends React.Component {
     this.partElements.forEach((x, i) => {
       if (x.props.model.id == newModel.id) {
 
-        output = <PartView pos={x.props.pos} key={x.props.id} model={newModel} onMount={x.props.onMount} > </PartView>
+        let pos = { x: Math.random() * 10 -5 + x.props.pos.x, y: Math.random() * 10 -5 + x.props.pos.y };
+        output = <PartView pos={pos} key={x.props.id} model={newModel} onMount={x.props.onMount} > </PartView>
       }
     });
     return output;
@@ -77,6 +78,10 @@ class App extends React.Component {
       });
       this.partElements = newPartViews;
       this.forceUpdate();
+      this.recreateAllWires();
+      this.forceUpdate();
+
+
     }, 20);
 
     this.partElements = parts.map(x => {
@@ -94,9 +99,7 @@ class App extends React.Component {
     });
   }
 
-  //after this component is mounted, lets render the wires,
-  //as we know all the parts will be rendered...
-  componentDidMount() {
+  private recreateAllWires() {
     let allWires: wire[] = _.flatten(this.partElements.map((x) => {
       return x.props.model.outputs.map(pin => { return pin.attachedWires });
     }));
@@ -112,6 +115,12 @@ class App extends React.Component {
         endPos={{ x: this.boundsData[x.endPin.id].left, y: this.boundsData[x.endPin.id].top }} />
     });
     this.wireElements = wireElements;
+  }
+
+  //after this component is mounted, lets render the wires,
+  //as we know all the parts will be rendered...
+  componentDidMount() {
+    this.recreateAllWires();
     this.forceUpdate();
   }
 
