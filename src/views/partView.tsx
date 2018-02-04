@@ -5,19 +5,26 @@ import { outputPin } from '../pins_wires';
 import { staticRam } from '../sram';
 import { MemoryDataView } from './memoryPartView';
 
+export interface IPartViewState {
+    selected: Boolean
+    clickPoint: { x: number, y: number };
+}
+
 export interface IpartViewProps {
     pos: { x: number, y: number },
     model: Ipart,
     key: string,
     //we can change this so pass the positions of any ports or something like that?
     onMount: (pinBoundsDataArray: { id: string, bounds: ClientRect }[]) => any
+    //onMouseDown: (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => any
+    onMouseMove: (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => any
 }
 
-export class PartView extends React.Component<IpartViewProps> {
+export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
     constructor(props: IpartViewProps) {
         super(props);
-        this.state = {};
+        this.state = { selected: false, clickPoint: { x: 0, y: 0 } };
     }
 
     style = {
@@ -57,7 +64,7 @@ export class PartView extends React.Component<IpartViewProps> {
         this.props.onMount(allBounds);
     }
 
-    componentDidUpdate(){
+    componentDidUpdate() {
         let node = ReactDOM.findDOMNode(this);
         let inputPins = node.querySelectorAll("#inputPin");
         let outputPins = node.querySelectorAll("#outputPin");
@@ -83,7 +90,6 @@ export class PartView extends React.Component<IpartViewProps> {
     }
 
     componentWillReceiveProps(props) {
-        //      this.forceUpdate();
     }
 
     protected dataStyle(data: boolean) {
@@ -115,9 +121,6 @@ export class PartView extends React.Component<IpartViewProps> {
 
         let inputStyle = {
             backgroundColor: "darkGray",
-            //            position: "absolute" as 'absolute',
-            //left: '10px',
-            //top: '1px'
         }
 
 
@@ -126,7 +129,16 @@ export class PartView extends React.Component<IpartViewProps> {
             'font-weight': 'normal'
         }
 
-        return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y }}>
+        return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y }}
+            onMouseDown={(event) => {
+                this.setState({ selected: true, clickPoint: { x: event.clientX, y: event.clientY } })
+            }}
+            onMouseUp={(event) => { this.setState({ selected: false }) }}
+            onMouseMove={(event) => {
+                if (this.state.selected) {
+                    this.props.onMouseMove(this, event);
+                }
+            }}>
 
 
             <table >

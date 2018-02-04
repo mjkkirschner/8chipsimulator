@@ -42,14 +42,22 @@ class App extends React.Component {
 
   boundsData: { [id: string]: ClientRect } = {};
 
-  private updatePartModels(newModel: Ipart): JSX.Element {
+  private updatePartModels(newModel: Ipart, newPos?: { x: number, y: number }, updateInPlace?: Boolean): JSX.Element {
 
     var output;
     this.partElements.forEach((x, i) => {
       if (x.props.model.id == newModel.id) {
 
-        let pos = { x: Math.random() * 10 -5 + x.props.pos.x, y: Math.random() * 10 -5 + x.props.pos.y };
-        output = <PartView pos={pos} key={x.props.id} model={newModel} onMount={x.props.onMount} > </PartView>
+        //let pos = { x: Math.random() * 10 -5 + x.props.pos.x, y: Math.random() * 10 -5 + x.props.pos.y };
+        output = <PartView pos={newPos || x.props.pos}
+          key={x.props.id}
+          model={newModel}
+          onMount={x.props.onMount}
+          onMouseMove={x.props.onMouseMove} > </PartView>
+
+        if (updateInPlace) {
+          this.partElements[i] = output;
+        }
       }
     });
     return output;
@@ -94,8 +102,18 @@ class App extends React.Component {
           this.boundsData[data.id] = data.bounds;
         });
       }
+      let onMouseMove = (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => {
+        let bound = ReactDOM.findDOMNode(partView).getBoundingClientRect();
+        //if this gets called we're selected and should move...
 
-      return <PartView pos={pos} key={x.id} model={x} onMount={onMount} > </PartView>
+        this.updatePartModels(partView.props.model,
+          {
+            x: (data.clientX) + ((bound.left - bound.right) / 2),
+            y: (data.clientY) + ((bound.top - bound.bottom) / 2)
+          }, true);
+      }
+
+      return <PartView pos={pos} key={x.id} model={x} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
     });
   }
 

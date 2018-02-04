@@ -22,13 +22,15 @@ export class WireView extends React.Component<IWireViewProps> {
     style = {
         stroke: "black",
         strokeWidth: "1",
-        fill: "none"
+        fill: "none",
     }
 
     svgStyle = {
         overflow: 'visible' as 'visible',
         width: '100%',
-        position: 'absolute' as 'absolute'
+        position: 'absolute' as 'absolute',
+        zIndex:-1
+
     }
 
     private generateHermitePointsandTangents(start:ipoint, end:ipoint) {
