@@ -7,7 +7,7 @@ import { MemoryDataView } from './memoryPartView';
 
 export interface IPartViewState {
     selected: Boolean
-    clickPoint: { x: number, y: number };
+    clickOffset: { x: number, y: number };
 }
 
 export interface IpartViewProps {
@@ -22,9 +22,11 @@ export interface IpartViewProps {
 
 export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
+    bounds: ClientRect;
+
     constructor(props: IpartViewProps) {
         super(props);
-        this.state = { selected: false, clickPoint: { x: 0, y: 0 } };
+        this.state = { selected: false, clickOffset: { x: 0, y: 0 } };
     }
 
     style = {
@@ -45,6 +47,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
     componentDidMount() {
 
         let node = ReactDOM.findDOMNode(this);
+        this.bounds = node.getBoundingClientRect();
         let inputPins = node.querySelectorAll("#inputPin");
         let outputPins = node.querySelectorAll("#outputPin");
         let bounds1 = [].slice.call(inputPins).map((element: Element, index) => {
@@ -66,6 +69,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
     componentDidUpdate() {
         let node = ReactDOM.findDOMNode(this);
+        this.bounds = node.getBoundingClientRect();
         let inputPins = node.querySelectorAll("#inputPin");
         let outputPins = node.querySelectorAll("#outputPin");
         let bounds1 = [].slice.call(inputPins).map((element: Element, index) => {
@@ -131,7 +135,13 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
         return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y }}
             onMouseDown={(event) => {
-                this.setState({ selected: true, clickPoint: { x: event.clientX, y: event.clientY } })
+                this.setState({
+                    selected: true,
+                    clickOffset: {
+                        x: this.bounds.left - event.clientX,
+                        y: this.bounds.top - event.clientY
+                    }
+                })
             }}
             onMouseUp={(event) => { this.setState({ selected: false }) }}
             onMouseMove={(event) => {

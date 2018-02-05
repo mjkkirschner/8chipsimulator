@@ -108,8 +108,8 @@ class App extends React.Component {
 
         this.updatePartModels(partView.props.model,
           {
-            x: (data.clientX) + ((bound.left - bound.right) / 2),
-            y: (data.clientY) + ((bound.top - bound.bottom) / 2)
+            x: (data.clientX) + ((partView.state.clickOffset.x)),
+            y: (data.clientY) + ((partView.state.clickOffset.y))
           }, true);
       }
 
