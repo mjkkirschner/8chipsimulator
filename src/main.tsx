@@ -108,8 +108,8 @@ class App extends React.Component {
 
         this.updatePartModels(partView.props.model,
           {
-            x: (data.clientX) + ((partView.state.clickOffset.x)),
-            y: (data.clientY) + ((partView.state.clickOffset.y))
+            x: (data.clientX) + ((partView.state.clickOffset.x) + window.scrollX),
+            y: (data.clientY) + ((partView.state.clickOffset.y) + window.scrollY)
           }, true);
       }
 
@@ -129,8 +129,8 @@ class App extends React.Component {
       let end = _.find(this.partElements, (p) => { return p.props.model == x.endPin.owner });
 
       return <WireView model={x}
-        startPos={{ x: this.boundsData[x.startPin.id].right, y: this.boundsData[x.startPin.id].top }}
-        endPos={{ x: this.boundsData[x.endPin.id].left, y: this.boundsData[x.endPin.id].top }} />
+        startPos={{ x: this.boundsData[x.startPin.id].right + window.scrollX, y: this.boundsData[x.startPin.id].top + window.scrollY }}
+        endPos={{ x: this.boundsData[x.endPin.id].left + window.scrollX, y: this.boundsData[x.endPin.id].top + window.scrollY }} />
     });
     this.wireElements = wireElements;
   }
