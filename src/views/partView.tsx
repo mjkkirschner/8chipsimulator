@@ -41,7 +41,8 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         position: 'absolute' as 'absolute',
         left: 0,
         top: 0,
-        fontSize: "9pt"
+        fontSize: "9pt",
+        zIndex: 0,
     }
 
     componentDidMount() {
@@ -133,8 +134,9 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             'font-weight': 'normal'
         }
 
-        return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y }}
+        return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y, zIndex: this.state.selected ? 1 : 0 }}
             onMouseDown={(event) => {
+                event.preventDefault()
                 this.setState({
                     selected: true,
                     clickOffset: {
@@ -145,6 +147,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             }}
             onMouseUp={(event) => { this.setState({ selected: false }) }}
             onMouseMove={(event) => {
+                event.preventDefault()
                 if (this.state.selected) {
                     this.props.onMouseMove(this, event);
                 }

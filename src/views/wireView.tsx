@@ -35,8 +35,8 @@ export class WireView extends React.Component<IWireViewProps> {
 
     private generateHermitePointsandTangents(start:ipoint, end:ipoint) {
   
-        var tan1 = new ipoint(Math.abs((start.x - end.x)) * 2,0 );
-        var tan2 = new ipoint(Math.abs((end.x - start.x)) * 2,0);
+        var tan1 = new ipoint(Math.abs((start.x - end.x)) * 4,0 );
+        var tan2 = new ipoint(Math.abs((end.x - start.x)) * 4,0);
         return [start, tan1, end, tan2];
     
       }

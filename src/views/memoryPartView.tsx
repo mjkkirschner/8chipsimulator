@@ -21,7 +21,7 @@ export class MemoryDataView extends React.Component<ImemoryDataProps> {
         'backgroundColor': "#EEE",
         'borderStyle': 'solid',
         display: "grid",
-        gridTemplateColumns: 'auto auto auto',
+        gridTemplateColumns: 'auto auto auto auto auto auto auto auto',
         "textAlign": "center",
         borderWidth: "1px",
         fontFamily: 'system-ui',
