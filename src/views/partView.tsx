@@ -145,13 +145,22 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                     }
                 })
             }}
+            //TODO may want to put these on the document instead...
+            //when the mouseDown event gets called.
             onMouseUp={(event) => { this.setState({ selected: false }) }}
             onMouseMove={(event) => {
                 event.preventDefault()
                 if (this.state.selected) {
                     this.props.onMouseMove(this, event);
                 }
-            }}>
+            }}
+            //if the mouse leaves but we're still selected - also update the position to the new mouse position...
+            onMouseLeave={(event) => {
+                if (this.state.selected) {
+                    this.props.onMouseMove(this, event);
+                }
+            }}
+        >
 
 
             <table >
