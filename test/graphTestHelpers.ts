@@ -3,6 +3,7 @@ import { clock } from "../src/clock";
 import { wire, pin } from "../src/pins_wires";
 import { nbitAdder } from "../src/ALU";
 import { staticRam } from "../src/sram";
+import { binaryCounter } from "../src/counter";
 
 export function generateRegisterAndBuffer(): Ipart[] {
 
@@ -32,13 +33,15 @@ export function generate2RegistersAndAdder(): Ipart[] {
     let regA = new nRegister(8);
     let regAbuffer = new nBuffer(8);
 
+    let outReg = new nRegister(8);
+
     let regB = new nRegister(8);
     let regBbuffer = new nBuffer(8);
 
     let adder = new nbitAdder(8);
     let adderBbuffer = new nBuffer(8);
 
-    let buscomponent = new bus(8, 8);
+    let buscomponent = new bus(8, 12);
 
     //hook up registers to adders
     regA.outputPins.forEach((pin, index) => { new wire(pin, adder.dataPinsA[index]) });
@@ -51,17 +54,21 @@ export function generate2RegistersAndAdder(): Ipart[] {
     //sum pins to buffers
     adder.sumOutPins.forEach((pin, index) => { new wire(pin, adderBbuffer.dataPins[index]) });
 
-    //attach everything to bus.
+    //attach all outputs to bus.
     regAbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[0][index]) });
     regBbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[1][index]) });
     adderBbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[2][index]) });
 
+    //attach inputs to bus.
+    regAbuffer.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    regBbuffer.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    outReg.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
 
-    return [regA, regB, adder, buscomponent];
+    return [regA, regB, adder, outReg, buscomponent];
 }
 
-export function generate_MAR_RAM_DATAINPUTS_INSTRUCTION_REG(bus: bus): Ipart[] {
+export function generate_MAR_RAM_DATAINPUTS_INSTRUCTION_REG(buscomponent: bus): Ipart[] {
 
     let instructionREG = new nRegister(8);
 
@@ -69,13 +76,32 @@ export function generate_MAR_RAM_DATAINPUTS_INSTRUCTION_REG(bus: bus): Ipart[] {
 
     let ram = new staticRam(8, 255);
 
+    //attach ram address lines to MAR outputs.
     memoryAddressREG.outputPins.forEach((outPut, index) => {
         new wire(outPut, ram.addressPins[index])
     });
 
-    return [memoryAddressREG, ram, instructionREG,]
+    //attach ram and instr outputs to bus.
+    ram.InputOutputPins.forEach((pin, index) => { new wire(pin.internalOutput, buscomponent.inputGroups[3][index]) });
+    instructionREG.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[4][index]) });
+
+
+    //attach ram and intru inputs to bus.
+    memoryAddressREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    ram.InputOutputPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin.internalInput) });
+    instructionREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+
+    return [memoryAddressREG, ram, instructionREG, buscomponent]
 }
 
+export function generateProgramCounter(buscomponent: bus): Ipart[] {
+
+    let pc = new binaryCounter(8);
+    pc.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[5][index]) });
+    pc.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+
+    return [pc, buscomponent]
+}
 
 
 
