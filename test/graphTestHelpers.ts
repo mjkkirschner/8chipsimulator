@@ -1,4 +1,4 @@
-import { Ipart, nRegister, VoltageRail, nBuffer, bus } from "../src/primitives";
+import { Ipart, nRegister, VoltageRail, nBuffer, bus, inverter } from "../src/primitives";
 import { clock } from "../src/clock";
 import { wire, pin } from "../src/pins_wires";
 import { nbitAdder } from "../src/ALU";
@@ -28,7 +28,7 @@ export function generateRegisterAndBuffer(): Ipart[] {
 }
 
 
-export function generate2RegistersAndAdder(): Ipart[] {
+export function generate3Registers_Adder_Bus(): Ipart[] {
 
     let regA = new nRegister(8);
     let regAbuffer = new nBuffer(8);
@@ -68,9 +68,8 @@ export function generate2RegistersAndAdder(): Ipart[] {
     return [regA, regB, adder, outReg, buscomponent];
 }
 
-export function generate_MAR_RAM_DATAINPUTS_INSTRUCTION_REG(buscomponent: bus): Ipart[] {
+export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
 
-    let instructionREG = new nRegister(8);
 
     let memoryAddressREG = new nRegister(8);
 
@@ -81,17 +80,15 @@ export function generate_MAR_RAM_DATAINPUTS_INSTRUCTION_REG(buscomponent: bus): 
         new wire(outPut, ram.addressPins[index])
     });
 
-    //attach ram and instr outputs to bus.
+    //attach ram outputs to bus.
     ram.InputOutputPins.forEach((pin, index) => { new wire(pin.internalOutput, buscomponent.inputGroups[3][index]) });
-    instructionREG.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[4][index]) });
 
 
     //attach ram and intru inputs to bus.
     memoryAddressREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
     ram.InputOutputPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin.internalInput) });
-    instructionREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
-    return [memoryAddressREG, ram, instructionREG, buscomponent]
+    return [memoryAddressREG, ram, buscomponent]
 }
 
 export function generateProgramCounter(buscomponent: bus): Ipart[] {
@@ -101,6 +98,30 @@ export function generateProgramCounter(buscomponent: bus): Ipart[] {
     pc.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
     return [pc, buscomponent]
+}
+
+export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock:clock,buscomponent: bus): Ipart[] {
+
+
+
+    let EEPROM = new staticRam(24,256);
+
+
+    let instructionREG = new nRegister(8);
+    instructionREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+
+
+    //we need to invert the count clock signal for the microcodeCounter
+    let inv = new inverter();
+    new wire(clock.outputPin,inv.dataPin);
+    
+
+    //count to 8
+    let microCodeCounter = new binaryCounter(3);
+    //connect to EEPROM (modeled via RAM...)
+    EEPROM.wireUpAddressPins(instructionREG.outputPins.concat( microCodeCounter.outputPins));
+    
+
 }
 
 

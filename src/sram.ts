@@ -60,7 +60,7 @@ export class staticRam extends basePart implements Ipart, Imemory {
         //generate the input output pins.
         this.InputOutputPins = _.range(0, wordSize).map(ind => { return new inputOutputPin("in/out:" + ind, this) });
         //generate address pins
-        let requiredBits = Math.floor(Math.log(this.data.length - 1) * Math.LOG2E) + 1;
+        let requiredBits = Math.floor(Math.log(this.data.length - 1) /Math.log(2)) + 1;
         this.addressPins = _.range(0, requiredBits).map(x => { return new inputPin("address" + x, this) });
     }
 
@@ -96,7 +96,7 @@ export class staticRam extends basePart implements Ipart, Imemory {
      */
     wireUpAddressPins(pins: outputPin[]): wire[] {
         //check that we have enough address pins
-        let requiredBits = Math.floor(Math.log(this.data.length - 1) * Math.LOG2E) + 1;
+        let requiredBits = Math.floor(Math.log(this.data.length) / Math.log(2)) + 1;
         if (requiredBits > pins.length) {
             console.log("not enough address pins to access all cells in memory");
         }
