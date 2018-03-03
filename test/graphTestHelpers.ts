@@ -100,30 +100,34 @@ export function generateProgramCounter(buscomponent: bus): Ipart[] {
     return [pc, buscomponent]
 }
 
-export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock:clock,buscomponent: bus): Ipart[] {
+export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
 
 
 
-    let EEPROM = new staticRam(24,256);
+    let EEPROM = new staticRam(24, 1025);
 
 
     let instructionREG = new nRegister(8);
+    //attach instruction reg inputs to bus - we shouldn't usually care about getting data out of the instruc reg.
     instructionREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
-
 
     //we need to invert the count clock signal for the microcodeCounter
     let inv = new inverter();
-    new wire(clock.outputPin,inv.dataPin);
-    
-
+    new wire(clock.outputPin, inv.dataPin);
     //count to 8
     let microCodeCounter = new binaryCounter(3);
+    //connect clock to binaryCounter through inverter
+    new wire(inv.outputPin, microCodeCounter.clockPin);
+
     //connect to EEPROM (modeled via RAM...)
-    EEPROM.wireUpAddressPins(instructionREG.outputPins.concat( microCodeCounter.outputPins));
-    
-
+    //TODO maybe use a different memory object here with a different type of view so it's not so giant...
+    EEPROM.wireUpAddressPins(instructionREG.outputPins.concat(microCodeCounter.outputPins));
+    //EEPROM outputs drive the rest of the computer's signals we'll need to invert some of them....
+    //TODO
+    //would be good to create named buffers foreach of these signals so we can easily grab them and treat them all as high when they are on
+    //even if the resulting signal needs a low signal. - for this we can use indicator LED or some other component like this.
+    return [EEPROM,inv,microCodeCounter,instructionREG]
 }
-
 
 
 

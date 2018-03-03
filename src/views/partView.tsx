@@ -43,6 +43,8 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         top: 0,
         fontSize: "9pt",
         zIndex: 0,
+        resize: 'both',
+        overflow: 'auto' as 'auto'
     }
 
     componentDidMount() {

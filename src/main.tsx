@@ -27,7 +27,6 @@ class App extends React.Component {
     this.partElements.forEach((x, i) => {
       if (x.props.model.id == newModel.id) {
 
-        //let pos = { x: Math.random() * 10 -5 + x.props.pos.x, y: Math.random() * 10 -5 + x.props.pos.y };
         output = <PartView pos={newPos || x.props.pos}
           key={x.props.id}
           model={newModel}
@@ -50,18 +49,21 @@ class App extends React.Component {
     let gra = new graph(parts);
     let orderedParts = gra.topoSort();
 
+    gra.calculateLayout();
+
     clockcomp.startClock();
 
 
 
     setInterval(() => {
       let newPartViews = orderedParts.map((x) => {
-        if (!(x instanceof clock)) {
-          x.update();
+        let part = x.pointer;
+        if (!(part instanceof clock)) {
+          part.update();
         }
         //let newModel = Object.assign({}, x);
 
-        return this.updatePartModels(x);
+        return this.updatePartModels(part);
       });
       this.partElements = newPartViews;
       this.forceUpdate();
@@ -71,9 +73,9 @@ class App extends React.Component {
 
     }, 20);
 
-    this.partElements = parts.map(x => {
-      let pos = { x: Math.random() * 1000, y: Math.random() * 400 };
-
+    this.partElements = orderedParts.map((x) => {
+      let pos = { x: x.pos.x,y: x.pos.y }
+      let model = x.pointer;
       //when all the parts are rendered, we will gather their attached wires
       //and generate 
       let onMount = (pinBoundsDataArray: { id: string, bounds: ClientRect }[]) => {
@@ -92,7 +94,7 @@ class App extends React.Component {
           }, true);
       }
 
-      return <PartView pos={pos} key={x.id} model={x} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
+      return <PartView pos={pos} key={model.id} model={model} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
     });
   }
 
