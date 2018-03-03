@@ -1,79 +1,18 @@
-import { pin, Ipart } from "./primitives";
+import { Ipart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { error } from "util";
+import { inputPin, inputOutputPin, pinMode, outputPin, wire } from "./pins_wires";
 
 
-export enum pinMode { input, output };
 
-/**
- * This class can be used represent a pin on a part which can act as an output, but at other times
- * might need to act as an input and will need to reference other output pins.
- */
-export class inputOutputPin extends pin {
-    public mode: pinMode = pinMode.output;
-    private inputReference: pin;
-    private _value;
-
-    constructor(name?: string, owner?: Ipart) {
-        super(name, owner);
-    }
-
-    get value(): boolean {
-        if (this.mode == pinMode.input) {
-
-            //TODO...not sure about this - if we're in input mode
-            //it makes sense that this pin is in HIGHZ and has no value.
-            return undefined;
-            //return this.inputReference.value;
-        }
-        else {
-            return this._value;
-        }
-    }
-    set value(val: boolean) {
-        if (this.mode == pinMode.input) {
-            throw new Error("you cannot set the value of an input reference, set the value on the pin directly.");
-        }
-        else {
-            this._value = val;
-        }
-    }
-
-    get inputValue(): boolean {
-        if (this.inputReference && this.mode == pinMode.input) {
-            return this.inputReference.value;
-        }
-        else {
-            throw new Error("the mode was not input or the input reference was invalid, cannot get an input value");
-        }
-    }
-
-    public setPinMode(mode: pinMode, pinReference?: pin) {
-
-        if (mode == pinMode.input) {
-            this.mode = mode;
-            //if a reference is passed, update it.
-            if (pinReference) {
-                this.inputReference = pinReference;
-
-            }
-        }
-        else {
-            this.mode = mode;
-            if (pinReference != null) {
-                throw new Error("the mode was output but a reference was also passed...")
-            }
-        }
-    }
-
-}
 
 export interface Imemory {
 
-    addressPins: pin[];
-    assignAddressPins(pins: pin[]);
+    addressPins: inputPin[];
+    wireUpAddressPins(pins: outputPin[]);
     writeData(address: any, data: any)
     readData(address: any): any
+    data: boolean[][];
 }
 
 /**
@@ -82,35 +21,47 @@ export interface Imemory {
  * modeled after something like the:
  * CY7C199 32kx8 RAM module.
  */
-export class staticRam implements Ipart, Imemory {
+export class staticRam extends basePart implements Ipart, Imemory {
 
-    private data: boolean[][];
-    private writeEnable: pin;
-    private chipEnable: pin;
-    private outputEnable: pin;
+    public data: boolean[][];
+    public writeEnable = new inputPin("writeEnable", this, true);
+    public chipEnable = new inputPin("chipEnable", this, true);
+    public outputEnable = new inputPin("outEnable", this, true);
     public InputOutputPins: inputOutputPin[] = [];
-    public addressPins: pin[] = [];
+    public addressPins: inputPin[] = [];
     public wordSize: number;
+    private lastWEstate: boolean = true;
+
+
+    public get inputs() {
+        let step1 = this.addressPins.concat(this.writeEnable, this.chipEnable,
+            this.outputEnable);
+        let step2 = step1.concat(this.InputOutputPins.map(x => { return x.internalInput }));
+        return step2;
+    }
+
+    public get outputs() {
+        return this.InputOutputPins.map(x => { return x.internalOutput });
+    }
+
 
     /**
      * 
      * @param wordSize size of the words this chip holds (usually 8bits).
      * @param length total number of words this chip can hold.
-     * @param writeEnable active low write enable
-     * @param chipEnable active low chip enable
-     * @param outputEnable active low output enable
      */
-    constructor(wordSize: number, length: number, writeEnable: pin, chipEnable: pin, outputEnable: pin) {
+    constructor(wordSize: number, length: number) {
+        super();
         //init data.
         this.wordSize = wordSize;
-        this.chipEnable = chipEnable;
-        this.writeEnable = writeEnable;
-        this.outputEnable = outputEnable;
 
         //generate empty data cells.
         this.data = _.range(0, length).map(x => { return _.range(0, wordSize).map(ind => { return false }) });
         //generate the input output pins.
-        this.InputOutputPins = _.range(0, wordSize).map(ind => { return new inputOutputPin("in/out:" + ind) });
+        this.InputOutputPins = _.range(0, wordSize).map(ind => { return new inputOutputPin("in/out:" + ind, this) });
+        //generate address pins
+        let requiredBits = Math.floor(Math.log(this.data.length - 1) /Math.log(2)) + 1;
+        this.addressPins = _.range(0, requiredBits).map(x => { return new inputPin("address" + x, this) });
     }
 
     update() {
@@ -122,39 +73,34 @@ export class staticRam implements Ipart, Imemory {
             let dataToOutput = this.data[addressToRead];
 
             //TODO required?
-            this.InputOutputPins.forEach(pin => { pin.setPinMode(pinMode.output) });
+            this.InputOutputPins.forEach(pin => { pin.mode = pinMode.output });
             this.InputOutputPins.forEach((pin, index) => { pin.value = dataToOutput[index] });
         }
-        //case 2 - write chip low, output high, write low.
-        else if (this.chipEnable.value == false && this.outputEnable.value == true && this.writeEnable.value == false) {
+        //case 2 - write chip low, output high, write low. - and WE just went low.
+        else if (this.chipEnable.value == false && this.outputEnable.value == true && this.writeEnable.value == false && this.lastWEstate == true) {
             //get address to write
             let addressToWrite = parseInt(this.addressPins.map(pin => { return Number(pin.value) }).join(""), 2);
             //TODO look at this again... what does it do?
-            let dataToWrite = this.InputOutputPins.map(pin => { pin.setPinMode(pinMode.input); return pin.inputValue });
+            let dataToWrite = this.InputOutputPins.map(pin => { pin.mode = pinMode.input; return pin.value });
             this.data[addressToWrite] = dataToWrite;
         }
+
+        this.lastWEstate = this.writeEnable.value;
     }
 
-    assignInputPin(pin: pin | pin[], index?: number) {
 
-        if (pin instanceof Array) {
-            if (pin.length != this.wordSize) {
-                console.log("mismatch between pins and wordsize, some internal pins will be disconnected.");
-            }
-            pin.forEach((pin, i) => { this.InputOutputPins[i].setPinMode(pinMode.input, pin) });
-        }
-        else {
-            this.InputOutputPins[index].setPinMode(pinMode.input, pin);
-        }
-    }
-
-    assignAddressPins(pins: pin[]) {
+    /**
+     * a helper method to wire up multiple output pins to the address lines
+     * returns an array of wires created.
+     * @param pins output pins for driving the address lines
+     */
+    wireUpAddressPins(pins: outputPin[]): wire[] {
         //check that we have enough address pins
-        let requiredBits = Math.floor(Math.log(this.data.length - 1) * Math.LOG2E) + 1;
+        let requiredBits = Math.floor(Math.log(this.data.length) / Math.log(2)) + 1;
         if (requiredBits > pins.length) {
             console.log("not enough address pins to access all cells in memory");
         }
-        pins.forEach((pin, index) => this.addressPins[index] = pin);
+        return pins.map((pin, index) => { return new wire(pin, this.addressPins[index]) });
     }
 
     /**

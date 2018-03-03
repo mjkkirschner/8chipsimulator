@@ -1,19 +1,27 @@
 import { clock } from "../src/clock";
 import * as assert from 'assert';
-import { nRegister, pin, nBuffer, bus } from "../src/primitives";
+import { nBuffer, bus } from "../src/primitives";
 import { fail } from "assert";
-import { staticRam, inputOutputPin, pinMode } from "../src/sram";
+import { staticRam } from "../src/sram";
 import { binaryCounter } from "../src/counter";
+import { outputPin, wire } from "../src/pins_wires";
 
 describe('Binary counter component', function () {
     it('counter should count when clocked and enabled', function (done) {
-        let enp = new pin();
-        let ent = new pin();
-        let clear = new pin();
-        let load = new pin();
+        let enp = new outputPin();
+        let ent = new outputPin();
+        let clear = new outputPin();
+        let load = new outputPin();
         let clockcomp = new clock(100);
 
-        let counter = new binaryCounter(enp, ent, clear, clockcomp.outputPin, load, 8, );
+        let counter = new binaryCounter(8);
+
+        new wire(enp, counter.outputEnablePin1);
+        new wire(ent, counter.outputEnablePin2);
+        new wire(clear, counter.clearPin);
+        new wire(load, counter.loadPin);
+        new wire(clockcomp.outputPin, counter.clockPin);
+
         enp.value = true;
         ent.value = true;
         //active lows.
@@ -29,13 +37,20 @@ describe('Binary counter component', function () {
     });
 
     it('counter should overflow to 0 when clocked too many times', function (done) {
-        let enp = new pin();
-        let ent = new pin();
-        let clear = new pin();
-        let load = new pin();
+        let enp = new outputPin();
+        let ent = new outputPin();
+        let clear = new outputPin();
+        let load = new outputPin();
         let clockcomp = new clock(50);
 
-        let counter = new binaryCounter(enp, ent, clear, clockcomp.outputPin, load, 2, );
+        let counter = new binaryCounter(2);
+
+        new wire(enp, counter.outputEnablePin1);
+        new wire(ent, counter.outputEnablePin2);
+        new wire(clear, counter.clearPin);
+        new wire(load, counter.loadPin);
+        new wire(clockcomp.outputPin, counter.clockPin);
+
         enp.value = true;
         ent.value = true;
         //active lows.
@@ -64,13 +79,20 @@ describe('Binary counter component', function () {
     });
 
     it('counter should clear when clear goes low', function (done) {
-        let enp = new pin();
-        let ent = new pin();
-        let clear = new pin();
-        let load = new pin();
+        let enp = new outputPin();
+        let ent = new outputPin();
+        let clear = new outputPin();
+        let load = new outputPin();
         let clockcomp = new clock(50);
 
-        let counter = new binaryCounter(enp, ent, clear, clockcomp.outputPin, load, 2, );
+        let counter = new binaryCounter(2);
+
+        new wire(enp, counter.outputEnablePin1);
+        new wire(ent, counter.outputEnablePin2);
+        new wire(clear, counter.clearPin);
+        new wire(load, counter.loadPin);
+        new wire(clockcomp.outputPin, counter.clockPin);
+
         enp.value = true;
         ent.value = true;
         //active lows.
@@ -99,23 +121,32 @@ describe('Binary counter component', function () {
     });
 
     it('counter should load when load goes low', function (done) {
-        let enp = new pin();
-        let ent = new pin();
-        let clear = new pin();
-        let load = new pin();
+        let enp = new outputPin();
+        let ent = new outputPin();
+        let clear = new outputPin();
+        let load = new outputPin();
         let clockcomp = new clock(50);
 
-        let counter = new binaryCounter(enp, ent, clear, clockcomp.outputPin, load, 2, );
+        let counter = new binaryCounter(2);
+
+        new wire(enp, counter.outputEnablePin1);
+        new wire(ent, counter.outputEnablePin2);
+        new wire(clear, counter.clearPin);
+        new wire(load, counter.loadPin);
+        new wire(clockcomp.outputPin, counter.clockPin);
+
         enp.value = true;
         ent.value = true;
         //active lows.
         clear.value = true;
         load.value = true;
 
-        let data1 = new pin();
-        let data2 = new pin();
+        let data1 = new outputPin();
+        let data2 = new outputPin();
 
-        counter.assignInputPin([data1,data2]);
+        new wire(data1, counter.dataPins[0]);
+        new wire(data2, counter.dataPins[1]);
+
         data1.value = true;
         data2.value = true;
 

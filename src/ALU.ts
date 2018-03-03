@@ -1,14 +1,24 @@
-import { Ipart, pin, IAggregatePart } from "./primitives";
+import { Ipart, IAggregatePart, basePart } from "./primitives";
 import * as _ from "underscore";
+import { inputPin, outputPin, internalWire, wire } from "./pins_wires";
 
 
 
-export class fullAdder implements Ipart {
+export class fullAdder extends basePart implements Ipart {
 
-    private datapins: pin[] = [new pin(), new pin()];
-    public sumPin = new pin("SumOut", this);
-    public carryOut = new pin("carryOut", this);
-    public carryIn: pin;
+    public datapins: inputPin[] = [new inputPin(), new inputPin()];
+    public sumPin = new outputPin("SumOut", this);
+    public carryOut = new outputPin("carryOut", this);
+    public carryIn:inputPin = new inputPin("carryIn",this);
+
+    public get inputs() {
+        return this.datapins.concat(this.carryIn);
+    }
+
+    public get outputs(): outputPin[] {
+        return [this.sumPin, this.carryOut];
+    }
+
 
     update() {
         //SUM = (A XOR B) XOR Cin = (A ⊕ B) ⊕ Cin
@@ -18,43 +28,59 @@ export class fullAdder implements Ipart {
         let C = this.carryIn.value;
         let AXORB = (Number(A) ^ Number(B))
         let SUM = AXORB ^ Number(C);
-        let CARRYOUT = (A && B) || (C && Boolean(AXORB));
+        let CARRYOUT = (A && B) || (Boolean(Number(C && A) ^ Number(C && B)));
 
         this.sumPin.value = Boolean(SUM);
         this.carryOut.value = CARRYOUT;
 
     }
-    assignInputPin(pin: pin, index: number) {
-        this.datapins[index] = pin;
-    }
 
-    constructor(carryIn: pin) {
-        this.carryIn = carryIn;
+    constructor() {
+        super();
     }
 
 }
 
-export class nbitAdder implements Ipart, IAggregatePart {
+export class nbitAdder extends basePart implements Ipart, IAggregatePart {
 
     //0->N-1 are Apins, N -> (N*2)-1 are Bpins
-    private datapins: pin[] = [];
-    public carryIn: pin;
+    public dataPinsA: inputPin[] = [];
+    public dataPinsB: inputPin[] = [];
+    public carryIn = new inputPin("carryIn",this);
     private n: number;
+    public internalWires: internalWire[] = [];
 
-
-    public sumOutPins: pin[] = [];
-    public carryOut: pin;
+    public sumOutPins: outputPin[] = [];
+    public carryOut = new outputPin("carryOut", this);
     parts: fullAdder[];
 
-    constructor(carryIn: pin, n: number) {
+    public get inputs() {
+        let step1 = this.dataPinsA.concat(this.dataPinsB);
+        let step2 = step1.concat(this.carryIn);
+        return step2;
+    }
 
-        this.carryIn = carryIn;
+    public get outputs() {
+        return this.sumOutPins//.concat(this.carryOut);
+    }
+
+
+    constructor(n: number) {
+        super();
+
         this.n = n;
 
         this.parts = _.range(0, n).map((x, index) => {
-            let part = new fullAdder(this.carryIn);
-            this.sumOutPins[index] = part.sumPin;
-            part.sumPin.owner = this;
+            let part = new fullAdder();
+            this.dataPinsA[index] = new inputPin("inputA" + index, this);
+            this.dataPinsB[index] = new inputPin("inputB" + index, this);
+            this.sumOutPins[index] = new outputPin("output" + index, this);
+
+            let intDataWire = new internalWire(this.dataPinsA[index], part.datapins[0]);
+            let intDataWire2 = new internalWire(this.dataPinsB[index], part.datapins[1]);
+            //reversed...
+            let outWire = new internalWire(this.sumOutPins[index], part.sumPin, );
+            this.internalWires.push(intDataWire, intDataWire2, outWire);
 
             return part;
         });
@@ -63,38 +89,27 @@ export class nbitAdder implements Ipart, IAggregatePart {
             //assign the carryin of this adder to the carry out
             //of the previous one. - skip the LSB(last item)
             if (index != (n - 1)) {
-                part.carryIn = this.parts[index + 1].carryOut;
+                //TODO should this be an internal wire...?
+                let internalCarryWire = new wire(this.parts[index + 1].carryOut, part.carryIn);
             }
+
         });
 
 
         //these may seem backwards - but recall that parts[0] represents the MSB.
         //hook up the LSB cinput to this chips cinput
-        _.last(this.parts).carryIn = this.carryIn;
-        //hookup the coutput of this chip to the MSB coutput. 
-        this.carryOut = _.first(this.parts).carryOut;
-        this.carryOut.owner = this;
+        let internalCarryWire = new internalWire(this.carryIn, _.last(this.parts).carryIn);
 
-        this.parts.forEach((part, index) => this.assignInputPin(new pin(), index));
+
+        //hookup the carryOutput of this chip to the MSB carryoutput. 
+        let internalOutputWire = new internalWire(this.carryOut, _.first(this.parts).carryOut);
 
     }
 
     update() {
-        this.parts.forEach(part => { part.update(); })
+        this.parts.reverse().forEach(part => { part.update(); })
     }
-    assignInputPin(pin: pin, index: number) {
-        //determine if this pin is an a or b pin
-        let Aside = true;
-        if (index >= this.n) {
-            Aside = false;
-        }
-        //if Aside is false, then index is 1, which means this b is attached to the b input
-        //of this adder.
-        let finalIndex = Aside ? 0 : 1;
-        let partIndex = index % this.n;
 
-        this.parts[partIndex].assignInputPin(pin, finalIndex);
-    }
     getDataAsInteger(): number {
         return parseInt(this.sumOutPins.map(pin => { return Number(pin.value) }).join(""), 2);
     }

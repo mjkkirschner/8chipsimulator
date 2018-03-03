@@ -1,7 +1,8 @@
-import { Ipart, pin } from "./primitives";
+import { Ipart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { clock } from "./clock";
 import { request } from "http";
+import { inputPin, outputPin } from "./pins_wires";
 
 
 function leadingNullString(value: string | number, minSize: number): string {
@@ -19,40 +20,38 @@ function leadingNullString(value: string | number, minSize: number): string {
 }
 
 //modeled after the behavior of the 74ls161 async clear, sync load.
-export class binaryCounter implements Ipart {
+export class binaryCounter extends basePart implements Ipart {
 
     private currentState = 0;
     //default input pin disconnected;
-    private clearPin = new pin();
-    private clockPin = new pin();
-    private loadPin = new pin();
-    private dataPins: pin[];
+    public clearPin = new inputPin("clear", this, true);
+    public clockPin = new inputPin("clock", this);
+    public loadPin = new inputPin("load", this, true);
+    public dataPins: inputPin[];
 
-    public outputEnablePin1: pin;
-    public outputEnablePin2: pin;
+    public outputEnablePin1 = new inputPin("outputEnable1", this, true);
+    public outputEnablePin2 = new inputPin("outputEnable2", this, true);
 
-    public outputPins: pin[];
-    public rippleCarryOut: pin;
+    public outputPins: outputPin[];
+    public rippleCarryOut: outputPin;
 
     private lastClockpinValue;
 
+    public get inputs() {
+        return this.dataPins.concat(this.clearPin, this.clockPin,
+            this.outputEnablePin1, this.outputEnablePin2);
+    }
 
-    constructor(outputEnablePin1: pin,
-        outputEnablePin2: pin,
-        clearPin: pin,
-        clockPin: pin,
-        loadPin: pin,
-        n: number) {
+    public get outputs() {
+        return this.outputPins.concat(this.rippleCarryOut);
+    }
 
-        this.outputEnablePin1 = outputEnablePin1;
-        this.outputEnablePin2 = outputEnablePin2;
-        this.clearPin = clearPin;
-        this.clockPin = clockPin;
-        this.loadPin = loadPin;
+    constructor(n: number) {
+        super();
 
-        this.outputPins = _.range(0, n).map(x => { return new pin("output" + x) });
-        this.rippleCarryOut = new pin("carryOut");
-        this.dataPins = [];
+        this.outputPins = _.range(0, n).map(x => { return new outputPin("output" + x, this) });
+        this.rippleCarryOut = new outputPin("carryOut", this);
+        this.dataPins = _.range(0, n).map(x => { return new inputPin("input" + x, this) });
     }
 
     update() {
@@ -70,7 +69,7 @@ export class binaryCounter implements Ipart {
             //else if the clock pulsed, but we're not loading - increment the state
         } else if (clockPulsed && countEnabled) {
             this.currentState = this.currentState + 1;
-            let requiredBits = Math.floor(Math.log(Math.max(this.currentState, 1)) * Math.LOG2E) + 1;
+            let requiredBits = Math.floor(Math.log(Math.max(this.currentState, 1)) /Math.log(2)) + 1;
 
             if (requiredBits > this.outputPins.length) {
                 this.currentState = 0;
@@ -88,18 +87,6 @@ export class binaryCounter implements Ipart {
         this.lastClockpinValue = this.clockPin.value;
 
 
-    }
-    assignInputPin(pin: pin | pin[], index?: number) {
-        if (pin instanceof Array) {
-            if (pin.length != this.outputPins.length) {
-                console.log("mismatch between inputs and outputs, some internal pins will be disconnected.")
-            }
-            pin.forEach((pin, i) => { this.dataPins[i] = pin });
-        }
-        else {
-            this.dataPins[index] = pin;
-
-        }
     }
 
     public countAsInteger() {
