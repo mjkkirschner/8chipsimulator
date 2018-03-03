@@ -68,7 +68,7 @@ export class graph {
 
     }
 
-    public topoSort(): Ipart[] {
+    public topoSort(): node[] {
         let visited: node[] = [];
         let stack: node[] = [];
         this.nodes.forEach(node => {
@@ -76,7 +76,45 @@ export class graph {
                 this.topoSortInternal(node, visited, stack);
             }
         });
-        return stack.map(x => x.pointer);
+        return stack;
+    }
+
+    private minDistance(node: node, placedNodes: node[]) {
+        let distances = placedNodes.map((otherNode) => {
+            return Math.sqrt(Math.pow(node.pos.x - otherNode.pos.x, 2) + Math.pow(node.pos.y - otherNode.pos.y, 2))
+        });
+        if (distances == null) {
+            return Infinity;
+        }
+        return Math.min(...distances);
+    }
+
+    //TODO we may need to run this on the view layer using actual bounds?
+    public calculateColumnLayout(maxColumnHeight: number = 900, columnWidth: number = 400, nodeheight: number = 200): void {
+        let stack = this.nodes.map(x => { return x }).reverse();
+        let currentPos = { x: 20, y: 20 };
+        let columns = [];
+        let column: { items: Array<node>, height: number } = { items: [], height: 0 };
+
+        while (stack.length > 0) {
+            let node = stack.pop();
+            //if we're about to grow too large, then make a new column
+            //and add this column to our list of completed columns.
+            if (column.height + nodeheight > maxColumnHeight) {
+                columns.push(column);
+                column = { items: [], height: 0 };
+                column.items.push(node);
+                column.height = column.height + nodeheight;
+                node.pos = currentPos;
+                currentPos = { x: columns.length * columnWidth, y: column.height }
+            }
+            else {
+                column.items.push(node);
+                column.height = column.height + nodeheight;
+                node.pos = currentPos;
+                currentPos = { x: columns.length * columnWidth, y: column.height }
+            }
+        }
     }
 }
 
@@ -84,11 +122,13 @@ class node {
     visited: boolean;
     pointer: Ipart;
     adj: node[];
+    //properties only used for layout algo
+    pos: { x: number, y: number }
 
     constructor(pointer: any) {
         this.pointer = pointer;
         this.adj = [];
-
+        this.pos = { x: 0, y: 0 };
     }
     addNeighbor(node: node) {
         this.adj.push(node);
