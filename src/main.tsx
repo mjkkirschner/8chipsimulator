@@ -43,7 +43,7 @@ class App extends React.Component {
 
   constructor(props: any) {
     super(props)
-    let parts = testHelpers.generate2RegistersAdderAndStaticRam();
+    let parts = testHelpers.generate8bitComputerDesign();
     var clockcomp = (parts[0] as clock);
 
     let gra = new graph(parts);

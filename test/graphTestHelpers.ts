@@ -4,6 +4,8 @@ import { wire, pin } from "../src/pins_wires";
 import { nbitAdder } from "../src/ALU";
 import { staticRam } from "../src/sram";
 import { binaryCounter } from "../src/counter";
+import { microCodeData } from "../src/8bitCPUDesign/microcode";
+import _ = require("underscore");
 
 export function generateRegisterAndBuffer(): Ipart[] {
 
@@ -65,7 +67,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     outReg.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
 
-    return [regA, regB, adder, outReg, buscomponent];
+    return [regA, regB, regAbuffer, regBbuffer, adderBbuffer, adder, outReg, buscomponent];
 }
 
 export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
@@ -73,7 +75,7 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
 
     let memoryAddressREG = new nRegister(8);
 
-    let ram = new staticRam(8, 255);
+    let ram = new staticRam(8, 256);
 
     //attach ram address lines to MAR outputs.
     memoryAddressREG.outputPins.forEach((outPut, index) => {
@@ -94,18 +96,20 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
 export function generateProgramCounter(buscomponent: bus): Ipart[] {
 
     let pc = new binaryCounter(8);
-    pc.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[5][index]) });
+    let PCbuffer = new nBuffer(8);
+
+    pc.outputPins.forEach((pin, index) => { new wire(pin, PCbuffer.dataPins[index]) });
+    PCbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[5][index]) });
+
     pc.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
-    return [pc, buscomponent]
+    return [pc, PCbuffer, buscomponent]
 }
 
 export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
 
 
-
-    let EEPROM = new staticRam(24, 1025);
-
+    let EEPROM = new staticRam(24, 4096);
 
     let instructionREG = new nRegister(8);
     //attach instruction reg inputs to bus - we shouldn't usually care about getting data out of the instruc reg.
@@ -122,11 +126,27 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     //connect to EEPROM (modeled via RAM...)
     //TODO maybe use a different memory object here with a different type of view so it's not so giant...
     EEPROM.wireUpAddressPins(instructionREG.outputPins.concat(microCodeCounter.outputPins));
+    let microCode = microCodeData.getData().map(number => { return number.toString(2).padStart(24, "0").split("").map(bit => { return Boolean(Number(bit)) }) });
+    EEPROM.data = microCode;
     //EEPROM outputs drive the rest of the computer's signals we'll need to invert some of them....
     //TODO
     //would be good to create named buffers foreach of these signals so we can easily grab them and treat them all as high when they are on
     //even if the resulting signal needs a low signal. - for this we can use indicator LED or some other component like this.
-    return [EEPROM,inv,microCodeCounter,instructionREG]
+    return [EEPROM, inv, microCodeCounter, instructionREG]
+}
+
+export function generate8bitComputerDesign(): Ipart[] {
+
+    var parts1 = generate3Registers_Adder_Bus();
+    var bus = _.last(parts1) as bus;
+    var clockcomp = new clock(100);
+    var parts2 = generate_MAR_RAM_DATAINPUTS(bus);
+    var parts3 = generateProgramCounter(bus);
+    var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
+
+    var output = parts1.concat(parts2, parts3, parts4);
+    output.unshift(clockcomp);
+    return _.unique(output);
 }
 
 

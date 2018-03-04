@@ -69,7 +69,8 @@ export class binaryCounter extends basePart implements Ipart {
             //else if the clock pulsed, but we're not loading - increment the state
         } else if (clockPulsed && countEnabled) {
             this.currentState = this.currentState + 1;
-            let requiredBits = Math.floor(Math.log(Math.max(this.currentState, 1)) /Math.log(2)) + 1;
+            //represent the number plus 0
+            let requiredBits = Math.ceil(Math.log(this.currentState+1) /Math.log(2));
 
             if (requiredBits > this.outputPins.length) {
                 this.currentState = 0;
