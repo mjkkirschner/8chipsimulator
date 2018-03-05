@@ -90,7 +90,7 @@ export class graph {
     }
 
     //TODO we may need to run this on the view layer using actual bounds?
-    public calculateColumnLayout(maxColumnHeight: number = 900, columnWidth: number = 400, nodeheight: number = 200): void {
+    public calculateColumnLayout(maxColumnHeight: number = 900, columnWidth: number = 400): void {
         let stack = this.nodes.map(x => { return x }).reverse();
         let currentPos = { x: 20, y: 20 };
         let columns = [];
@@ -98,6 +98,7 @@ export class graph {
 
         while (stack.length > 0) {
             let node = stack.pop();
+            let nodeheight = Math.max(node.pointer.inputs.length,node.pointer.outputs.length) * 30;
             //if we're about to grow too large, then make a new column
             //and add this column to our list of completed columns.
             if (column.height + nodeheight > maxColumnHeight) {

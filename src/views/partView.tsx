@@ -137,6 +137,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         }
 
         return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y, zIndex: this.state.selected ? 1 : 0 }}
+            
             onMouseDown={(event) => {
                 event.preventDefault()
                 this.setState({

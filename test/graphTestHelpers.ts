@@ -43,7 +43,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     let adder = new nbitAdder(8);
     let adderBbuffer = new nBuffer(8);
 
-    let buscomponent = new bus(8, 12);
+    let buscomponent = new bus(8, 6);
 
     //hook up registers to adders
     regA.outputPins.forEach((pin, index) => { new wire(pin, adder.dataPinsA[index]) });
@@ -108,8 +108,8 @@ export function generateProgramCounter(buscomponent: bus): Ipart[] {
 
 export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
 
-
-    let EEPROM = new staticRam(24, 4096);
+    let eepromLen = 4096;
+    let EEPROM = new staticRam(24, eepromLen);
 
     let instructionREG = new nRegister(8);
     //attach instruction reg inputs to bus - we shouldn't usually care about getting data out of the instruc reg.
@@ -127,6 +127,9 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     //TODO maybe use a different memory object here with a different type of view so it's not so giant...
     EEPROM.wireUpAddressPins(instructionREG.outputPins.concat(microCodeCounter.outputPins));
     let microCode = microCodeData.getData().map(number => { return number.toString(2).padStart(24, "0").split("").map(bit => { return Boolean(Number(bit)) }) });
+    while (microCode.length < eepromLen) {
+        microCode.push(_.range(0, 24).map(x => { return false }))
+    }
     EEPROM.data = microCode;
     //EEPROM outputs drive the rest of the computer's signals we'll need to invert some of them....
     //TODO

@@ -49,7 +49,7 @@ class App extends React.Component {
     let gra = new graph(parts);
     let orderedParts = gra.topoSort();
 
-    gra.calculateColumnLayout(1200,400,300);
+    gra.calculateColumnLayout(1200,400);
 
     clockcomp.startClock();
 
