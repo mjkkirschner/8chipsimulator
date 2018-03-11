@@ -43,7 +43,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     let adder = new nbitAdder(8);
     let adderBbuffer = new nBuffer(8);
 
-    let buscomponent = new bus(8, 6);
+    let buscomponent = new bus(8, 5);
 
     //hook up registers to adders
     regA.outputPins.forEach((pin, index) => { new wire(pin, adder.dataPinsA[index]) });
@@ -76,21 +76,23 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
     let memoryAddressREG = new nRegister(8);
 
     let ram = new staticRam(8, 256);
+    let ramBuffer = new nBuffer(8);
 
     //attach ram address lines to MAR outputs.
     memoryAddressREG.outputPins.forEach((outPut, index) => {
         new wire(outPut, ram.addressPins[index])
     });
 
-    //attach ram outputs to bus.
-    ram.InputOutputPins.forEach((pin, index) => { new wire(pin.internalOutput, buscomponent.inputGroups[3][index]) });
+    //attach ram outputs to bus via buffer.
+    ram.InputOutputPins.forEach((pin, index) => { new wire(pin.internalOutput, ramBuffer.dataPins[index]) });
+    ramBuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[3][index]) });
 
 
     //attach ram and intru inputs to bus.
     memoryAddressREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
     ram.InputOutputPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin.internalInput) });
 
-    return [memoryAddressREG, ram, buscomponent]
+    return [memoryAddressREG, ram,ramBuffer, buscomponent]
 }
 
 export function generateProgramCounter(buscomponent: bus): Ipart[] {
@@ -99,7 +101,7 @@ export function generateProgramCounter(buscomponent: bus): Ipart[] {
     let PCbuffer = new nBuffer(8);
 
     pc.outputPins.forEach((pin, index) => { new wire(pin, PCbuffer.dataPins[index]) });
-    PCbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[5][index]) });
+    PCbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[4][index]) });
 
     pc.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
