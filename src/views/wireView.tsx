@@ -20,17 +20,17 @@ export class WireView extends React.Component<IWireViewProps> {
     }
 
     style = {
-        stroke: "black",
+        stroke: "rgb(95, 255, 187)",
         strokeWidth: "1",
         fill: "none",
+        strokeDasharray:"2, 2"
     }
 
     svgStyle = {
         overflow: 'visible' as 'visible',
         width: '100%',
         position: 'absolute' as 'absolute',
-        zIndex:-1
-
+        zIndex:0,
     }
 
     private generatePolyLinePoints(start:ipoint, end:ipoint) {
@@ -38,8 +38,6 @@ export class WireView extends React.Component<IWireViewProps> {
         var horizontal1 = new ipoint((end.x - start.x)*.5,0 );
         var verticalVector1 = new ipoint(0,end.y - start.y)
         var point2 =start.sum(horizontal1);
-
-
         return [start, start.sum(horizontal1), start.sum(horizontal1).sum(verticalVector1), end];
     
       }
@@ -59,8 +57,9 @@ export class WireView extends React.Component<IWireViewProps> {
 
         let finalPoints = pointsAndTans;
 
-      return (<svg style ={this.svgStyle}> <polyline style = {this.style}
-        points = {finalPoints.join(" ")}/>
+      return (<svg style ={this.svgStyle}> 
+        <polyline style = {this.style} 
+        points = {finalPoints.join(" ")} />
     </svg>);
     }
     

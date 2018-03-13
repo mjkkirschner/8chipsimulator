@@ -5,7 +5,7 @@ import { inputPin, outputPin } from "./pins_wires";
 /**
  * 2 to 4 line decoder - modeled after 74ls139 behavior.
  */
-export class twoLineToFourLinedecoder extends basePart implements Ipart {
+export class twoLineToFourLineDecoder extends basePart implements Ipart {
     public dataPins: inputPin[] = [];
     public outputPins: outputPin[] = [];
     public outputEnablePin = new inputPin("outputEnable", this, true);;
@@ -18,8 +18,8 @@ export class twoLineToFourLinedecoder extends basePart implements Ipart {
         return this.outputPins;
     }
 
-    constructor() {
-        super();
+    constructor(name?:string) {
+        super(name);
         //4 outputs
         this.outputPins = _.range(0, 4).map((x, i) => { return new outputPin("output" + i, this) });
         this.dataPins = [new inputPin(), new inputPin()];

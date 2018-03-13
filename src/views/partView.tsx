@@ -31,12 +31,13 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
     style = {
         color: '41474E',
-        'backgroundColor': "#EEE",
+        'backgroundColor': "rgb(45, 64, 46)",
         'borderStyle': 'solid',
+        borderColor: "rgb(95, 255, 187)",
         display: "inline-block",
         "minWidth": "150px",
         "textAlign": "center",
-        borderWidth: "1px",
+        borderWidth: "2px",
         fontFamily: 'system-ui',
         position: 'absolute' as 'absolute',
         left: 0,
@@ -44,7 +45,8 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         fontSize: "9pt",
         zIndex: 0,
         resize: 'both',
-        overflow: 'auto' as 'auto'
+        overflow: 'auto' as 'auto',
+        boxShadow: '0 0 5px rgb(95, 255, 187)'
     }
 
     componentDidMount() {
@@ -103,7 +105,8 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
 
         let style = {
-            backgroundColor: "#FF5733"
+            backgroundColor: "rgba(224,103,103,.71)",
+            padding: '0 4px'
         }
         if (data) {
             style.backgroundColor = "#DAF7A6";
@@ -123,21 +126,24 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
     public render() {
 
         let spanStyle = {
-            backgroundColor: "lightGray"
+            backgroundColor: "rgb(55, 89, 49)",
+            color:"rgb(95, 255, 187)"
         }
 
         let inputStyle = {
-            backgroundColor: "darkGray",
+            backgroundColor: "rgba(218,247,166,.2)",
+            color: 'white'
         }
 
 
 
         let tableStyle = {
-            'font-weight': 'normal'
+            'font-weight': 'lighter',
+            letterSpacing: '2px'
         }
 
         return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y, zIndex: this.state.selected ? 1 : 0 }}
-            
+
             onMouseDown={(event) => {
                 event.preventDefault()
                 this.setState({
@@ -165,7 +171,8 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             }}
         >
 
-
+            <div style={spanStyle}> {this.props.model.constructor.name}</div>
+            <div style={spanStyle}> {this.props.model.displayName}</div>
             <table >
                 <th style={tableStyle}>
                     {this.props.model.inputs.map((x, i) => {
@@ -176,7 +183,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                     })}
                 </th>
                 <th>
-                    <p>{this.props.model.constructor.name}</p>
+
                     {
                         this.addSpecificPartView(this.props.model)
                     }

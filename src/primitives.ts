@@ -4,7 +4,7 @@ import { error } from "util";
 import { outputPin, pin, inputPin, wire, internalWire } from "./pins_wires";
 
 
-
+//TODO this needs to be redesigned.
 /**
  * a component represented by an HTML button which sets it's output pin value
  * to its state. The state is inverted when the button is clicked.
@@ -37,11 +37,13 @@ export interface Ipart {
     update();
     outputs: Array<outputPin>
     inputs: Array<inputPin>
-    id:string
+    id: string
+    displayName?: string
 }
 
 export abstract class basePart {
     id: string
+    displayName: string = ""
     protected uuidv4() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
@@ -49,8 +51,11 @@ export abstract class basePart {
         });
     }
 
-    constructor() {
+    constructor(name?: string) {
         this.id = this.uuidv4();
+        if (name) {
+            this.displayName = name;
+        }
     }
 }
 
@@ -66,7 +71,7 @@ export class VoltageRail extends basePart implements Ipart {
 
     public outputPin: outputPin;
     constructor(name?: string) {
-        super();
+        super(name);
         this.outputPin = new outputPin(name, this);
     }
     update() {
@@ -105,16 +110,8 @@ class binaryCell extends basePart implements Ipart {
     }
 
 
-    constructor(signalDrawing?: HTMLCanvasElement) {
-        super();
-
-        //TODO rethink using smoothie here... maybe this should not be part of the model constructors.
-        this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
-        if (signalDrawing) {
-            this.smoothieChart.streamTo(signalDrawing);
-        }
-        this.timeSeries = new TimeSeries();
-        this.smoothieChart.addTimeSeries(this.timeSeries);
+    constructor(name?: string) {
+        super(name);
     }
 
     //this update method is called on all components - and their pins are evaluated to 
@@ -132,11 +129,6 @@ class binaryCell extends basePart implements Ipart {
         //TODO is this correct?
         this.outputPin.value = this.state;
 
-        if (this.timeSeries) {
-            this.timeSeries.append(new Date().getTime(), this.outputPin.value);
-
-        }
-        console.log("register state is", this.state);
         this.lastClockpinValue = this.clockPin.value;
 
     }
@@ -158,8 +150,8 @@ export class inverter extends basePart implements Ipart {
         return [this.outputPin];
     }
 
-    constructor() {
-        super();
+    constructor(name?: string) {
+        super(name);
     }
 
     update() {
@@ -186,8 +178,8 @@ class buffer extends basePart implements Ipart {
         return [this.outputPin];
     }
 
-    constructor() {
-        super();
+    constructor(name?: string) {
+        super(name);
     }
 
     update() {
@@ -213,8 +205,8 @@ export class nBuffer extends basePart implements Ipart, IAggregatePart {
         return this.outputPins;
     }
 
-    constructor(n = 8) {
-        super();
+    constructor(n = 8,name?: string) {
+        super(name);
 
         this.parts = _.range(0, n).map((x, index) => {
             let part = new buffer();
@@ -255,8 +247,6 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
     //outputs of the internal parts.
     public parts: binaryCell[] = [];
     private lastClockpinValue;
-    private smoothieChart;
-    private timeSeries;
 
     public get inputs() {
         return this.dataPins.concat(this.clockPin, this.enablePin)
@@ -266,16 +256,8 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
         return this.outputPins;
     }
 
-    constructor(n = 8, signalDrawing?: HTMLCanvasElement) {
-        super();
-
-        this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
-        if (signalDrawing) {
-            this.smoothieChart.streamTo(signalDrawing);
-        }
-        this.timeSeries = new TimeSeries();
-        this.smoothieChart.addTimeSeries(this.timeSeries);
-
+    constructor(n = 8, name?: string) {
+        super(name);
         this.parts = _.range(0, n).map((x, index) => {
             let part = new binaryCell();
             this.dataPins[index] = new inputPin("input" + index, this);
@@ -305,13 +287,8 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
     public update() {
 
         let clockPinValue = this.clockPin.value;
-
         this.parts.reverse().forEach(part => { part.update() });
-
         var outputAsInt = this.getDataAsInteger();
-        this.timeSeries.append(new Date().getTime(), outputAsInt);
-
-        console.log("register state is", outputAsInt);
         this.lastClockpinValue = this.clockPin.value;
 
     }
@@ -375,8 +352,8 @@ export class bus extends basePart implements Ipart {
         return parseInt(this.outputPins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
 
-    constructor(busWidth: number, NumberOfInputGroups: number) {
-        super();
+    constructor(busWidth: number, NumberOfInputGroups: number,name?: string) {
+        super(name);
         //create output pins
         this.outputPins = _.range(0, busWidth).map((x, index) => { return new outputPin("output" + index, this) });
         this.inputGroups = _.range(0, NumberOfInputGroups).map((x, index) => {

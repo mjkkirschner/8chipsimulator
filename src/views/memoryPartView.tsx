@@ -37,7 +37,8 @@ export class MemoryDataView extends React.Component<ImemoryDataProps> {
 
 
         let style = {
-            backgroundColor: "#FF5733"
+            backgroundColor: "rgba(224,103,103,.71)",
+            padding:'0 4px'
         }
         if (_.any(data, (x) => { return x == true })) {
             style.backgroundColor = "#DAF7A6";

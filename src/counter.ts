@@ -46,8 +46,8 @@ export class binaryCounter extends basePart implements Ipart {
         return this.outputPins.concat(this.rippleCarryOut);
     }
 
-    constructor(n: number) {
-        super();
+    constructor(n: number,name?:string) {
+        super(name);
 
         this.outputPins = _.range(0, n).map(x => { return new outputPin("output" + x, this) });
         this.rippleCarryOut = new outputPin("carryOut", this);

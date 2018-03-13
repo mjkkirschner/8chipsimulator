@@ -1,5 +1,5 @@
 import { outputPin, wire } from "../src/pins_wires";
-import { twoLineToFourLinedecoder } from "../src/Decoder";
+import { twoLineToFourLineDecoder } from "../src/Decoder";
 import * as assert from 'assert';
 import { fail } from "assert";
 
@@ -7,7 +7,7 @@ import { fail } from "assert";
 describe('decoder component', function () {
     it('decoder should output high when not enabled', function () {
         let outPin = new outputPin("outPutEnable");
-        let decod = new twoLineToFourLinedecoder();
+        let decod = new twoLineToFourLineDecoder();
         new wire(outPin, decod.outputEnablePin);
         outPin.value = true;
         decod.update();
@@ -17,7 +17,7 @@ describe('decoder component', function () {
 
     it('decoder should output 0 when enabled with no inputs', function () {
         let outPin = new outputPin("outPutEnable");
-        let decod = new twoLineToFourLinedecoder();
+        let decod = new twoLineToFourLineDecoder();
         new wire(outPin, decod.outputEnablePin);
         outPin.value = false;
         decod.update();
@@ -28,7 +28,7 @@ describe('decoder component', function () {
 
     it('decoder should output 2 when enabled with inputs in that state', function () {
         let outPin = new outputPin("outPutEnable");
-        let decod = new twoLineToFourLinedecoder();
+        let decod = new twoLineToFourLineDecoder();
 
         let data1 = new outputPin();
         let data2 = new outputPin();

@@ -11,8 +11,6 @@ import { outputPin } from "./pins_wires";
  */
 export class clock extends  basePart implements Ipart {
 
-    private smoothieChart: SmoothieChart;
-    private timeSeries: TimeSeries;
     private cycle;
     private state = false;
     private intervalID: NodeJS.Timer
@@ -31,15 +29,9 @@ export class clock extends  basePart implements Ipart {
         return [this.outputPin];
     }
 
-    constructor(cycle: number, canvas?: HTMLCanvasElement) {
-        super();
-        this.smoothieChart = new SmoothieChart({ maxValueScale: 1.5, interpolation: 'step' });
-        if (canvas) {
-            this.smoothieChart.streamTo(canvas);
-        }
-        this.timeSeries = new TimeSeries();
+    constructor(cycle: number,name?:string) {
+        super(name);
         this.cycle = cycle
-        this.smoothieChart.addTimeSeries(this.timeSeries);
         this.highCallbacks = [];
         this.lowCallbacks = [];
     }
@@ -126,12 +118,10 @@ export class clock extends  basePart implements Ipart {
     }
 
     private tick() {
-        this.timeSeries.append(new Date().getTime(), 0);
         this.state = false;
         this.outputPin.value = this.state;
     }
     private tock() {
-        this.timeSeries.append(new Date().getTime(), 1);
         this.state = true;
         this.outputPin.value = this.state;
     }

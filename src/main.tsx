@@ -5,7 +5,7 @@ import { clock } from "./clock";
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { PartView } from "./views/partView";
-import * as testHelpers from "../test/graphTestHelpers";
+import * as utils from "../test/8bitComputerTests";
 import * as _ from "underscore";
 import { WireView } from "./views/wireView";
 import { wire } from "./pins_wires";
@@ -20,6 +20,14 @@ class App extends React.Component {
   wireElements: JSX.Element[];
 
   boundsData: { [id: string]: ClientRect } = {};
+
+  style = {
+    backgroundColor: 'rgb(42, 40, 39)',
+    //set height based on children?
+    zIndex: -2,
+    width: '100%',
+    height: '5000px'
+  }
 
   private updatePartModels(newModel: Ipart, newPos?: { x: number, y: number }, updateInPlace?: Boolean): JSX.Element {
 
@@ -43,13 +51,13 @@ class App extends React.Component {
 
   constructor(props: any) {
     super(props)
-    let parts = testHelpers.generate8bitComputerDesign();
+    let parts = utils.generate8bitComputerDesign();
     var clockcomp = (parts[0] as clock);
 
     let gra = new graph(parts);
     let orderedParts = gra.topoSort();
 
-    gra.calculateColumnLayout(1200,400);
+    gra.calculateColumnLayout(1200, 400);
 
     clockcomp.startClock();
 
@@ -74,7 +82,7 @@ class App extends React.Component {
     }, 20);
 
     this.partElements = orderedParts.map((x) => {
-      let pos = { x: x.pos.x,y: x.pos.y }
+      let pos = { x: x.pos.x, y: x.pos.y }
       let model = x.pointer;
       //when all the parts are rendered, we will gather their attached wires
       //and generate 
@@ -124,7 +132,7 @@ class App extends React.Component {
   }
 
   public render() {
-    return (<div>
+    return (<div style={this.style}>
       {this.partElements}
       {this.wireElements}
     </div>
