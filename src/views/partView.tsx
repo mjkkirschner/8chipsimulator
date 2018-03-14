@@ -123,11 +123,30 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         }
     }
 
+    onMouseUp() {
+        document.removeEventListener('mouseup', this.mouseupWrapper, true);
+        document.removeEventListener('mousemove', this.mouseMoveWrapper, true);
+        this.setState({ selected: false })
+    }
+    mouseupWrapper = () => {
+        this.onMouseUp();
+    }
+
+    onMouseMove(event: React.MouseEvent<HTMLDivElement>) {
+        event.preventDefault()
+        if (this.state.selected) {
+            this.props.onMouseMove(this, event);
+        }
+    }
+    mouseMoveWrapper = (event) => {
+        this.onMouseMove(event)
+    }
+
     public render() {
 
         let spanStyle = {
             backgroundColor: "rgb(55, 89, 49)",
-            color:"rgb(95, 255, 187)"
+            color: "rgb(95, 255, 187)"
         }
 
         let inputStyle = {
@@ -142,6 +161,8 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             letterSpacing: '2px'
         }
 
+
+
         return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y, zIndex: this.state.selected ? 1 : 0 }}
 
             onMouseDown={(event) => {
@@ -152,23 +173,11 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                         x: this.bounds.left - event.clientX,
                         y: this.bounds.top - event.clientY
                     }
-                })
-            }}
-            //TODO may want to put these on the document instead...
-            //when the mouseDown event gets called.
-            onMouseUp={(event) => { this.setState({ selected: false }) }}
-            onMouseMove={(event) => {
-                event.preventDefault()
-                if (this.state.selected) {
-                    this.props.onMouseMove(this, event);
-                }
-            }}
-            //if the mouse leaves but we're still selected - also update the position to the new mouse position...
-            onMouseLeave={(event) => {
-                if (this.state.selected) {
-                    this.props.onMouseMove(this, event);
-                }
-            }}
+                });
+                document.addEventListener('mouseup', this.mouseupWrapper, true);
+                document.addEventListener('mousemove', this.mouseMoveWrapper, true);
+            }
+            }
         >
 
             <div style={spanStyle}> {this.props.model.constructor.name}</div>
@@ -199,6 +208,6 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                 </th>
             </table>
             <div style={spanStyle} >{this.pinsToInt(this.props.model.outputs).toString()}</div>
-        </div>)
+        </div >)
     }
 }
