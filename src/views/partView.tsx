@@ -12,6 +12,7 @@ export interface IPartViewState {
 
 export interface IpartViewProps {
     pos: { x: number, y: number },
+    zoom: number,
     model: Ipart,
     key: string,
     //we can change this so pass the positions of any ports or something like that?
@@ -116,29 +117,28 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
 
     private addSpecificPartView(model: Ipart) {
-        //TODO we want to check if its a memory...
         if (model instanceof staticRam) {
             return (<MemoryDataView model={model}>
             </MemoryDataView>)
         }
     }
 
-    onMouseUp() {
+    private onMouseUp() {
         document.removeEventListener('mouseup', this.mouseupWrapper, true);
         document.removeEventListener('mousemove', this.mouseMoveWrapper, true);
         this.setState({ selected: false })
     }
-    mouseupWrapper = () => {
+    private mouseupWrapper = () => {
         this.onMouseUp();
     }
 
-    onMouseMove(event: React.MouseEvent<HTMLDivElement>) {
+    private onMouseMove(event: React.MouseEvent<HTMLDivElement>) {
         event.preventDefault()
         if (this.state.selected) {
             this.props.onMouseMove(this, event);
         }
     }
-    mouseMoveWrapper = (event) => {
+    private mouseMoveWrapper = (event) => {
         this.onMouseMove(event)
     }
 
@@ -154,16 +154,12 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             color: 'white'
         }
 
-
-
         let tableStyle = {
             'font-weight': 'lighter',
             letterSpacing: '2px'
         }
 
-
-
-        return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y, zIndex: this.state.selected ? 1 : 0 }}
+        return (<div style={{ ...this.style, fontSize : 9 * this.props.zoom, left: this.props.pos.x * this.props.zoom, top: this.props.pos.y * this.props.zoom, zIndex: this.state.selected ? 1 : 0 }}
 
             onMouseDown={(event) => {
                 event.preventDefault()

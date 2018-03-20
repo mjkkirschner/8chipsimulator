@@ -20,22 +20,26 @@ class App extends React.Component {
   wireElements: JSX.Element[];
 
   boundsData: { [id: string]: ClientRect } = {};
+  zoom: number = 1;
 
   style = {
     backgroundColor: 'rgb(42, 40, 39)',
     //set height based on children?
     zIndex: -2,
     width: '100%',
-    height: '5000px'
+    height: '5000px',
+    overflow: 'hidden' as 'hidden'
   }
 
-  private updatePartModels(newModel: Ipart, newPos?: { x: number, y: number }, updateInPlace?: Boolean): JSX.Element {
+  private updatePartModels(newModel: Ipart, newPos?: { x: number, y: number }, updateInPlace?: Boolean, newZoom?: number): JSX.Element {
 
     var output;
     this.partElements.forEach((x, i) => {
       if (x.props.model.id == newModel.id) {
 
-        output = <PartView pos={newPos || x.props.pos}
+        output = <PartView
+          pos={newPos || x.props.pos}
+          zoom={newZoom || x.props.zoom}
           key={x.props.id}
           model={newModel}
           onMount={x.props.onMount}
@@ -67,10 +71,8 @@ class App extends React.Component {
       let newPartViews = orderedParts.map((x) => {
         let part = x.pointer;
         if (!(part instanceof clock)) {
-          part.update();
+          //  part.update();
         }
-        //let newModel = Object.assign({}, x);
-
         return this.updatePartModels(part);
       });
       this.partElements = newPartViews;
@@ -102,7 +104,7 @@ class App extends React.Component {
           }, true);
       }
 
-      return <PartView pos={pos} key={model.id} model={model} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
+      return <PartView pos={pos} zoom={1} key={model.id} model={model} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
     });
   }
 
@@ -132,7 +134,17 @@ class App extends React.Component {
   }
 
   public render() {
-    return (<div style={this.style}>
+    return (<div onWheel={(event) => {
+      event.preventDefault();
+      this.zoom = this.zoom - event.deltaY / 1000;
+      //now we should recreate the elements with different zoom.
+     this.partElements =  this.partElements.map(partElement => {
+
+        return this.updatePartModels(partElement.props.model,
+          partElement.props.pos, false, this.zoom)
+      })
+    }}
+      style={this.style}>
       {this.partElements}
       {this.wireElements}
     </div>
