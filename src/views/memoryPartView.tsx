@@ -25,7 +25,6 @@ export class MemoryDataView extends React.Component<ImemoryDataProps> {
         "textAlign": "center",
         borderWidth: "1px",
         fontFamily: 'system-ui',
-        fontSize: "9pt"
     }
 
     protected boolsToInt(values: Boolean[]) {

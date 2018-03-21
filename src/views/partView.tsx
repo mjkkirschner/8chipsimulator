@@ -69,7 +69,6 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             }
         });
         let allBounds = (bounds1 as any[]).concat(bounds2);
-        console.log("gathered all pin bounds and positions...");
         this.props.onMount(allBounds);
     }
 
@@ -91,7 +90,6 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             }
         });
         let allBounds = (bounds1 as any[]).concat(bounds2);
-        console.log("gathered all pin bounds and positions...");
         this.props.onMount(allBounds);
     }
 
@@ -159,16 +157,24 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             letterSpacing: '2px'
         }
 
-        return (<div style={{ ...this.style, fontSize : 9 * this.props.zoom, left: this.props.pos.x * this.props.zoom, top: this.props.pos.y * this.props.zoom, zIndex: this.state.selected ? 1 : 0 }}
+        return (<div style={{
+            ...this.style,
+            fontSize: 9 * this.props.zoom,
+            left: this.props.pos.x * this.props.zoom,
+            top: this.props.pos.y * this.props.zoom,
+            zIndex: this.state.selected ? 1 : 0
+        }}
 
             onMouseDown={(event) => {
                 event.preventDefault()
+                let clickOffsetVector = {
+                    x: this.bounds.left - event.clientX,
+                    y: this.bounds.top - event.clientY
+                };
+             
                 this.setState({
                     selected: true,
-                    clickOffset: {
-                        x: this.bounds.left - event.clientX,
-                        y: this.bounds.top - event.clientY
-                    }
+                    clickOffset: clickOffsetVector,
                 });
                 document.addEventListener('mouseup', this.mouseupWrapper, true);
                 document.addEventListener('mousemove', this.mouseMoveWrapper, true);

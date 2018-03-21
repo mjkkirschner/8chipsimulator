@@ -21,6 +21,7 @@ class App extends React.Component {
 
   boundsData: { [id: string]: ClientRect } = {};
   zoom: number = 1;
+  viewPortoffset: { x: number, y: number } = { x: 0, y: 0 };
 
   style = {
     backgroundColor: 'rgb(42, 40, 39)',
@@ -94,13 +95,11 @@ class App extends React.Component {
         });
       }
       let onMouseMove = (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => {
-        let bound = ReactDOM.findDOMNode(partView).getBoundingClientRect();
-        //if this gets called we're selected and should move...
-
+      
         this.updatePartModels(partView.props.model,
           {
-            x: (data.clientX) + ((partView.state.clickOffset.x) + window.scrollX),
-            y: (data.clientY) + ((partView.state.clickOffset.y) + window.scrollY)
+            x: ((data.clientX) + ((partView.state.clickOffset.x))) / this.zoom,
+            y: ((data.clientY) + ((partView.state.clickOffset.y)))/ this.zoom
           }, true);
       }
 
@@ -138,7 +137,7 @@ class App extends React.Component {
       event.preventDefault();
       this.zoom = this.zoom - event.deltaY / 1000;
       //now we should recreate the elements with different zoom.
-     this.partElements =  this.partElements.map(partElement => {
+      this.partElements = this.partElements.map(partElement => {
 
         return this.updatePartModels(partElement.props.model,
           partElement.props.pos, false, this.zoom)
