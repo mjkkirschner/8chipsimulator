@@ -13,6 +13,7 @@ export interface IPartViewState {
 export interface IpartViewProps {
     pos: { x: number, y: number },
     zoom: number,
+    canvasOffset: { x: number, y: number }
     model: Ipart,
     key: string,
     //we can change this so pass the positions of any ports or something like that?
@@ -160,8 +161,8 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         return (<div style={{
             ...this.style,
             fontSize: 9 * this.props.zoom,
-            left: this.props.pos.x * this.props.zoom,
-            top: this.props.pos.y * this.props.zoom,
+            left: (this.props.pos.x + this.props.canvasOffset.x) * this.props.zoom,
+            top: (this.props.pos.y + this.props.canvasOffset.y) * this.props.zoom,
             zIndex: this.state.selected ? 1 : 0
         }}
 
@@ -171,7 +172,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                     x: this.bounds.left - event.clientX,
                     y: this.bounds.top - event.clientY
                 };
-             
+
                 this.setState({
                     selected: true,
                     clickOffset: clickOffsetVector,

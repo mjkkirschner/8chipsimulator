@@ -13,26 +13,32 @@ import { stat } from "fs";
 import { graph } from "./engine";
 import { setInterval } from "timers";
 
+interface ICanvasState {
+  viewPortSelected: boolean;
+  viewPorClicktOffset: { x: number, y: number };
+  viewPortoffset: { x: number, y: number };
 
-class App extends React.Component {
+}
+
+class App extends React.Component<{}, ICanvasState> {
 
   partElements: JSX.Element[];
   wireElements: JSX.Element[];
 
   boundsData: { [id: string]: ClientRect } = {};
   zoom: number = 1;
-  viewPortoffset: { x: number, y: number } = { x: 0, y: 0 };
+
 
   style = {
     backgroundColor: 'rgb(42, 40, 39)',
     //set height based on children?
     zIndex: -2,
     width: '100%',
-    height: '5000px',
+    height: '2400px',
     overflow: 'hidden' as 'hidden'
   }
 
-  private updatePartModels(newModel: Ipart, newPos?: { x: number, y: number }, updateInPlace?: Boolean, newZoom?: number): JSX.Element {
+  private updatePartModels(newModel: Ipart, newPos?: { x: number, y: number }, updateInPlace?: Boolean, newZoom?: number, newCanvasOffset?: { x: number, y: number }): JSX.Element {
 
     var output;
     this.partElements.forEach((x, i) => {
@@ -41,6 +47,7 @@ class App extends React.Component {
         output = <PartView
           pos={newPos || x.props.pos}
           zoom={newZoom || x.props.zoom}
+          canvasOffset={newCanvasOffset || x.props.canvasOffset}
           key={x.props.id}
           model={newModel}
           onMount={x.props.onMount}
@@ -56,6 +63,12 @@ class App extends React.Component {
 
   constructor(props: any) {
     super(props)
+    this.state = {
+      viewPortSelected: false,
+      viewPorClicktOffset: { x: 0, y: 0 },
+      viewPortoffset: { x: 0, y: 0 }
+    }
+
     let parts = utils.generate8bitComputerDesign();
     var clockcomp = (parts[0] as clock);
 
@@ -95,15 +108,15 @@ class App extends React.Component {
         });
       }
       let onMouseMove = (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => {
-      
+
         this.updatePartModels(partView.props.model,
           {
-            x: ((data.clientX) + ((partView.state.clickOffset.x))) / this.zoom,
-            y: ((data.clientY) + ((partView.state.clickOffset.y)))/ this.zoom
-          }, true);
+            x: ((data.clientX) + (partView.state.clickOffset.x) - (partView.props.canvasOffset.x*this.zoom))/partView.props.zoom,
+            y: ((data.clientY) + (partView.state.clickOffset.y) - (partView.props.canvasOffset.y*this.zoom))/partView.props.zoom
+          }, true,null,null);
       }
 
-      return <PartView pos={pos} zoom={1} key={model.id} model={model} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
+      return <PartView pos={pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={model.id} model={model} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
     });
   }
 
@@ -143,10 +156,54 @@ class App extends React.Component {
           partElement.props.pos, false, this.zoom)
       })
     }}
-      style={this.style}>
+
+      onMouseDown={(event) => {
+        //if rightclick on canvas then we want to modify the offset.
+        if (event.button == 2) {
+          event.preventDefault();
+          let bounds = ReactDOM.findDOMNode(this).getBoundingClientRect();
+          let clickOffsetVector = {
+            x: (this.state.viewPortoffset.x- event.clientX),
+            y: (this.state.viewPortoffset.y - event.clientY)
+          };
+          this.setState({
+            viewPortSelected: true,
+            viewPorClicktOffset: clickOffsetVector
+          });
+
+        }
+      }}
+
+      onMouseUp={(event) => {
+        if (event.button == 2) {
+          this.setState({ viewPortSelected: false });
+        }
+      }}
+
+      onMouseMove={(event) => {
+        if (event.button == 2) {
+          if (this.state.viewPortSelected) {
+            let finalViewOffset = {
+              x: (event.clientX) + ((this.state.viewPorClicktOffset.x)),
+              y: (event.clientY) + ((this.state.viewPorClicktOffset.y))
+            };
+            this.setState({ viewPortoffset: finalViewOffset });
+            this.partElements = this.partElements.map(partElement => {
+              return this.updatePartModels(partElement.props.model,
+                partElement.props.pos, false, partElement.props.zoom, finalViewOffset);
+            });
+          }
+        }
+      }}
+
+      onContextMenu={(event) => {
+        event.preventDefault();
+      }}
+
+      style={this.style} >
       {this.partElements}
       {this.wireElements}
-    </div>
+    </div >
     );
   }
 }
