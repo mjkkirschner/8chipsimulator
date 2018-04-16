@@ -2,6 +2,7 @@ import * as _ from "underscore";
 import { SmoothieChart, TimeSeries } from 'smoothie';
 import { error } from "util";
 import { outputPin, pin, inputPin, wire, internalWire } from "./pins_wires";
+import { simulatorExecution } from "./engine";
 
 
 //TODO this needs to be redesigned.
@@ -34,7 +35,7 @@ export class toggleSwitch {
 
 
 export interface Ipart {
-    update();
+    update(simulator?:simulatorExecution);
     outputs: Array<outputPin>
     inputs: Array<inputPin>
     id: string
@@ -143,7 +144,7 @@ export class inverter extends basePart implements Ipart {
     public outputPin = new outputPin("invertedOut", this);
 
     public get inputs() {
-        return [this.dataPin];
+        return [this.dataPin, this.outputEnablePin];
     }
 
     public get outputs() {
@@ -205,7 +206,7 @@ export class nBuffer extends basePart implements Ipart, IAggregatePart {
         return this.outputPins;
     }
 
-    constructor(n = 8,name?: string) {
+    constructor(n = 8, name?: string) {
         super(name);
 
         this.parts = _.range(0, n).map((x, index) => {
@@ -352,7 +353,7 @@ export class bus extends basePart implements Ipart {
         return parseInt(this.outputPins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
 
-    constructor(busWidth: number, NumberOfInputGroups: number,name?: string) {
+    constructor(busWidth: number, NumberOfInputGroups: number, name?: string) {
         super(name);
         //create output pins
         this.outputPins = _.range(0, busWidth).map((x, index) => { return new outputPin("output" + index, this) });

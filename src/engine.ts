@@ -1,6 +1,8 @@
 
 import { Ipart } from "./primitives";
 import * as _ from "underscore";
+import { IPartViewState } from "./views/partView";
+import { clock } from "./clock";
 
 
 export class graph {
@@ -98,7 +100,7 @@ export class graph {
 
         while (stack.length > 0) {
             let node = stack.pop();
-            let nodeheight = Math.max(node.pointer.inputs.length,node.pointer.outputs.length) * 30;
+            let nodeheight = Math.max(node.pointer.inputs.length, node.pointer.outputs.length) * 30;
             //if we're about to grow too large, then make a new column
             //and add this column to our list of completed columns.
             if (column.height + nodeheight > maxColumnHeight) {
@@ -136,11 +138,113 @@ class node {
     }
 }
 
-export class execution {
+export class Task {
+
+    protected uuidv4() {
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+    }
+
+    public callBack: Function;
+    public partUpdated: Ipart;
+    //TODO not clear we need this.
+    public id: string
+    public caller: Task
+
+    constructor(caller: Task, partUpdated: Ipart, callBack: Function) {
+        this.caller = caller;
+        this.partUpdated = partUpdated;
+        this.callBack = callBack;
+        this.id = this.uuidv4();
+    }
 
 
-    //public static topologicalSort(parts: Ipart[]): Ipart[] {
 
+}
 
+export class simulatorExecution {
 
+    constructor(parts: Ipart[]) {
+        this.parts = parts;
+    }
+    //TODO remove this when clock and time steps are desgined.
+    public mainClockSpeed = 50;
+
+    public schedule: Array<Task>;
+    public currentTask: Task;
+    public parts: Array<Ipart>;
+
+    public insertTask(task: Task) {
+        var callerIndex = _.findLastIndex(this.schedule, (x) => { return x.id == task.caller.id || x.caller.id == task.caller.id })
+        this.schedule.splice(callerIndex + 1, 0, task);
+    }
+
+    public findEntryPoints() {
+        let filtered = this.parts.filter(x => { return x.inputs.length == 0 });
+        console.log("found", filtered, "as entry points");
+        return filtered;
+    }
+
+    private scheduleDownStreamTasks(task: Task): void {
+
+        let downStreamParts = _.flatten(task.partUpdated.outputs.map(x => x.attachedWires.map(y => y.endPin.owner))) as Ipart[];
+        let downstreamTasks = downStreamParts.map(part => {
+            //tricky recrusive scheduling.
+            let downstreamTask = new Task(task, part, null);
+            downstreamTask.callBack = () => { part.update(); this.scheduleDownStreamTasks(downstreamTask); }
+            return downstreamTask;
+        });
+        downstreamTasks.forEach(x => { this.insertTask(x) });
+    }
+
+    private generateTaskAndDownstreamTasks(rootTask: Task, part: Ipart): Task {
+        let mainTask = new Task(rootTask, part, null);
+        mainTask.callBack = () => {
+            part.update();
+            this.scheduleDownStreamTasks(mainTask);
+        };
+        return mainTask;
+    }
+
+    public Evaluate() {
+
+        let entryPoints = this.findEntryPoints();
+        let clocks = entryPoints.filter(x => { return x instanceof clock });
+        let rootOfAllTasks = new Task(null, null, () => { throw new Error("I am the root, I should never run"); });
+
+        let tasks = entryPoints.map(x => {
+            return this.generateTaskAndDownstreamTasks(rootOfAllTasks, x);
+        });
+
+        this.schedule = tasks.map((x) => { return x });
+
+        //TODO remove - this is a hack that schedules a clock increment task every n ms...
+        setInterval(() => {
+            if (this.schedule.length == 0) {
+                clocks.forEach(x => {
+                      let clocktTask = this.generateTaskAndDownstreamTasks(rootOfAllTasks, x);
+                      this.insertTask(clocktTask);
+                  });
+                this.runTasksInSchedule();
+            } else {
+                throw new Error("trying to schedule a clock incrment while there are other tasks still in the q...., usually this means the clock is too fast...")
+            };
+
+        }, this.mainClockSpeed);
+
+        this.runTasksInSchedule();
+    }
+
+    private runTasksInSchedule() {
+        while (this.schedule.length > 0) {
+            var headOfQ = this.schedule[0];
+            this.currentTask = headOfQ;
+
+            //setTimeout(() => { headOfQ.callBack() }, 0);
+            headOfQ.callBack();
+            this.schedule.shift();
+        }
+    }
 }

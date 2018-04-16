@@ -1,18 +1,19 @@
-import {  Ipart, basePart } from "./primitives";
+import { Ipart, basePart } from "./primitives";
 import { SmoothieChart, TimeSeries } from 'smoothie';
 import * as _ from "underscore";
 import { clearInterval, clearImmediate } from "timers";
 import { outputPin } from "./pins_wires";
+import { simulatorExecution } from "./engine";
 
 
 /**
  * clock is a time based oscillator which provides a binary output pin - 
- * it also has a view which draws a timeSeries chart of the clock signal over time.
  */
-export class clock extends  basePart implements Ipart {
+export class clock extends basePart implements Ipart {
 
     private cycle;
     private state = false;
+    private stateMode = 0;
     private intervalID: NodeJS.Timer
 
     private highCallbacks: Function[];
@@ -29,7 +30,7 @@ export class clock extends  basePart implements Ipart {
         return [this.outputPin];
     }
 
-    constructor(cycle: number,name?:string) {
+    constructor(cycle: number, name?: string) {
         super(name);
         this.cycle = cycle
         this.highCallbacks = [];
@@ -38,7 +39,7 @@ export class clock extends  basePart implements Ipart {
 
     public startClock() {
         this.intervalID = setInterval(() => {
-            this.increment();
+            this.incrementTimedFullCycle();
 
         }, this.cycle * 4)
 
@@ -48,12 +49,49 @@ export class clock extends  basePart implements Ipart {
         clearInterval(this.intervalID);
     }
 
-    public update() {
-        this.increment();
+    public update(simulater: simulatorExecution) {
+        //TODO - modify this function so that increment is only called
+        //when the cycle time has been surpassed... 
+        //ie clock may lag behind cycle time if update is called too slowly, but we'll never increment the clock
+        //too quickly or before other tasks stabilize...?
+        //another approach is that clock should schedule itself based on cycle time and scheduler time step...
+        //we could pass the evaluator to each update call and let parts schedule themselves or return some schedule request to us.
+
+        this.incrementState();
     }
 
     public assignInputPin() {
         throw new Error("Not Implemented and also would do nothing :)");
+    }
+
+    public incrementState(callbackHigh?: Function, callbackLow?: Function) {
+
+        switch (this.stateMode) {
+            case 0:
+                this.tick();
+                this.stateMode = 1;
+                break;
+            case 1:
+                this.tick();
+                this.stateMode = 2;
+                break;
+            case 2:
+                this.tock();
+                this.stateMode = 3;
+                if (callbackHigh) {
+                    callbackHigh();
+                }
+                this.highCallbacks.forEach(x => x());
+                break;
+            case 3:
+                this.tick();
+                this.stateMode = 0;
+                this.lowCallbacks.forEach(x => x());
+                if (callbackLow) {
+                    callbackLow();
+                }
+                break;
+        }
     }
 
     /**
@@ -61,7 +99,7 @@ export class clock extends  basePart implements Ipart {
      * provided callbacks if they exist.
      * @param callback 
      */
-    public increment(callbackHigh?: Function, callbackLow?: Function) {
+    public incrementTimedFullCycle(callbackHigh?: Function, callbackLow?: Function) {
 
         //set clock to 0  
         this.tick();
@@ -106,7 +144,7 @@ export class clock extends  basePart implements Ipart {
                     done();
                 }
                 else {
-                    this.increment(undefined, () => {
+                    this.incrementTimedFullCycle(undefined, () => {
                         cycleComplete = true; count = count + 1
                     });
                     cycleComplete = false;

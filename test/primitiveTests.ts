@@ -7,12 +7,12 @@ import { outputPin, wire, inputPin } from "../src/pins_wires";
 describe('clock component', function () {
     it('should pulse and call callback when incremented', function (done) {
         var clockComp = new clock(100);
-        clockComp.increment(() => { done() });
+        clockComp.incrementTimedFullCycle(() => { done() });
     });
 
     it('value should be 0 after pulsing', function (done) {
         var clockComp = new clock(100);
-        clockComp.increment(undefined, () => {
+        clockComp.incrementTimedFullCycle(undefined, () => {
             assert.equal(clockComp.outputPin.value, 0);
             done()
         });

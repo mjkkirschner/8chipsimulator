@@ -95,7 +95,13 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     instructionREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
     //we need to invert the count clock signal for the microcodeCounter
+    let invEnable = new VoltageRail("invert clock signal enable");
+    //we need to invert the count clock signal for the microcodeCounter
+    invEnable.outputPin.value = true;
     let inv = new inverter("invert clock signal");
+    new wire(invEnable.outputPin, inv.outputEnablePin);
+
+
     new wire(clock.outputPin, inv.dataPin);
     //count to 8
     let microCodeCounter = new binaryCounter(3, "microcode step counter");
@@ -104,7 +110,7 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
 
     //connect to EEPROM (modeled via RAM...)
     //TODO maybe use a different memory object here with a different type of view so it's not so giant...
-    EEPROM.wireUpAddressPins(instructionREG.outputPins.slice(4,8).concat(microCodeCounter.outputPins));
+    EEPROM.wireUpAddressPins(instructionREG.outputPins.slice(4, 8).concat(microCodeCounter.outputPins));
     let microCode = microCodeData.getData().map(number => { return number.toString(2).padStart(24, "0").split("").map(bit => { return Boolean(Number(bit)) }) });
     while (microCode.length < eepromLen) {
         microCode.push(_.range(0, 24).map(x => { return false }))
@@ -114,7 +120,7 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     //TODO
     //would be good to create named buffers foreach of these signals so we can easily grab them and treat them all as high when they are on
     //even if the resulting signal needs a low signal. - for this we can use indicator LED or some other component like this.
-    return [EEPROM, inv, microCodeCounter, instructionREG]
+    return [EEPROM, inv,invEnable, microCodeCounter, instructionREG]
 }
 
 export function generate8bitComputerDesign(): Ipart[] {

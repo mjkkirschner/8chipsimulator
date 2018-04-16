@@ -29,7 +29,7 @@ describe('Binary counter component', function () {
         load.value = true;
 
         counter.update();
-        clockcomp.increment(() => {
+        clockcomp.incrementTimedFullCycle(() => {
             counter.update();
             assert.equal(counter.countAsInteger(), 1);
             done();

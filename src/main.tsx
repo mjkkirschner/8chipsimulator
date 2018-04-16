@@ -10,7 +10,7 @@ import * as _ from "underscore";
 import { WireView } from "./views/wireView";
 import { wire } from "./pins_wires";
 import { stat } from "fs";
-import { graph } from "./engine";
+import { graph, simulatorExecution } from "./engine";
 import { setInterval } from "timers";
 
 interface ICanvasState {
@@ -77,23 +77,23 @@ class App extends React.Component<{}, ICanvasState> {
 
     gra.calculateColumnLayout(1200, 400);
 
-    clockcomp.startClock();
+    //clockcomp.startClock();
 
 
+    let evaluator = new simulatorExecution(parts);
+    evaluator.mainClockSpeed = 2000;
+    evaluator.Evaluate();
 
+    //TODO collect some events from the parts... like updating or something and watch those.
     setInterval(() => {
       let newPartViews = orderedParts.map((x) => {
         let part = x.pointer;
-        if (!(part instanceof clock)) {
-          //  part.update();
-        }
         return this.updatePartModels(part);
       });
       this.partElements = newPartViews;
       this.forceUpdate();
       this.recreateAllWires();
       this.forceUpdate();
-
 
     }, 20);
 
@@ -111,9 +111,9 @@ class App extends React.Component<{}, ICanvasState> {
 
         this.updatePartModels(partView.props.model,
           {
-            x: ((data.clientX) + (partView.state.clickOffset.x) - (partView.props.canvasOffset.x*this.zoom))/partView.props.zoom,
-            y: ((data.clientY) + (partView.state.clickOffset.y) - (partView.props.canvasOffset.y*this.zoom))/partView.props.zoom
-          }, true,null,null);
+            x: ((data.clientX) + (partView.state.clickOffset.x) - (partView.props.canvasOffset.x * this.zoom)) / partView.props.zoom,
+            y: ((data.clientY) + (partView.state.clickOffset.y) - (partView.props.canvasOffset.y * this.zoom)) / partView.props.zoom
+          }, true, null, null);
       }
 
       return <PartView pos={pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={model.id} model={model} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
@@ -153,7 +153,7 @@ class App extends React.Component<{}, ICanvasState> {
       this.partElements = this.partElements.map(partElement => {
 
         return this.updatePartModels(partElement.props.model,
-          partElement.props.pos, false, this.zoom)
+          partElement.props.pos, false, this.zoom, null)
       })
     }}
 
@@ -163,7 +163,7 @@ class App extends React.Component<{}, ICanvasState> {
           event.preventDefault();
           let bounds = ReactDOM.findDOMNode(this).getBoundingClientRect();
           let clickOffsetVector = {
-            x: (this.state.viewPortoffset.x- event.clientX),
+            x: (this.state.viewPortoffset.x - event.clientX),
             y: (this.state.viewPortoffset.y - event.clientY)
           };
           this.setState({
