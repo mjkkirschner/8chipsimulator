@@ -3,6 +3,7 @@ import { Ipart } from "./primitives";
 import * as _ from "underscore";
 import { IPartViewState } from "./views/partView";
 import { clock } from "./clock";
+import { WSAEINVALIDPROCTABLE } from "constants";
 
 
 export class graph {
@@ -149,26 +150,46 @@ export class Task {
 
     public callBack: Function;
     public partUpdated: Ipart;
-    //TODO not clear we need this.
     public id: string
     public caller: Task
+    public executedAtTime;
 
-    constructor(caller: Task, partUpdated: Ipart, callBack: Function) {
+    constructor(caller: Task, partUpdated: Ipart, callBack: Function, executedAtTime?: number) {
         this.caller = caller;
         this.partUpdated = partUpdated;
         this.callBack = callBack;
         this.id = this.uuidv4();
+        this.executedAtTime = executedAtTime || null;
     }
-
-
 
 }
 
 export class simulatorExecution {
 
+
+    rootOfAllTasks: Task;
+    time: number;
+
     constructor(parts: Ipart[]) {
         this.parts = parts;
+        this.time = 0;
     }
+
+    public incrementTime(timeUnits: number) {
+        this.time = this.time + timeUnits;
+    }
+
+    // this function asserts invariants hold about our schedule and throws errors if they are false.
+    private validateSchedule(): void {
+        let neverWillRuns = this.schedule.filter((task) => { return task.executedAtTime < this.time && task.executedAtTime != null });
+        if (neverWillRuns.length > 0) {
+            console.log("currentTime:", this.time);
+            console.log(this.schedule);
+            throw new Error("There is a task in the schedule which was scheduled to run in the past, but it never ran.");
+        }
+    }
+
+
     //TODO remove this when clock and time steps are desgined.
     public mainClockSpeed = 50;
 
@@ -193,16 +214,17 @@ export class simulatorExecution {
         let downstreamTasks = downStreamParts.map(part => {
             //tricky recrusive scheduling.
             let downstreamTask = new Task(task, part, null);
-            downstreamTask.callBack = () => { part.update(); this.scheduleDownStreamTasks(downstreamTask); }
+            downstreamTask.callBack = () => { part.update(this); this.scheduleDownStreamTasks(downstreamTask); }
             return downstreamTask;
         });
         downstreamTasks.forEach(x => { this.insertTask(x) });
     }
 
-    private generateTaskAndDownstreamTasks(rootTask: Task, part: Ipart): Task {
-        let mainTask = new Task(rootTask, part, null);
+    public generateTaskAndDownstreamTasks(rootTask: Task, part: Ipart, scheduleAtTime?: number): Task {
+        let mainTask = new Task(rootTask, part, null, scheduleAtTime);
         mainTask.callBack = () => {
-            part.update();
+            part.update(this);
+            //TODO give them all times.... but how to handle tasks executing at 'same' time?
             this.scheduleDownStreamTasks(mainTask);
         };
         return mainTask;
@@ -212,39 +234,50 @@ export class simulatorExecution {
 
         let entryPoints = this.findEntryPoints();
         let clocks = entryPoints.filter(x => { return x instanceof clock });
-        let rootOfAllTasks = new Task(null, null, () => { throw new Error("I am the root, I should never run"); });
+        this.rootOfAllTasks = new Task(null, null, () => { throw new Error("I am the root, I should never run"); });
 
         let tasks = entryPoints.map(x => {
-            return this.generateTaskAndDownstreamTasks(rootOfAllTasks, x);
+            return this.generateTaskAndDownstreamTasks(this.rootOfAllTasks, x);
         });
 
         this.schedule = tasks.map((x) => { return x });
 
         //TODO remove - this is a hack that schedules a clock increment task every n ms...
-        setInterval(() => {
-            if (this.schedule.length == 0) {
-                clocks.forEach(x => {
-                      let clocktTask = this.generateTaskAndDownstreamTasks(rootOfAllTasks, x);
-                      this.insertTask(clocktTask);
-                  });
-                this.runTasksInSchedule();
-            } else {
-                throw new Error("trying to schedule a clock incrment while there are other tasks still in the q...., usually this means the clock is too fast...")
-            };
-
-        }, this.mainClockSpeed);
-
+        /* setInterval(() => {
+             if (this.schedule.length == 0) {
+                 clocks.forEach(x => {
+                     let clocktTask = this.generateTaskAndDownstreamTasks(rootOfAllTasks, x);
+                     this.insertTask(clocktTask);
+                 });
+                 this.runTasksInSchedule();
+             } else {
+                 throw new Error("trying to schedule a clock incrment while there are other tasks still in the q...., usually this means the clock is too fast...")
+             };
+ 
+         }, this.mainClockSpeed);
+ */
         this.runTasksInSchedule();
     }
 
     private runTasksInSchedule() {
         while (this.schedule.length > 0) {
-            var headOfQ = this.schedule[0];
-            this.currentTask = headOfQ;
+            this.currentTask = this.schedule[0];
 
-            //setTimeout(() => { headOfQ.callBack() }, 0);
-            headOfQ.callBack();
-            this.schedule.shift();
+            // if the current task has a specified time to execute
+            // then only run the task if this matches the current simulation time
+            if (this.currentTask.executedAtTime != null) {
+                if (this.currentTask.executedAtTime == this.time) {
+                    this.schedule.shift();
+                    this.currentTask.callBack();
+                }
+
+            } else {
+                this.schedule.shift();
+                this.currentTask.callBack();
+            }
+            this.validateSchedule();
+            this.incrementTime(1);
+
         }
     }
 }

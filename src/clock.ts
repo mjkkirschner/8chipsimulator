@@ -3,7 +3,7 @@ import { SmoothieChart, TimeSeries } from 'smoothie';
 import * as _ from "underscore";
 import { clearInterval, clearImmediate } from "timers";
 import { outputPin } from "./pins_wires";
-import { simulatorExecution } from "./engine";
+import { simulatorExecution, Task } from "./engine";
 
 
 /**
@@ -50,14 +50,13 @@ export class clock extends basePart implements Ipart {
     }
 
     public update(simulater: simulatorExecution) {
-        //TODO - modify this function so that increment is only called
-        //when the cycle time has been surpassed... 
-        //ie clock may lag behind cycle time if update is called too slowly, but we'll never increment the clock
-        //too quickly or before other tasks stabilize...?
-        //another approach is that clock should schedule itself based on cycle time and scheduler time step...
-        //we could pass the evaluator to each update call and let parts schedule themselves or return some schedule request to us.
 
+        //each run of the clock will increment the clock state 1/4 state of a full cycle
+        //and then schedule the next task.
         this.incrementState();
+        //TODO this is wrong... duty cycle fix it.
+        let clocktTask = simulater.generateTaskAndDownstreamTasks(simulater.rootOfAllTasks, this, simulater.time + this.cycle*20);
+        simulater.insertTask(clocktTask);
     }
 
     public assignInputPin() {
