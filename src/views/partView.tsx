@@ -4,6 +4,8 @@ import { Ipart } from '../primitives';
 import { outputPin } from '../pins_wires';
 import { staticRam } from '../sram';
 import { MemoryDataView } from './memoryPartView';
+import { grapher } from '../graphPart';
+import { GrapherPartView } from './graphPartView';
 
 export interface IPartViewState {
     selected: Boolean
@@ -119,6 +121,11 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         if (model instanceof staticRam) {
             return (<MemoryDataView model={model}>
             </MemoryDataView>)
+        }
+        if (model instanceof grapher) {
+            return (<GrapherPartView model={model}>
+            </GrapherPartView>)
+
         }
     }
 

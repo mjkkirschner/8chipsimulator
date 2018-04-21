@@ -189,10 +189,6 @@ export class simulatorExecution {
         }
     }
 
-
-    //TODO remove this when clock and time steps are desgined.
-    public mainClockSpeed = 50;
-
     public schedule: Array<Task>;
     public currentTask: Task;
     public parts: Array<Ipart>;
@@ -260,24 +256,26 @@ export class simulatorExecution {
     }
 
     private runTasksInSchedule() {
-        while (this.schedule.length > 0) {
-            this.currentTask = this.schedule[0];
+        //while (this.schedule.length > 0) {
+        setInterval(() => {
+            if (this.schedule.length > 0) {
+                this.currentTask = this.schedule[0];
 
-            // if the current task has a specified time to execute
-            // then only run the task if this matches the current simulation time
-            if (this.currentTask.executedAtTime != null) {
-                if (this.currentTask.executedAtTime == this.time) {
+                // if the current task has a specified time to execute
+                // then only run the task if this matches the current simulation time
+                if (this.currentTask.executedAtTime != null) {
+                    if (this.currentTask.executedAtTime == this.time) {
+                        this.schedule.shift();
+                        this.currentTask.callBack();
+                    }
+
+                } else {
                     this.schedule.shift();
                     this.currentTask.callBack();
                 }
-
-            } else {
-                this.schedule.shift();
-                this.currentTask.callBack();
+                this.validateSchedule();
+                this.incrementTime(1);
             }
-            this.validateSchedule();
-            this.incrementTime(1);
-
-        }
+        }, 1);
     }
 }

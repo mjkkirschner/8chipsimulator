@@ -55,7 +55,7 @@ export class clock extends basePart implements Ipart {
         //and then schedule the next task.
         this.incrementState();
         //TODO this is wrong... duty cycle fix it.
-        let clocktTask = simulater.generateTaskAndDownstreamTasks(simulater.rootOfAllTasks, this, simulater.time + this.cycle*20);
+        let clocktTask = simulater.generateTaskAndDownstreamTasks(simulater.rootOfAllTasks, this, simulater.time + this.cycle/4);
         simulater.insertTask(clocktTask);
     }
 

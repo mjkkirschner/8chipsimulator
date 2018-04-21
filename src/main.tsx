@@ -77,11 +77,7 @@ class App extends React.Component<{}, ICanvasState> {
 
     gra.calculateColumnLayout(1200, 400);
 
-    //clockcomp.startClock();
-
-
     let evaluator = new simulatorExecution(parts);
-    evaluator.mainClockSpeed = 2000;
     evaluator.Evaluate();
 
     //TODO collect some events from the parts... like updating or something and watch those.
@@ -91,7 +87,6 @@ class App extends React.Component<{}, ICanvasState> {
         return this.updatePartModels(part);
       });
       this.partElements = newPartViews;
-      this.forceUpdate();
       this.recreateAllWires();
       this.forceUpdate();
 

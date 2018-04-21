@@ -6,6 +6,7 @@ import { staticRam } from "../src/sram";
 import { binaryCounter } from "../src/counter";
 import { microCodeData } from "../src/8bitCPUDesign/microcode";
 import _ = require("underscore");
+import { grapher } from "../src/graphPart";
 
 export function generate3Registers_Adder_Bus(): Ipart[] {
 
@@ -120,7 +121,7 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     //TODO
     //would be good to create named buffers foreach of these signals so we can easily grab them and treat them all as high when they are on
     //even if the resulting signal needs a low signal. - for this we can use indicator LED or some other component like this.
-    return [EEPROM, inv,invEnable, microCodeCounter, instructionREG]
+    return [EEPROM, inv, invEnable, microCodeCounter, instructionREG]
 }
 
 export function generate8bitComputerDesign(): Ipart[] {
@@ -132,7 +133,12 @@ export function generate8bitComputerDesign(): Ipart[] {
     var parts3 = generateProgramCounter(bus);
     var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
 
-    var output = parts1.concat(parts2, parts3, parts4);
+
+    var parts5 = [new grapher(1, "clock data view test")];
+    new wire(clockcomp.outputPin, parts5[0].dataPins[0]);
+
+
+    var output = parts1.concat(parts2, parts3, parts4,parts5);
     output.unshift(clockcomp);
     return _.unique(output);
 }
