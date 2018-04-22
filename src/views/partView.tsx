@@ -100,9 +100,6 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         return parseInt(pins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
 
-    componentWillReceiveProps(props) {
-    }
-
     protected dataStyle(data: boolean) {
 
 
@@ -123,7 +120,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             </MemoryDataView>)
         }
         if (model instanceof grapher) {
-            return (<GrapherPartView model={model}>
+            return (<GrapherPartView model={model} simulator={window["evaluator"]} >
             </GrapherPartView>)
 
         }
