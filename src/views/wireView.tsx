@@ -65,7 +65,7 @@ export class WireView extends React.Component<IWireViewProps> {
     
 }
 
-class ipoint {
+export class ipoint {
     x: number
     y: number
     constructor(x: number, y: number) {

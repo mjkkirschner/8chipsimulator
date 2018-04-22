@@ -4,8 +4,9 @@ import { Ipart } from '../primitives';
 import * as _ from 'underscore';
 import { IpartViewProps } from './partView';
 import { grapher } from '../graphPart';
-import SmoothieChart = require("smoothie");
 import { simulatorExecution } from '../engine';
+import { Chart, ChartData, ChartPoint } from 'chart.js';
+import { ipoint } from './wireView';
 
 export class grapherPropsData {
     model: grapher
@@ -14,26 +15,34 @@ export class grapherPropsData {
 
 export class GrapherPartView extends React.Component<grapherPropsData> {
 
-    private timeSeries: TimeSeries
-    private chart: SmoothieChart;
+    private data: ChartData
+    private chart: Chart;
     private startTime: number;
 
     constructor(props: grapherPropsData) {
         super(props);
         this.state = {};
-        this.timeSeries = new SmoothieChart.TimeSeries();
-        this.chart = new SmoothieChart.SmoothieChart({ millisPerPixel: 100 });
-        this.startTime = new Date().getTime();
+        this.data = { datasets: [{ data: [] }] }
+        this.startTime = 0;
 
     }
     componentDidMount() {
-        this.chart.streamTo(document.
-            getElementById(this.props.model.id) as HTMLCanvasElement);
-        this.chart.addTimeSeries(this.timeSeries);
+        this.chart = new Chart((document.getElementById(this.props.model.id) as HTMLCanvasElement).getContext("2d"),
+            {
+                type: 'scatter',
+                data: this.data,
+                options: { showLines: true }
+            });
+
+        this.chart.update();
     }
 
-    componentDidUpdate(a, b, c) {
-        this.timeSeries.append(this.startTime + this.props.simulator.time * 30, (this.props.model as grapher).getDataAsInteger());
+    componentDidUpdate() {
+        (this.data.datasets[0].data as ChartPoint[]).push(new ipoint(this.startTime + this.props.simulator.time, (this.props.model as grapher).getDataAsInteger()));
+        if (this.data.datasets[0].data.length > 500) {
+            this.data.datasets[0].data = _.rest<ChartPoint>(this.data.datasets[0].data as ChartPoint[], 250);
+        }
+        this.chart.update();
     }
 
     style = {

@@ -102,13 +102,12 @@ class App extends React.Component<{}, ICanvasState> {
 
     //TODO collect some events from the parts... like updating or something and watch those.
     setInterval(() => {
-     this.orderedParts.forEach((x) => {
+      this.orderedParts.forEach((x) => {
         let part = x.pointer;
         return this.updatePartModel(part);
       });
       this.recreateAllWires();
     }, 20);
-
 
   }
 
