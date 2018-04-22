@@ -22,7 +22,7 @@ export class GrapherPartView extends React.Component<grapherPropsData> {
         super(props);
         this.state = {};
         this.timeSeries = new SmoothieChart.TimeSeries();
-        this.chart = new SmoothieChart.SmoothieChart({millisPerPixel:100});
+        this.chart = new SmoothieChart.SmoothieChart({ millisPerPixel: 100 });
         this.startTime = new Date().getTime();
 
     }
@@ -33,9 +33,7 @@ export class GrapherPartView extends React.Component<grapherPropsData> {
     }
 
     componentDidUpdate(a, b, c) {
-       // this.timeSeries.append(this.startTime + this.props.simulator.time*30, (this.props.model as grapher).getDataAsInteger());
-
-
+        this.timeSeries.append(this.startTime + this.props.simulator.time * 30, (this.props.model as grapher).getDataAsInteger());
     }
 
     style = {
