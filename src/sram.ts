@@ -86,6 +86,7 @@ export class staticRam extends basePart implements Ipart, Imemory {
         }
 
         this.lastWEstate = this.writeEnable.value;
+        super.update();
     }
 
 

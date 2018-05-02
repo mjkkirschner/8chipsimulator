@@ -1,4 +1,4 @@
-import { toggleSwitch, nRegister, Ipart } from "./primitives";
+import { nRegister, Ipart } from "./primitives";
 import { clock } from "./clock";
 
 
@@ -9,9 +9,8 @@ import * as utils from "../test/8bitComputerTests";
 import * as _ from "underscore";
 import { WireView } from "./views/wireView";
 import { wire } from "./pins_wires";
-import { stat } from "fs";
 import { graph, simulatorExecution } from "./engine";
-import { setInterval } from "timers";
+import { CommandLineView } from "./views/console";
 
 interface ICanvasState {
   viewPortSelected: boolean;
@@ -35,7 +34,7 @@ class App extends React.Component<{}, ICanvasState> {
     //set height based on children?
     zIndex: -2,
     width: '100%',
-    height: '2400px',
+    height: '90%',
     overflow: 'hidden' as 'hidden'
   }
 
@@ -165,56 +164,60 @@ class App extends React.Component<{}, ICanvasState> {
 
 
   public render() {
-    return (<div onWheel={(event) => {
-      event.preventDefault();
-      this.zoom = this.zoom - event.deltaY / 1000;
-      //now we should recreate the elements with different zoom.
-      this.updateAllPartViews(
-        null, this.zoom, null)
-    }}
-
-      onMouseDown={(event) => {
-        //if rightclick on canvas then we want to modify the offset.
-        if (event.button == 2) {
+    return (
+      <div style={{ height: window.innerHeight, position: "relative", overflow: "hidden" }} >
+        <div onWheel={(event) => {
           event.preventDefault();
-          let bounds = ReactDOM.findDOMNode(this).getBoundingClientRect();
-          let clickOffsetVector = {
-            x: (this.state.viewPortoffset.x - event.clientX),
-            y: (this.state.viewPortoffset.y - event.clientY)
-          };
-          this.setState({
-            viewPortSelected: true,
-            viewPorClicktOffset: clickOffsetVector
-          });
+          this.zoom = this.zoom - event.deltaY / 1000;
+          //now we should recreate the elements with different zoom.
+          this.updateAllPartViews(
+            null, this.zoom, null)
+        }}
 
-        }
-      }}
+          onMouseDown={(event) => {
+            //if rightclick on canvas then we want to modify the offset.
+            if (event.button == 2) {
+              event.preventDefault();
+              let bounds = ReactDOM.findDOMNode(this).getBoundingClientRect();
+              let clickOffsetVector = {
+                x: (this.state.viewPortoffset.x - event.clientX),
+                y: (this.state.viewPortoffset.y - event.clientY)
+              };
+              this.setState({
+                viewPortSelected: true,
+                viewPorClicktOffset: clickOffsetVector
+              });
 
-      onMouseUp={(event) => {
-        if (event.button == 2) {
-          this.setState({ viewPortSelected: false });
-        }
-      }}
+            }
+          }}
 
-      onMouseMove={(event) => {
-        if (this.state.viewPortSelected) {
-          let finalViewOffset = {
-            x: (event.clientX) + ((this.state.viewPorClicktOffset.x)),
-            y: (event.clientY) + ((this.state.viewPorClicktOffset.y))
-          };
-          this.setState({ viewPortoffset: finalViewOffset });
-          this.updateAllPartViews(null, null, finalViewOffset);
-        }
-      }}
+          onMouseUp={(event) => {
+            if (event.button == 2) {
+              this.setState({ viewPortSelected: false });
+            }
+          }}
 
-      onContextMenu={(event) => {
-        event.preventDefault();
-      }}
+          onMouseMove={(event) => {
+            if (this.state.viewPortSelected) {
+              let finalViewOffset = {
+                x: (event.clientX) + ((this.state.viewPorClicktOffset.x)),
+                y: (event.clientY) + ((this.state.viewPorClicktOffset.y))
+              };
+              this.setState({ viewPortoffset: finalViewOffset });
+              this.updateAllPartViews(null, null, finalViewOffset);
+            }
+          }}
 
-      style={this.style} >
-      {this.state.parts}
-      {this.state.wires}
-    </div >
+          onContextMenu={(event) => {
+            event.preventDefault();
+          }}
+
+          style={this.style} >
+          {this.state.parts}
+          {this.state.wires}
+        </div >
+        <CommandLineView> </CommandLineView>
+      </div>
     );
   }
 }

@@ -1,55 +1,46 @@
 import * as _ from "underscore";
-import { SmoothieChart, TimeSeries } from 'smoothie';
 import { error } from "util";
 import { outputPin, pin, inputPin, wire, internalWire } from "./pins_wires";
 import { simulatorExecution } from "./engine";
 
 
-//TODO this needs to be redesigned.
-/**
- * a component represented by an HTML button which sets it's output pin value
- * to its state. The state is inverted when the button is clicked.
- */
-export class toggleSwitch {
 
-    private state = false;
-    private el: HTMLElement;
-    private num
-    public outputPin: outputPin = new outputPin();
-
-    constructor(uniqueID: string, displayContainer?: HTMLElement) {
-        this.outputPin.value = this.state;
-
-        let button = $('<input type="button" value="test">');
-        button.click(() => {
-            this.state = !this.state;
-            this.outputPin.value = this.state;
-        });
-        if (displayContainer) {
-            $(displayContainer).append($('<p>' + uniqueID + '</p>'));
-            $(displayContainer).append(button);
-        }
-
-    }
-}
-
-
-export interface Ipart {
-    update(simulator?:simulatorExecution);
+export interface Ipart extends IObservablePart {
+    update(simulator?: simulatorExecution);
     outputs: Array<outputPin>
     inputs: Array<inputPin>
     id: string
     displayName?: string
 }
 
-export abstract class basePart {
+export interface IObservablePart {
+    registerCallbackOnUpdate(callback: (data: boolean[]) => void)
+}
+
+
+export abstract class basePart implements Ipart {
     id: string
     displayName: string = ""
+    private updateCallbacks = [];
     protected uuidv4() {
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
+    }
+    registerCallbackOnUpdate(callback) {
+        this.updateCallbacks.push(callback);
+    }
+
+    update(simulator?:simulatorExecution) {
+        this.updateCallbacks.forEach(x => x());
+    }
+
+    get outputs() {
+        return [];
+    }
+    get inputs() {
+        return [];
     }
 
     constructor(name?: string) {
@@ -76,7 +67,7 @@ export class VoltageRail extends basePart implements Ipart {
         this.outputPin = new outputPin(name, this);
     }
     update() {
-
+        super.update();
     }
     get outputs() {
         return [this.outputPin];
@@ -131,7 +122,7 @@ class binaryCell extends basePart implements Ipart {
         this.outputPin.value = this.state;
 
         this.lastClockpinValue = this.clockPin.value;
-
+        super.update();
     }
 
 }
@@ -160,6 +151,7 @@ export class inverter extends basePart implements Ipart {
         if (this.outputEnablePin && this.outputEnablePin.value == true) {
             this.outputPin.value = !(this.dataPin.value);
         }
+        super.update();
     }
 }
 
@@ -188,6 +180,7 @@ class buffer extends basePart implements Ipart {
         if (this.outputEnablePin && this.outputEnablePin.value == true) {
             this.outputPin.value = this.dataPin.value;
         }
+        super.update();
     }
 }
 
@@ -229,6 +222,7 @@ export class nBuffer extends basePart implements Ipart, IAggregatePart {
 
     update() {
         this.parts.forEach(part => { part.update(); })
+        super.update();
     }
 
     public getDataAsInteger() {
@@ -291,6 +285,7 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
         this.parts.reverse().forEach(part => { part.update() });
         var outputAsInt = this.getDataAsInteger();
         this.lastClockpinValue = this.clockPin.value;
+        super.update();
 
     }
 

@@ -32,7 +32,7 @@ export class fullAdder extends basePart implements Ipart {
 
         this.sumPin.value = Boolean(SUM);
         this.carryOut.value = CARRYOUT;
-
+        super.update();
     }
 
     constructor(name?:string) {
@@ -108,6 +108,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
 
     update() {
         this.parts.reverse().forEach(part => { part.update(); })
+        super.update();
     }
 
     getDataAsInteger(): number {

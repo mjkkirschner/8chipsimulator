@@ -49,7 +49,7 @@ export class GrapherPartView extends React.Component<grapherPropsData> {
         color: '41474E',
         'backgroundColor': "#EEE",
         'borderStyle': 'solid',
-        "textAlign": "center",
+        "textAlign": "center" as "center",
         borderWidth: "1px",
         fontFamily: 'system-ui',
     }

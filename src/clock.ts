@@ -1,7 +1,5 @@
 import { Ipart, basePart } from "./primitives";
-import { SmoothieChart, TimeSeries } from 'smoothie';
 import * as _ from "underscore";
-import { clearInterval, clearImmediate } from "timers";
 import { outputPin } from "./pins_wires";
 import { simulatorExecution, Task } from "./engine";
 
@@ -14,7 +12,7 @@ export class clock extends basePart implements Ipart {
     private cycle;
     private state = false;
     private stateMode = 0;
-    private intervalID: NodeJS.Timer
+    private intervalID: number
 
     private highCallbacks: Function[];
     private lowCallbacks: Function[];

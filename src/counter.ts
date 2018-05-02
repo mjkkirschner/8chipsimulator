@@ -1,7 +1,6 @@
 import { Ipart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { clock } from "./clock";
-import { request } from "http";
 import { inputPin, outputPin } from "./pins_wires";
 
 
@@ -86,7 +85,7 @@ export class binaryCounter extends basePart implements Ipart {
         }
 
         this.lastClockpinValue = this.clockPin.value;
-
+        super.update();
 
     }
 

@@ -22,7 +22,7 @@ export class MemoryDataView extends React.Component<ImemoryDataProps> {
         'borderStyle': 'solid',
         display: "grid",
         gridTemplateColumns: 'auto auto auto auto auto auto auto auto',
-        "textAlign": "center",
+        "textAlign": "center" as "center",
         borderWidth: "1px",
         fontFamily: 'system-ui',
     }

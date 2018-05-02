@@ -3,7 +3,6 @@ import { Ipart } from "./primitives";
 import * as _ from "underscore";
 import { IPartViewState } from "./views/partView";
 import { clock } from "./clock";
-import { WSAEINVALIDPROCTABLE } from "constants";
 
 
 export class graph {

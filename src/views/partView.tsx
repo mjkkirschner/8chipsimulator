@@ -40,7 +40,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         borderColor: "rgb(95, 255, 187)",
         display: "inline-block",
         "minWidth": "150px",
-        "textAlign": "center",
+        "textAlign": "center" as "center",
         borderWidth: "2px",
         fontFamily: 'system-ui',
         position: 'absolute' as 'absolute',
@@ -48,7 +48,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         top: 0,
         fontSize: "9pt",
         zIndex: 0,
-        resize: 'both',
+        resize: 'both' as "both",
         overflow: 'auto' as 'auto',
         boxShadow: '0 0 5px rgb(95, 255, 187)'
     }

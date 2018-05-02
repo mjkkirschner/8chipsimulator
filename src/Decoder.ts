@@ -35,5 +35,6 @@ export class twoLineToFourLineDecoder extends basePart implements Ipart {
             //use index to set one output low.
             this.outputPins[index].value = false;
         }
+        super.update();
     }
 }
