@@ -4,13 +4,15 @@ import { clock } from "./clock";
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { PartView } from "./views/partView";
+import { PartView, IPartViewState } from "./views/partView";
 import * as utils from "../test/8bitComputerTests";
 import * as _ from "underscore";
 import { WireView } from "./views/wireView";
 import { wire } from "./pins_wires";
 import { graph, simulatorExecution } from "./engine";
 import { CommandLineView } from "./views/console";
+import { VoltageRail } from "./primitives";
+export { VoltageRail };
 
 interface ICanvasState {
   viewPortSelected: boolean;
@@ -75,6 +77,13 @@ class App extends React.Component<{}, ICanvasState> {
     this.setState({ parts: newParts })
   }
 
+  public addPart(part: Ipart) {
+    //first generate a new graph including the part:
+    let newParts = this.orderedParts.concat(part);
+    let gra = new graph(newParts);
+    this.orderedParts = gra.topoSort();
+  }
+
   constructor(props: any) {
     super(props)
     this.state = {
@@ -97,6 +106,7 @@ class App extends React.Component<{}, ICanvasState> {
     let evaluator = new simulatorExecution(parts);
     //a hack for now...
     window["evaluator"] = evaluator;
+    window["simulator"] = this;
     evaluator.Evaluate();
 
     //TODO collect some events from the parts... like updating or something and watch those.

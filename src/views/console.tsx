@@ -15,32 +15,35 @@ export class CommandLineView extends React.Component<any> {
 
     componentDidMount() {
 
-        monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-            noSemanticValidation: true,
-            noSyntaxValidation: false
-        });
+        setTimeout(() => {
 
-        // compiler options
-        monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-            target: monaco.languages.typescript.ScriptTarget.ES6,
-            allowNonTsExtensions: true
-        });
+            monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+                noSemanticValidation: true,
+                noSyntaxValidation: false
+            });
 
-        // extra libraries
-        monaco.languages.typescript.javascriptDefaults.addExtraLib([
-            'declare function ',
-        ].join('\n'), 'filename/facts.d.ts');
+            // compiler options
+            monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+                target: monaco.languages.typescript.ScriptTarget.ES6,
+                allowNonTsExtensions: true
+            });
+
+            // extra libraries
+            monaco.languages.typescript.javascriptDefaults.addExtraLib([
+                'declare function ',
+            ].join('\n'), 'filename/facts.d.ts');
 
 
-        this.codeEditor = monaco.editor.create(document.getElementById('consolecode'), {
-            value: [
-                'function x() {',
-                '\tconsole.log("Hello world!");',
-                '}'
-            ].join('\n'),
-            language: 'javascript'
-        });
-    }
+            this.codeEditor = monaco.editor.create(document.getElementById('consolecode'), {
+                value: [
+                    'function x() {',
+                    '\tconsole.log("Hello world!");',
+                    '}'
+                ].join('\n'),
+                language: 'javascript'
+            });
+        }, 200);
+    };
 
     style = {
         color: '41474E',
@@ -59,13 +62,13 @@ export class CommandLineView extends React.Component<any> {
     }
 
     public render() {
-
+        let eval2 = eval;
         return (
             <div style={this.containerStyle}>
                 <div id="consolecode" style={this.style} >
                 </div >
                 <button style={{ float: 'right', position: "relative", top: "-50px", left: "-50px" }}
-                    onClick={(data) => { alert(this.codeEditor.getModel().getValue()) }} > "RUNRUNRUN" </button>
+                    onClick={(data) => { eval2(this.codeEditor.getModel().getValue()) }} > "Evaluate" </button>
             </div>
         );
     }
