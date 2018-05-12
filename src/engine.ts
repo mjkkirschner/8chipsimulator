@@ -6,11 +6,11 @@ import { clock } from "./clock";
 
 
 export class graph {
-    public nodes: node[];
+    public nodes: graphNode[];
 
     constructor(parts: Ipart[]) {
         let AllNodes = parts.map(part => {
-            return new node(part);
+            return new graphNode(part);
         });
         AllNodes.forEach(node => {
             let neighbors = node.pointer.outputs.map(pin => {
@@ -43,9 +43,9 @@ export class graph {
         });
     }
 
-    public DFS(start: node): node[] {
+    public DFS(start: graphNode): graphNode[] {
         let stack = [start];
-        let visited: node[] = [];
+        let visited: graphNode[] = [];
         while (stack.length > 0) {
             let vertex = stack.pop();
             if (!(_.contains(visited, vertex))) {
@@ -56,7 +56,7 @@ export class graph {
         return visited;
     }
 
-    public topoSortInternal(vertex: node, visited: node[], stack: node[]) {
+    public topoSortInternal(vertex: graphNode, visited: graphNode[], stack: graphNode[]) {
         visited.push(vertex);
 
         //recurse on children that we have not already recursed on.
@@ -70,9 +70,9 @@ export class graph {
 
     }
 
-    public topoSort(): node[] {
-        let visited: node[] = [];
-        let stack: node[] = [];
+    public topoSort(): graphNode[] {
+        let visited: graphNode[] = [];
+        let stack: graphNode[] = [];
         this.nodes.forEach(node => {
             if (!(_.contains(visited, node))) {
                 this.topoSortInternal(node, visited, stack);
@@ -81,7 +81,7 @@ export class graph {
         return stack;
     }
 
-    private minDistance(node: node, placedNodes: node[]) {
+    private minDistance(node: graphNode, placedNodes: graphNode[]) {
         let distances = placedNodes.map((otherNode) => {
             return Math.sqrt(Math.pow(node.pos.x - otherNode.pos.x, 2) + Math.pow(node.pos.y - otherNode.pos.y, 2))
         });
@@ -96,7 +96,7 @@ export class graph {
         let stack = this.nodes.map(x => { return x }).reverse();
         let currentPos = { x: 20, y: 20 };
         let columns = [];
-        let column: { items: Array<node>, height: number } = { items: [], height: 0 };
+        let column: { items: Array<graphNode>, height: number } = { items: [], height: 0 };
 
         while (stack.length > 0) {
             let node = stack.pop();
@@ -121,10 +121,10 @@ export class graph {
     }
 }
 
-class node {
+export class graphNode {
     visited: boolean;
     pointer: Ipart;
-    adj: node[];
+    adj: graphNode[];
     //properties only used for layout algo
     pos: { x: number, y: number }
 
@@ -133,7 +133,7 @@ class node {
         this.adj = [];
         this.pos = { x: 0, y: 0 };
     }
-    addNeighbor(node: node) {
+    addNeighbor(node: graphNode) {
         this.adj.push(node);
     }
 }

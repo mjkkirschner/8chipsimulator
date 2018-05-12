@@ -35,14 +35,14 @@ export class CommandLineView extends React.Component<any> {
 
 
             this.codeEditor = monaco.editor.create(document.getElementById('consolecode'), {
-                value: [
-                    'function x() {',
-                    '\tconsole.log("Hello world!");',
-                    '}'
-                ].join('\n'),
-                language: 'javascript'
+                value: `simulator.addPart(new chips.VoltageRail("aTest"))`,
+                language: 'javascript',
+                minimap: {
+                    enabled: false
+                },
+                theme: 'vs-dark'
             });
-        }, 200);
+        }, 2000);
     };
 
     style = {

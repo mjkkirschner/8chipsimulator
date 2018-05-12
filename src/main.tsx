@@ -9,7 +9,7 @@ import * as utils from "../test/8bitComputerTests";
 import * as _ from "underscore";
 import { WireView } from "./views/wireView";
 import { wire } from "./pins_wires";
-import { graph, simulatorExecution } from "./engine";
+import { graph, simulatorExecution, graphNode } from "./engine";
 import { CommandLineView } from "./views/console";
 import { VoltageRail } from "./primitives";
 export { VoltageRail };
@@ -29,7 +29,7 @@ class App extends React.Component<{}, ICanvasState> {
   boundsData: { [id: string]: ClientRect } = {};
   zoom: number = 1;
   //TODO use type.
-  orderedParts: any[];
+  orderedParts: graphNode[];
 
   style = {
     backgroundColor: 'rgb(42, 40, 39)',
@@ -79,9 +79,29 @@ class App extends React.Component<{}, ICanvasState> {
 
   public addPart(part: Ipart) {
     //first generate a new graph including the part:
-    let newParts = this.orderedParts.concat(part);
+    let newParts = this.orderedParts.map(x=>x.pointer).concat(part);
     let gra = new graph(newParts);
     this.orderedParts = gra.topoSort();
+    let newNode = this.orderedParts.filter(x=>x.pointer.id == part.id)[0];
+    
+    let onMount = (pinBoundsDataArray: { id: string, bounds: ClientRect }[]) => {
+      pinBoundsDataArray.forEach(data => {
+        this.boundsData[data.id] = data.bounds;
+      });
+    }
+    let onMouseMove = (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => {
+
+      this.updatePartModel(partView.props.model,
+        {
+          x: ((data.clientX) + (partView.state.clickOffset.x) - (partView.props.canvasOffset.x * this.zoom)) / partView.props.zoom,
+          y: ((data.clientY) + (partView.state.clickOffset.y) - (partView.props.canvasOffset.y * this.zoom)) / partView.props.zoom
+        }, null, null);
+    }
+
+    let newPartElement = <PartView pos={newNode.pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={part.id} model={part} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
+    
+  this.setState({ parts: this.state.parts.concat(newPartElement)});
+
   }
 
   constructor(props: any) {
@@ -120,7 +140,7 @@ class App extends React.Component<{}, ICanvasState> {
 
   }
 
-  private createAllParts(parts: any[]) {
+  private createAllParts(parts: graphNode[]) {
     let newParts = parts.map((x) => {
       let pos = { x: x.pos.x, y: x.pos.y }
       let model = x.pointer;
@@ -169,7 +189,7 @@ class App extends React.Component<{}, ICanvasState> {
   componentDidMount() {
     this.createAllParts(this.orderedParts);
     this.recreateAllWires();
-    this.forceUpdate();
+    //this.forceUpdate();
   }
 
 
