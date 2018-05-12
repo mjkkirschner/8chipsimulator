@@ -1,6 +1,9 @@
 # 8chipsimulator
 8 bit computer simulator
 
+![](./images/image1.png )
+
+
 to build run 
 ```
 npm install
@@ -16,6 +19,11 @@ to run build, browserify and test - run
 
 `npm run build`
 
+
+to build and inject into global variable run 
+`npm run buildGlobal` (recommended if you want to use the console)
+
+
 ### TODO...
 - [ ] ClockView with button for clockmode, clock step, speed (mirror physical design)
 - [x] GraphView part which can graph all values of input to a register etc - useful for visual debugging directly in application.
@@ -25,4 +33,6 @@ to run build, browserify and test - run
 - [ ] implement flags register and microcode
 - [ ] use a nBuffer to show all control signals / or groups of signals.
 - [ ] interface for wire connections/part addition.
-- [ ] add a console to main window - any part name constructor can be invoked and the part will be added.
+- [x] add a console to main window - any part name constructor can be invoked and the part will be added.
+- [ ] add autocomplete to console
+- [ ] generate verilog code from circuit.
