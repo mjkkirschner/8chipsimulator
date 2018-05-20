@@ -38,14 +38,14 @@ export class binaryCounter extends basePart implements Ipart {
 
     public get inputs() {
         return this.dataPins.concat(this.clearPin, this.clockPin,
-            this.outputEnablePin1, this.outputEnablePin2);
+            this.outputEnablePin1, this.outputEnablePin2, this.loadPin);
     }
 
     public get outputs() {
         return this.outputPins.concat(this.rippleCarryOut);
     }
 
-    constructor(n: number,name?:string) {
+    constructor(n: number, name?: string) {
         super(name);
 
         this.outputPins = _.range(0, n).map(x => { return new outputPin("output" + x, this) });
@@ -58,7 +58,7 @@ export class binaryCounter extends basePart implements Ipart {
         let clockPinValue = this.clockPin.value;
 
         let clockPulsed = clockPinValue == true && this.lastClockpinValue == false;
-        let countEnabled = this.outputEnablePin1.value == true && this.outputEnablePin2.value == true;
+        let countEnabled = this.outputEnablePin1.value == false && this.outputEnablePin2.value == false;
 
         //if we are loading, load the inputs
         if (clockPulsed && this.loadPin.value == false) {
@@ -69,7 +69,7 @@ export class binaryCounter extends basePart implements Ipart {
         } else if (clockPulsed && countEnabled) {
             this.currentState = this.currentState + 1;
             //represent the number plus 0
-            let requiredBits = Math.ceil(Math.log(this.currentState+1) /Math.log(2));
+            let requiredBits = Math.ceil(Math.log(this.currentState + 1) / Math.log(2));
 
             if (requiredBits > this.outputPins.length) {
                 this.currentState = 0;
@@ -91,6 +91,10 @@ export class binaryCounter extends basePart implements Ipart {
 
     public countAsInteger() {
         return this.currentState;
+    }
+
+    public toOutputString(){
+        return this.countAsInteger().toString();
     }
 
 }

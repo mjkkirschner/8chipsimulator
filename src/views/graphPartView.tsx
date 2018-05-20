@@ -15,38 +15,61 @@ export class grapherPropsData {
 
 export class GrapherPartView extends React.Component<grapherPropsData> {
 
-    private data: ChartData
-    private chart: Chart;
+    private datas: ChartData[]
+    private charts: Chart[];
     private startTime: number;
 
     constructor(props: grapherPropsData) {
         super(props);
         this.state = {};
-        this.data = { datasets: [{ data: [] }] }
+        this.datas = this.props.model.dataPins.map((x) => {
+
+            let randomColorr = Math.random() * 128;
+            let randomColorg = Math.random() * 128;
+            let randomColorb = Math.random() * 128;
+
+            return {
+                datasets: [{
+                    data: [],
+                    label: x.name,
+                    pointRadius: 0,
+                    backgroundColor: 'rgba(' + randomColorr + ',' + randomColorg + ',' + randomColorb + ',' + '0.1)',
+                    borderColor: 'rgba(' + randomColorr + ',' + randomColorg + ',' + randomColorb + ',' + '.7)',
+                    borderWidth: 2,
+                }]
+            }
+        });
         this.startTime = 0;
 
     }
     componentDidMount() {
-        this.chart = new Chart((document.getElementById(this.props.model.id) as HTMLCanvasElement).getContext("2d"),
-            {
-                type: 'scatter',
-                data: this.data,
-                options: { showLines: true }
-            });
+        //TODO potentially create new charts for each input pin so scales are correct?
+        this.charts = this.props.model.dataPins.map((x, i) => {
+            return new Chart((document.getElementById(this.props.model.id + i.toString()) as HTMLCanvasElement).getContext("2d"),
+                {
+                    type: 'scatter',
+                    data: this.datas[i],
+                    options: { showLines: true }
+                });
+        })
 
-        this.chart.update();
+        this.charts.forEach(x => x.update());
     }
 
     componentDidUpdate() {
-        (this.data.datasets[0].data as ChartPoint[]).push(new ipoint(this.startTime + this.props.simulator.time, (this.props.model as grapher).getDataAsInteger()));
-        if (this.data.datasets[0].data.length > 500) {
-            this.data.datasets[0].data = _.rest<ChartPoint>(this.data.datasets[0].data as ChartPoint[], 250);
-        }
-        this.chart.update();
+
+
+        this.props.model.dataPins.forEach((pin, index) => {
+            (this.datas[index].datasets[0].data as ChartPoint[]).push(new ipoint(this.startTime + this.props.simulator.time, Number(pin.value)));
+            if (this.datas[index].datasets[0].data.length > 500) {
+                this.datas[index].datasets[0].data = _.rest<ChartPoint>(this.datas[index].datasets[0].data as ChartPoint[], 250);
+            }
+        });
+        this.charts.forEach(x => x.update());
     }
 
     style = {
-        color: '41474E',
+        //color: '41474E',
         'backgroundColor': "#EEE",
         'borderStyle': 'solid',
         "textAlign": "center" as "center",
@@ -59,8 +82,12 @@ export class GrapherPartView extends React.Component<grapherPropsData> {
     public render() {
 
         return (<div style={this.style}>
-            <canvas id={this.props.model.id}
-                width={400} height={100}> </canvas>
+            {this.props.model.dataPins.map((x, i) => {
+                return (
+                    <canvas id={this.props.model.id + i.toString()}
+                        width={400} height={100}> </canvas>)
+            })}
+
         </div>)
     }
 }

@@ -79,11 +79,11 @@ class App extends React.Component<{}, ICanvasState> {
 
   public addPart(part: Ipart) {
     //first generate a new graph including the part:
-    let newParts = this.orderedParts.map(x=>x.pointer).concat(part);
+    let newParts = this.orderedParts.map(x => x.pointer).concat(part);
     let gra = new graph(newParts);
     this.orderedParts = gra.topoSort();
-    let newNode = this.orderedParts.filter(x=>x.pointer.id == part.id)[0];
-    
+    let newNode = this.orderedParts.filter(x => x.pointer.id == part.id)[0];
+
     let onMount = (pinBoundsDataArray: { id: string, bounds: ClientRect }[]) => {
       pinBoundsDataArray.forEach(data => {
         this.boundsData[data.id] = data.bounds;
@@ -99,8 +99,8 @@ class App extends React.Component<{}, ICanvasState> {
     }
 
     let newPartElement = <PartView pos={newNode.pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={part.id} model={part} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
-    
-  this.setState({ parts: this.state.parts.concat(newPartElement)});
+
+    this.setState({ parts: this.state.parts.concat(newPartElement) });
 
   }
 
@@ -196,7 +196,7 @@ class App extends React.Component<{}, ICanvasState> {
   public render() {
     return (
       <div style={{ height: window.innerHeight, position: "relative", overflow: "hidden" }} >
-        <div onWheel={(event) => {
+        <div tabIndex={0} onWheel={(event) => {
           event.preventDefault();
           this.zoom = this.zoom - event.deltaY / 1000;
           //now we should recreate the elements with different zoom.
@@ -236,6 +236,31 @@ class App extends React.Component<{}, ICanvasState> {
               this.setState({ viewPortoffset: finalViewOffset });
               this.updateAllPartViews(null, null, finalViewOffset);
             }
+          }}
+
+          onKeyDown={(event) => {
+            let offset = { x: 0, y: 0 };
+            if (event.key == "ArrowLeft") {
+              offset.x = 50;
+            }
+            if (event.key == "ArrowRight") {
+              offset.x = -50;
+            }
+            if (event.key == "ArrowDown") {
+              offset.y = -50;
+            }
+            if (event.key == "ArrowUp") {
+              offset.y = 50;
+            }
+            let finalViewOffset = {
+              x: (offset.x) + ((this.state.viewPorClicktOffset.x)),
+              y: (offset.y) + ((this.state.viewPorClicktOffset.y))
+            };
+            this.setState({
+               viewPorClicktOffset: finalViewOffset,
+              viewPortoffset: finalViewOffset });
+            this.updateAllPartViews(null, null, finalViewOffset);
+
           }}
 
           onContextMenu={(event) => {

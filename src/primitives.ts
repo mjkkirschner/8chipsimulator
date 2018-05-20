@@ -1,5 +1,4 @@
 import * as _ from "underscore";
-import { error } from "util";
 import { outputPin, pin, inputPin, wire, internalWire } from "./pins_wires";
 import { simulatorExecution } from "./engine";
 
@@ -11,6 +10,7 @@ export interface Ipart extends IObservablePart {
     inputs: Array<inputPin>
     id: string
     displayName?: string
+    toOutputString?():string
 }
 
 export interface IObservablePart {
@@ -32,7 +32,7 @@ export abstract class basePart implements Ipart {
         this.updateCallbacks.push(callback);
     }
 
-    update(simulator?:simulatorExecution) {
+    update(simulator?: simulatorExecution) {
         this.updateCallbacks.forEach(x => x());
     }
 
@@ -42,6 +42,8 @@ export abstract class basePart implements Ipart {
     get inputs() {
         return [];
     }
+
+
 
     constructor(name?: string) {
         this.id = this.uuidv4();
@@ -199,13 +201,21 @@ export class nBuffer extends basePart implements Ipart, IAggregatePart {
         return this.outputPins;
     }
 
-    constructor(n = 8, name?: string) {
+    constructor(n = 8, name?: string, names?: string[]) {
         super(name);
+        if (names != null && names.length != n) {
+            throw new Error("names list length must match n")
+        }
 
         this.parts = _.range(0, n).map((x, index) => {
             let part = new buffer();
-            this.dataPins[index] = new inputPin("input" + index, this);
-            this.outputPins[index] = new outputPin("output" + index, this);
+            let name = "data";
+            if (names) {
+                name = names[index];
+            }
+
+            this.dataPins[index] = new inputPin(name + index, this);
+            this.outputPins[index] = new outputPin(name + index, this);
             //build internal wires
 
             let intWire = new internalWire(this.dataPins[index], part.dataPin);

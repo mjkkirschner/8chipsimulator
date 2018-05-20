@@ -54,7 +54,7 @@ export class internalWire {
  */
 export abstract class pin {
 
-    name: String;
+    name: string;
     owner: Ipart;
     id: string
     protected uuidv4() {

@@ -158,7 +158,7 @@ export class Task {
         this.partUpdated = partUpdated;
         this.callBack = callBack;
         this.id = this.uuidv4();
-        this.executedAtTime = executedAtTime || null;
+        this.executedAtTime = executedAtTime != null? executedAtTime : null;
     }
 
 }
@@ -198,7 +198,7 @@ export class simulatorExecution {
     }
 
     public findEntryPoints() {
-        let filtered = this.parts.filter(x => { return x.inputs.length == 0 });
+        let filtered = this.parts.filter(x => { return x.inputs.length == 0 || x instanceof clock});
         console.log("found", filtered, "as entry points");
         return filtered;
     }
@@ -206,10 +206,24 @@ export class simulatorExecution {
     private scheduleDownStreamTasks(task: Task): void {
 
         let downStreamParts = _.flatten(task.partUpdated.outputs.map(x => x.attachedWires.map(y => y.endPin.owner))) as Ipart[];
-        let downstreamTasks = downStreamParts.map(part => {
+        let uniqueDownStreamParts = _.unique(downStreamParts);
+        let downstreamTasks = uniqueDownStreamParts.map(part => {
             //tricky recrusive scheduling.
-            let downstreamTask = new Task(task, part, null);
-            downstreamTask.callBack = () => { part.update(this); this.scheduleDownStreamTasks(downstreamTask); }
+            let downstreamTask = new Task(task, part, null, this.time + 1);
+            downstreamTask.callBack = () => {   //here we determine if we should schedule any more downstream tasks.
+                //we'll check what the current output values are and run an update of the part
+                //if the output changes, we'll schedule tasks for the downstream parts - we may
+                //need to get more specific and only schedule downstream changes for those parts
+                //attached to downstream ports which actually changed... no need to schedule all downstream parts...
+                let currentOutputs = part.outputs.map(x => x.value);
+                part.update(this);
+                let newOutputs = part.outputs.map(x => x.value);
+
+                //if there is a difference then we need to schedule downstream tasks
+                if (_.difference(currentOutputs, newOutputs).length > 0) {
+                    this.scheduleDownStreamTasks(downstreamTask);
+                }
+            }
             return downstreamTask;
         });
         downstreamTasks.forEach(x => { this.insertTask(x) });
@@ -219,7 +233,6 @@ export class simulatorExecution {
         let mainTask = new Task(rootTask, part, null, scheduleAtTime);
         mainTask.callBack = () => {
             part.update(this);
-            //TODO give them all times.... but how to handle tasks executing at 'same' time?
             this.scheduleDownStreamTasks(mainTask);
         };
         return mainTask;
@@ -228,50 +241,27 @@ export class simulatorExecution {
     public Evaluate() {
 
         let entryPoints = this.findEntryPoints();
-        let clocks = entryPoints.filter(x => { return x instanceof clock });
         this.rootOfAllTasks = new Task(null, null, () => { throw new Error("I am the root, I should never run"); });
 
         let tasks = entryPoints.map(x => {
-            return this.generateTaskAndDownstreamTasks(this.rootOfAllTasks, x);
+            return this.generateTaskAndDownstreamTasks(this.rootOfAllTasks, x, 0);
         });
 
         this.schedule = tasks.map((x) => { return x });
-
-        //TODO remove - this is a hack that schedules a clock increment task every n ms...
-        /* setInterval(() => {
-             if (this.schedule.length == 0) {
-                 clocks.forEach(x => {
-                     let clocktTask = this.generateTaskAndDownstreamTasks(rootOfAllTasks, x);
-                     this.insertTask(clocktTask);
-                 });
-                 this.runTasksInSchedule();
-             } else {
-                 throw new Error("trying to schedule a clock incrment while there are other tasks still in the q...., usually this means the clock is too fast...")
-             };
- 
-         }, this.mainClockSpeed);
- */
         this.runTasksInSchedule();
     }
 
     private runTasksInSchedule() {
-        //while (this.schedule.length > 0) {
         setInterval(() => {
             if (this.schedule.length > 0) {
-                this.currentTask = this.schedule[0];
-
-                // if the current task has a specified time to execute
-                // then only run the task if this matches the current simulation time
-                if (this.currentTask.executedAtTime != null) {
-                    if (this.currentTask.executedAtTime == this.time) {
-                        this.schedule.shift();
-                        this.currentTask.callBack();
-                    }
-
-                } else {
-                    this.schedule.shift();
+                let currentTasks = this.schedule.filter(x => x.executedAtTime == this.time);
+                currentTasks.forEach((currentTask) => {
+                    this.currentTask = currentTask;
+                    // if the current task has a specified time to execute
+                    // then only run the task if this matches the current simulation time
+                    this.schedule.splice(_.indexOf(this.schedule,this.currentTask),1);
                     this.currentTask.callBack();
-                }
+                });
                 this.validateSchedule();
                 this.incrementTime(1);
             }

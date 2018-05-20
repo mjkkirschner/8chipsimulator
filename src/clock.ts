@@ -1,6 +1,6 @@
 import { Ipart, basePart } from "./primitives";
 import * as _ from "underscore";
-import { outputPin } from "./pins_wires";
+import { outputPin, inputPin } from "./pins_wires";
 import { simulatorExecution, Task } from "./engine";
 
 
@@ -17,11 +17,11 @@ export class clock extends basePart implements Ipart {
     private highCallbacks: Function[];
     private lowCallbacks: Function[];
 
-
+    public enablePin: inputPin = new inputPin("enable", this, true);
     public outputPin: outputPin = new outputPin("clock", this);
 
     public get inputs() {
-        return [];
+        return [this.enablePin];
     }
 
     public get outputs() {
@@ -49,9 +49,12 @@ export class clock extends basePart implements Ipart {
 
     public update(simulater: simulatorExecution) {
 
-        //each run of the clock will increment the clock state 1/4 state of a full cycle
-        //and then schedule the next task.
-        this.incrementState();
+        if (this.enablePin.value == false) {
+            //each run of the clock will increment the clock state 1/4 state of a full cycle
+            //and then schedule the next task.
+            this.incrementState();
+        }
+
         //TODO this is wrong... duty cycle fix it.
         let clocktTask = simulater.generateTaskAndDownstreamTasks(simulater.rootOfAllTasks, this, simulater.time + this.cycle/4);
         simulater.insertTask(clocktTask);

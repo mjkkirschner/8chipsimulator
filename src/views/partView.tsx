@@ -145,6 +145,13 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         this.onMouseMove(event)
     }
 
+    private renderToString(part: Ipart): string {
+        if (part.toOutputString) {
+            return part.toOutputString();
+        }
+        return this.pinsToInt(part.outputs).toString();
+    }
+
     public render() {
 
         let spanStyle = {
@@ -214,7 +221,9 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                     })}
                 </th>
             </table>
-            <div style={spanStyle} >{this.pinsToInt(this.props.model.outputs).toString()}</div>
+            <div style={spanStyle} >{
+                this.renderToString(this.props.model)
+            }</div>
         </div >)
     }
 }
