@@ -22,7 +22,7 @@ export class twoLineToFourLineDecoder extends basePart implements Ipart {
         super(name);
         //4 outputs
         this.outputPins = _.range(0, 4).map((x, i) => { return new outputPin("output" + i, this) });
-        this.dataPins = [new inputPin(), new inputPin()];
+        this.dataPins = [new inputPin("data1",this), new inputPin("data2",this)];
     }
 
     update() {

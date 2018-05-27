@@ -12,7 +12,10 @@ import { wire } from "./pins_wires";
 import { graph, simulatorExecution, graphNode } from "./engine";
 import { CommandLineView } from "./views/console";
 import { VoltageRail } from "./primitives";
+import { grapher } from "./graphPart";
+//reexport objects into the chips object which gets injected into the window using browserify.
 export { VoltageRail };
+export { grapher };
 
 interface ICanvasState {
   viewPortSelected: boolean;
@@ -121,7 +124,7 @@ class App extends React.Component<{}, ICanvasState> {
     let gra = new graph(parts);
     this.orderedParts = gra.topoSort();
 
-    gra.calculateColumnLayout(1200, 400);
+    gra.calculateColumnLayout(1500, 500);
 
     let evaluator = new simulatorExecution(parts);
     //a hack for now...
@@ -257,8 +260,9 @@ class App extends React.Component<{}, ICanvasState> {
               y: (offset.y) + ((this.state.viewPorClicktOffset.y))
             };
             this.setState({
-               viewPorClicktOffset: finalViewOffset,
-              viewPortoffset: finalViewOffset });
+              viewPorClicktOffset: finalViewOffset,
+              viewPortoffset: finalViewOffset
+            });
             this.updateAllPartViews(null, null, finalViewOffset);
 
           }}

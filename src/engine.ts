@@ -15,7 +15,11 @@ export class graph {
         AllNodes.forEach(node => {
             let neighbors = node.pointer.outputs.map(pin => {
                 return pin.attachedWires.map(wire => {
-                    return wire.endPin.owner;
+                    if (wire.endPin.owner) {
+                        return wire.endPin.owner;
+                    }
+                    throw new Error("owner was null for wire starting at:"+ node.pointer.displayName +",port: "+ pin.name)
+
                 });
             });
             //foreach neighbor node we need to find the node it points to
@@ -24,7 +28,7 @@ export class graph {
             flatNeighbors.forEach(neigbor => {
                 let matchingPart = _.find(AllNodes, (item) => { return item.pointer === neigbor });
                 if (matchingPart == null) {
-                    throw new Error("could not find a matching part but it should exist");
+                    throw new Error("could not find a matching node for part: " + neigbor + ", but it should exist");
                 }
                 node.addNeighbor(matchingPart);
 
@@ -158,7 +162,7 @@ export class Task {
         this.partUpdated = partUpdated;
         this.callBack = callBack;
         this.id = this.uuidv4();
-        this.executedAtTime = executedAtTime != null? executedAtTime : null;
+        this.executedAtTime = executedAtTime != null ? executedAtTime : null;
     }
 
 }
@@ -198,7 +202,7 @@ export class simulatorExecution {
     }
 
     public findEntryPoints() {
-        let filtered = this.parts.filter(x => { return x.inputs.length == 0 || x instanceof clock});
+        let filtered = this.parts.filter(x => { return x.inputs.length == 0 || x instanceof clock });
         console.log("found", filtered, "as entry points");
         return filtered;
     }
@@ -220,7 +224,7 @@ export class simulatorExecution {
                 let newOutputs = part.outputs.map(x => x.value);
 
                 //if there is a difference then we need to schedule downstream tasks
-                if (_.difference(currentOutputs, newOutputs).length > 0) {
+                if (!(_.isEqual(currentOutputs, newOutputs))) {
                     this.scheduleDownStreamTasks(downstreamTask);
                 }
             }
@@ -259,7 +263,7 @@ export class simulatorExecution {
                     this.currentTask = currentTask;
                     // if the current task has a specified time to execute
                     // then only run the task if this matches the current simulation time
-                    this.schedule.splice(_.indexOf(this.schedule,this.currentTask),1);
+                    this.schedule.splice(_.indexOf(this.schedule, this.currentTask), 1);
                     this.currentTask.callBack();
                 });
                 this.validateSchedule();

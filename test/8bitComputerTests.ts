@@ -7,6 +7,7 @@ import { binaryCounter } from "../src/counter";
 import { microCodeData } from "../src/8bitCPUDesign/microcode";
 import _ = require("underscore");
 import { grapher } from "../src/graphPart";
+import { twoLineToFourLineDecoder } from "../src/Decoder";
 
 export function generate3Registers_Adder_Bus(): Ipart[] {
 
@@ -128,22 +129,38 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     new wire(countEnable.outputPin, microCodeCounter.outputEnablePin1);
     new wire(countEnable.outputPin, microCodeCounter.outputEnablePin2);
     //TODO should be hooked to decoder line max num of instructions.
-    new wire(invEnable.outputPin,microCodeCounter.clearPin);
-    
+    new wire(invEnable.outputPin, microCodeCounter.clearPin);
 
-    //TODO add the decoders here.
+    let decoder1 = new twoLineToFourLineDecoder("decoder1");
+    let decoder2 = new twoLineToFourLineDecoder("decoder2");
+    let decodeInverter = new inverter("decodeInverter");
+    new wire(invEnable.outputPin, decodeInverter.outputEnablePin);
+
+    new wire(microCodeCounter.outputPins[0], decoder1.dataPins[0])
+    new wire(microCodeCounter.outputPins[0], decoder2.dataPins[0])
+    new wire(microCodeCounter.outputPins[1], decoder1.dataPins[1])
+    new wire(microCodeCounter.outputPins[1], decoder2.dataPins[1])
+
+    //third pin is tied to the enable lines of the decoders, but one is inverted.
+    new wire(microCodeCounter.outputPins[2], decodeInverter.dataPin);
+    new wire(decodeInverter.outputPin, decoder1.outputEnablePin);
+
+    new wire(microCodeCounter.outputPins[2], decoder2.outputEnablePin);
+
+    //TODO!!!!! Something is wrong here I think because we have 1 output going to 2
+    //inputs not sure this is handled in the graph search...?
 
     let loadEnable = new VoltageRail("load disabled");
     loadEnable.outputPin.value = true;
     new wire(loadEnable.outputPin, microCodeCounter.loadPin);
-    let stepGraph = new grapher(3,"tstep");
+    let stepGraph = new grapher(3, "tstep");
 
-    new wire(microCodeCounter.outputPins[0],stepGraph.dataPins[0]);
-    new wire(microCodeCounter.outputPins[1],stepGraph.dataPins[1]);
-    new wire(microCodeCounter.outputPins[2],stepGraph.dataPins[2]);
+    new wire(microCodeCounter.outputPins[0], stepGraph.dataPins[0]);
+    new wire(microCodeCounter.outputPins[1], stepGraph.dataPins[1]);
+    new wire(microCodeCounter.outputPins[2], stepGraph.dataPins[2]);
 
 
-    return [EEPROM, inv, invEnable, microCodeCounter, instructionREG, countEnable,loadEnable,stepGraph]
+    return [EEPROM, inv, invEnable, microCodeCounter, instructionREG, countEnable, loadEnable, stepGraph,decoder1,decoder2,decodeInverter]
 }
 
 function generateMicrocodeSignalBank(clock: clock,
@@ -268,7 +285,7 @@ export function generate8bitComputerDesign(): Ipart[] {
 
     var parts1 = generate3Registers_Adder_Bus();
     var bus = _.last(parts1) as bus;
-    var clockcomp = new clock(100);
+    var clockcomp = new clock(20);
     var parts2 = generate_MAR_RAM_DATAINPUTS(bus);
     var parts3 = generateProgramCounter(bus);
     var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
