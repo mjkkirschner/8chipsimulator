@@ -18,7 +18,7 @@ export class graph {
                     if (wire.endPin.owner) {
                         return wire.endPin.owner;
                     }
-                    throw new Error("owner was null for wire starting at:"+ node.pointer.displayName +",port: "+ pin.name)
+                    throw new Error("owner was null for wire starting at:" + node.pointer.displayName + ",port: " + pin.name)
 
                 });
             });
@@ -236,8 +236,13 @@ export class simulatorExecution {
     public generateTaskAndDownstreamTasks(rootTask: Task, part: Ipart, scheduleAtTime?: number): Task {
         let mainTask = new Task(rootTask, part, null, scheduleAtTime);
         mainTask.callBack = () => {
+            let currentOutputs = part.outputs.map(x => x.value);
             part.update(this);
-            this.scheduleDownStreamTasks(mainTask);
+            let newOutputs = part.outputs.map(x => x.value);
+            //if there is a difference then we need to schedule downstream tasks
+            if (!(_.isEqual(currentOutputs, newOutputs))) {
+                this.scheduleDownStreamTasks(mainTask);
+            }
         };
         return mainTask;
     }

@@ -6,6 +6,8 @@ import { staticRam } from '../sram';
 import { MemoryDataView } from './memoryPartView';
 import { grapher } from '../graphPart';
 import { GrapherPartView } from './graphPartView';
+import { toggleButton } from '../buttons';
+import { ToggleButtonPartView } from './buttonViews';
 
 export interface IPartViewState {
     selected: Boolean
@@ -122,6 +124,11 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         if (model instanceof grapher) {
             return (<GrapherPartView model={model} simulator={window["evaluator"]} >
             </GrapherPartView>)
+
+        }
+        if (model instanceof toggleButton) {
+            return (<ToggleButtonPartView model={model} simulator={window["evaluator"]} >
+            </ToggleButtonPartView>)
 
         }
     }

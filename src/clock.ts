@@ -4,15 +4,16 @@ import { outputPin, inputPin } from "./pins_wires";
 import { simulatorExecution, Task } from "./engine";
 
 
+
 /**
  * clock is a time based oscillator which provides a binary output pin - 
  */
 export class clock extends basePart implements Ipart {
 
-    private cycle;
-    private state = false;
-    private stateMode = 0;
-    private intervalID: number
+    protected cycle;
+    protected state = false;
+    protected stateMode = 0;
+    protected intervalID: number
 
     private highCallbacks: Function[];
     private lowCallbacks: Function[];
@@ -56,7 +57,7 @@ export class clock extends basePart implements Ipart {
         }
 
         //TODO this is wrong... duty cycle fix it.
-        let clocktTask = simulater.generateTaskAndDownstreamTasks(simulater.rootOfAllTasks, this, simulater.time + this.cycle/4);
+        let clocktTask = simulater.generateTaskAndDownstreamTasks(simulater.rootOfAllTasks, this, simulater.time + this.cycle / 4);
         simulater.insertTask(clocktTask);
     }
 
@@ -92,6 +93,11 @@ export class clock extends basePart implements Ipart {
                 }
                 break;
         }
+    }
+
+    public resetInternalState() {
+        this.stateMode = 0;
+        this.tick();
     }
 
     /**
@@ -165,4 +171,63 @@ export class clock extends basePart implements Ipart {
     }
 }
 
+export class clockWithMode extends clock {
 
+    //0 = auto, 1 = manual
+    public modePin: inputPin = new inputPin("enable", this);
+    //step pulse high to step clock
+    public stepPin: inputPin = new inputPin("step", this);
+    private lastStepSignal: boolean = true;
+    private lastTimeIncrmented: number;
+
+    constructor(cycle: number, name?: string) {
+        super(cycle, name);
+
+    }
+
+    public get inputs() {
+        return [this.enablePin, this.stepPin, this.modePin];
+    }
+
+    public update(simulater: simulatorExecution) {
+
+        if (this.lastTimeIncrmented == simulater.time) {
+            throw new Error("clock tried to run twice on same timestep...")
+        }
+        if (this.enablePin.value == false) {
+            if (this.modePin.value == false) {
+                //each run of the clock will increment the clock state 1/4 state of a full cycle
+                //and then schedule the next task.
+                this.incrementState();
+                this.lastTimeIncrmented = simulater.time;
+            }
+            //mode is manual
+            else {
+                if (this.lastStepSignal == false && this.stepPin.value == true) {
+
+                    //we're already high so we need to drop low.
+                    if (this.stateMode == 3) {
+                        this.incrementState();
+                        this.lastTimeIncrmented = simulater.time;
+                    }
+
+                    //we're in some other low state, we should reset to 0 and increment all the way high.
+                    else {
+
+                        //we don't want to increment state, but instead restart our state.
+                        this.resetInternalState();
+                        this.incrementState();
+                        this.incrementState();
+                        this.incrementState();
+                        this.lastTimeIncrmented = simulater.time;
+                    }
+                }
+            }
+            this.lastStepSignal = this.stepPin.value;
+
+            //TODO this is wrong... duty cycle fix it.
+            let clocktTask = simulater.generateTaskAndDownstreamTasks(simulater.rootOfAllTasks, this, simulater.time + Math.floor(this.cycle / 4));
+            simulater.insertTask(clocktTask);
+        }
+    }
+}

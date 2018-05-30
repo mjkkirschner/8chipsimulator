@@ -1,5 +1,5 @@
 import { Ipart, nRegister, VoltageRail, nBuffer, bus, inverter } from "../src/primitives";
-import { clock } from "../src/clock";
+import { clock, clockWithMode } from "../src/clock";
 import { wire, pin, outputPin } from "../src/pins_wires";
 import { nbitAdder } from "../src/ALU";
 import { staticRam } from "../src/sram";
@@ -8,6 +8,7 @@ import { microCodeData } from "../src/8bitCPUDesign/microcode";
 import _ = require("underscore");
 import { grapher } from "../src/graphPart";
 import { twoLineToFourLineDecoder } from "../src/Decoder";
+import { toggleButton } from "../src/buttons";
 
 export function generate3Registers_Adder_Bus(): Ipart[] {
 
@@ -285,7 +286,13 @@ export function generate8bitComputerDesign(): Ipart[] {
 
     var parts1 = generate3Registers_Adder_Bus();
     var bus = _.last(parts1) as bus;
-    var clockcomp = new clock(20);
+    var clockcomp = new clockWithMode(50);
+    let modeButton = new toggleButton("clockMode");
+    let stepButton = new toggleButton("stepButton");
+
+    new wire(modeButton.outputPin,clockcomp.modePin);
+    new wire(stepButton.outputPin,clockcomp.stepPin); 
+
     var parts2 = generate_MAR_RAM_DATAINPUTS(bus);
     var parts3 = generateProgramCounter(bus);
     var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
@@ -301,6 +308,6 @@ export function generate8bitComputerDesign(): Ipart[] {
 
 
     var output = parts1.concat(parts2, parts3, parts4, parts5, parts6);
-    output.unshift(clockcomp);
+    output.unshift(clockcomp,modeButton,stepButton);
     return _.unique(output);
 }
