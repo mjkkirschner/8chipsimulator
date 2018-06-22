@@ -13,6 +13,7 @@ import { graph, simulatorExecution, graphNode } from "./engine";
 import { CommandLineView } from "./views/console";
 import { VoltageRail } from "./primitives";
 import { grapher } from "./graphPart";
+import { staticRam } from "./sram";
 //reexport objects into the chips object which gets injected into the window using browserify.
 export { VoltageRail };
 export { grapher };
@@ -119,6 +120,16 @@ class App extends React.Component<{}, ICanvasState> {
     }
 
     let parts = utils.generate8bitComputerDesign();
+    let ram = parts.filter(x=>x.displayName =="main ram")[0] as staticRam;
+    ram.writeData(0,[0,1,1,0,0,0,0,0].map(x=>Boolean(x)));
+    ram.writeData(1,[0,0,0,1,0,1,0,0].map(x=>Boolean(x)));
+    ram.writeData(2,[0,0,1,1,0,0,0,0].map(x=>Boolean(x)));
+    ram.writeData(3,[0,1,1,0,0,1,0,0].map(x=>Boolean(x)));
+    ram.writeData(4,[0,0,1,0,0,0,0,0].map(x=>Boolean(x)));
+    ram.writeData(100,[0,0,0,0,0,1,0,1].map(x=>Boolean(x)));
+
+
+
     var clockcomp = (parts[0] as clock);
 
     let gra = new graph(parts);

@@ -75,23 +75,51 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
     return [memoryAddressREG, ram, ramBuffer, buscomponent]
 }
 
-export function generateProgramCounter(buscomponent: bus): Ipart[] {
+export function generateProgramCounter(clockComp:clock,buscomponent: bus): Ipart[] {
 
     let pc = new binaryCounter(8, "Program Counter");
     let PCbuffer = new nBuffer(8, "pc buffer");
+
+    
+    //TODO This will get replaced with reset computer signal
+    let resetPC = new VoltageRail("clearPC");
+    resetPC.outputPin.value = true;
+
+    //TODO This will get replaced with jump signal
+    let loadPC = new VoltageRail("loadPC");
+    loadPC.outputPin.value = true;
+
+    new wire(clockComp.outputPin,pc.clockPin);
+    new wire(resetPC.outputPin,pc.clearPin);
+    new wire(loadPC.outputPin,pc.loadPin);
+
 
     pc.outputPins.forEach((pin, index) => { new wire(pin, PCbuffer.dataPins[index]) });
     PCbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[4][index]) });
 
     pc.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
-    return [pc, PCbuffer, buscomponent]
+    return [pc, PCbuffer, buscomponent,resetPC,loadPC]
 }
 
 export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
 
     let eepromLen = 256;
     let EEPROM = new staticRam(24, eepromLen, "microcode rom");
+
+    let eepromWriteDisabled = new VoltageRail("eepromWriteDisabled");
+    eepromWriteDisabled.outputPin.value = true;
+
+    let eepromOutEnable = new VoltageRail("eepromOutEnable");
+    eepromOutEnable.outputPin.value = false;
+
+    let eepromChipEnable = new VoltageRail("eepromChipEnable");
+    eepromChipEnable.outputPin.value = false;
+
+    new wire(eepromWriteDisabled.outputPin,EEPROM.writeEnable);
+    new wire(eepromOutEnable.outputPin,EEPROM.outputEnable);
+    new wire(eepromChipEnable.outputPin,EEPROM.chipEnable);
+
 
     let instructionREG = new nRegister(8, "instruction register");
     //attach instruction reg inputs to bus - we shouldn't usually care about getting data out of the instruc reg.
@@ -161,7 +189,10 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     new wire(microCodeCounter.outputPins[2], stepGraph.dataPins[2]);
 
 
-    return [EEPROM, inv, invEnable, microCodeCounter, instructionREG, countEnable, loadEnable, stepGraph,decoder1,decoder2,decodeInverter]
+    return [EEPROM, inv, invEnable,
+         microCodeCounter, instructionREG, 
+         countEnable, loadEnable, stepGraph,decoder1,decoder2,decodeInverter,
+         eepromWriteDisabled,eepromOutEnable,eepromChipEnable]
 }
 
 function generateMicrocodeSignalBank(clock: clock,
@@ -294,7 +325,7 @@ export function generate8bitComputerDesign(): Ipart[] {
     new wire(stepButton.outputPin,clockcomp.stepPin); 
 
     var parts2 = generate_MAR_RAM_DATAINPUTS(bus);
-    var parts3 = generateProgramCounter(bus);
+    var parts3 = generateProgramCounter(clockcomp,bus);
     var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
 
 

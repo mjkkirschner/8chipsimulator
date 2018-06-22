@@ -32,24 +32,32 @@ export class MemoryDataView extends React.Component<ImemoryDataProps> {
     }
 
 
-    protected dataStyle(data: boolean[]) {
+    protected dataStyle(data: boolean[], index: number) {
 
 
         let style = {
             backgroundColor: "rgba(224,103,103,.71)",
-            padding:'0 4px'
+            padding: '0 4px'
         }
         if (_.any(data, (x) => { return x == true })) {
             style.backgroundColor = "#DAF7A6";
         }
+
+        let addressToRead = parseInt(this.props.model.addressPins.map(pin => { return Number(pin.value) }).join(""), 2);
+
+        if (addressToRead == index) {
+            style.backgroundColor = "#F43FF7";
+        }
+
         return style;
     }
+
 
     public render() {
 
         return (<div style={this.style}>
-            {this.props.model.data.map(word => {
-                return <div style={this.dataStyle(word)} > {this.boolsToInt(word)} </div>
+            {this.props.model.data.map((word, i) => {
+                return <div style={this.dataStyle(word, i)} > {this.boolsToInt(word)} </div>
             })}
         </div>)
     }
