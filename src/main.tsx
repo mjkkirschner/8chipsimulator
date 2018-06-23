@@ -120,14 +120,15 @@ class App extends React.Component<{}, ICanvasState> {
     }
 
     let parts = utils.generate8bitComputerDesign();
-    let ram = parts.filter(x=>x.displayName =="main ram")[0] as staticRam;
-    ram.writeData(0,[0,1,1,0,0,0,0,0].map(x=>Boolean(x)));
-    ram.writeData(1,[0,0,0,1,0,1,0,0].map(x=>Boolean(x)));
-    ram.writeData(2,[0,0,1,1,0,0,0,0].map(x=>Boolean(x)));
-    ram.writeData(3,[0,1,1,0,0,1,0,0].map(x=>Boolean(x)));
-    ram.writeData(4,[0,0,1,0,0,0,0,0].map(x=>Boolean(x)));
-    ram.writeData(100,[0,0,0,0,0,1,0,1].map(x=>Boolean(x)));
+    let ram = parts.filter(x => x.displayName == "main ram")[0] as staticRam;
+    ram.writeData(0, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
+    ram.writeData(1, [0, 0, 0, 1, 0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
+    ram.writeData(2, [0, 0, 0, 0, 0, 0, 1, 1].map(x => Boolean(x))); // Put whatever follows at memory address 100 into B // then add to A.
+    ram.writeData(3, [0, 1, 1, 0, 0, 1, 0, 0].map(x => Boolean(x))); // 100
+    ram.writeData(4, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); // A transfer to Out reg.
+    ram.writeData(5,[0,0,0,0,1,1,1,1].map(x=>Boolean(x)));
 
+    ram.writeData(100, [0, 0, 0, 0, 0, 1, 0, 1].map(x => Boolean(x))); //5 at memory location 100
 
 
     var clockcomp = (parts[0] as clock);
@@ -136,6 +137,12 @@ class App extends React.Component<{}, ICanvasState> {
     this.orderedParts = gra.topoSort();
 
     gra.calculateColumnLayout(1500, 500);
+    //get all parts into correct initial state.
+    this.orderedParts.forEach((x) => {
+      if (!(x.pointer instanceof clock)) {
+        x.pointer.update();
+      }
+    });
 
     let evaluator = new simulatorExecution(parts);
     //a hack for now...

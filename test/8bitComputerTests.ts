@@ -36,15 +36,21 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     //sum pins to buffers
     adder.sumOutPins.forEach((pin, index) => { new wire(pin, adderBbuffer.dataPins[index]) });
 
+    //attach register inputs to the bus.
+    regA.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    regB.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    outReg.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+
+
     //attach all outputs to bus.
     regAbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[0][index]) });
     regBbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[1][index]) });
     adderBbuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[2][index]) });
 
     //attach inputs to bus.
-    regAbuffer.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
-    regBbuffer.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
-    outReg.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    //regAbuffer.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    //regBbuffer.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
+    //outReg.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
 
     return [regA, regB, regAbuffer, regBbuffer, adderBbuffer, adder, outReg, buscomponent];
@@ -75,12 +81,12 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
     return [memoryAddressREG, ram, ramBuffer, buscomponent]
 }
 
-export function generateProgramCounter(clockComp:clock,buscomponent: bus): Ipart[] {
+export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipart[] {
 
     let pc = new binaryCounter(8, "Program Counter");
     let PCbuffer = new nBuffer(8, "pc buffer");
 
-    
+
     //TODO This will get replaced with reset computer signal
     let resetPC = new VoltageRail("clearPC");
     resetPC.outputPin.value = true;
@@ -89,9 +95,9 @@ export function generateProgramCounter(clockComp:clock,buscomponent: bus): Ipart
     let loadPC = new VoltageRail("loadPC");
     loadPC.outputPin.value = true;
 
-    new wire(clockComp.outputPin,pc.clockPin);
-    new wire(resetPC.outputPin,pc.clearPin);
-    new wire(loadPC.outputPin,pc.loadPin);
+    new wire(clockComp.outputPin, pc.clockPin);
+    new wire(resetPC.outputPin, pc.clearPin);
+    new wire(loadPC.outputPin, pc.loadPin);
 
 
     pc.outputPins.forEach((pin, index) => { new wire(pin, PCbuffer.dataPins[index]) });
@@ -99,7 +105,7 @@ export function generateProgramCounter(clockComp:clock,buscomponent: bus): Ipart
 
     pc.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
-    return [pc, PCbuffer, buscomponent,resetPC,loadPC]
+    return [pc, PCbuffer, buscomponent, resetPC, loadPC]
 }
 
 export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
@@ -116,9 +122,9 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     let eepromChipEnable = new VoltageRail("eepromChipEnable");
     eepromChipEnable.outputPin.value = false;
 
-    new wire(eepromWriteDisabled.outputPin,EEPROM.writeEnable);
-    new wire(eepromOutEnable.outputPin,EEPROM.outputEnable);
-    new wire(eepromChipEnable.outputPin,EEPROM.chipEnable);
+    new wire(eepromWriteDisabled.outputPin, EEPROM.writeEnable);
+    new wire(eepromOutEnable.outputPin, EEPROM.outputEnable);
+    new wire(eepromChipEnable.outputPin, EEPROM.chipEnable);
 
 
     let instructionREG = new nRegister(8, "instruction register");
@@ -141,7 +147,17 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
 
     //connect to EEPROM (modeled via RAM...)
     //TODO maybe use a different memory object here with a different type of view so it's not so giant...
-    EEPROM.wireUpAddressPins(instructionREG.outputPins.slice(4, 8).concat(microCodeCounter.outputPins));
+    //EEPROM.wireUpAddressPins(instructionREG.outputPins.slice(4, 8).concat(microCodeCounter.outputPins));
+
+    new wire(instructionREG.outputPins[4], EEPROM.addressPins[1]);
+    new wire(instructionREG.outputPins[5], EEPROM.addressPins[2]);
+    new wire(instructionREG.outputPins[6], EEPROM.addressPins[3]);
+    new wire(instructionREG.outputPins[7], EEPROM.addressPins[4]);
+
+    new wire(microCodeCounter.outputPins[0], EEPROM.addressPins[5]);
+    new wire(microCodeCounter.outputPins[1], EEPROM.addressPins[6]);
+    new wire(microCodeCounter.outputPins[2], EEPROM.addressPins[7]);
+
     let microCode = microCodeData.getData().map(number => { return number.toString(2).padStart(24, "0").split("").map(bit => { return Boolean(Number(bit)) }) });
     while (microCode.length < eepromLen) {
         microCode.push(_.range(0, 24).map(x => { return false }))
@@ -190,9 +206,9 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
 
 
     return [EEPROM, inv, invEnable,
-         microCodeCounter, instructionREG, 
-         countEnable, loadEnable, stepGraph,decoder1,decoder2,decodeInverter,
-         eepromWriteDisabled,eepromOutEnable,eepromChipEnable]
+        microCodeCounter, instructionREG,
+        countEnable, loadEnable, stepGraph, decoder1, decoder2, decodeInverter,
+        eepromWriteDisabled, eepromOutEnable, eepromChipEnable]
 }
 
 function generateMicrocodeSignalBank(clock: clock,
@@ -321,11 +337,11 @@ export function generate8bitComputerDesign(): Ipart[] {
     let modeButton = new toggleButton("clockMode");
     let stepButton = new toggleButton("stepButton");
 
-    new wire(modeButton.outputPin,clockcomp.modePin);
-    new wire(stepButton.outputPin,clockcomp.stepPin); 
+    new wire(modeButton.outputPin, clockcomp.modePin);
+    new wire(stepButton.outputPin, clockcomp.stepPin);
 
     var parts2 = generate_MAR_RAM_DATAINPUTS(bus);
-    var parts3 = generateProgramCounter(clockcomp,bus);
+    var parts3 = generateProgramCounter(clockcomp, bus);
     var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
 
 
@@ -339,6 +355,6 @@ export function generate8bitComputerDesign(): Ipart[] {
 
 
     var output = parts1.concat(parts2, parts3, parts4, parts5, parts6);
-    output.unshift(clockcomp,modeButton,stepButton);
+    output.unshift(clockcomp, modeButton, stepButton);
     return _.unique(output);
 }
