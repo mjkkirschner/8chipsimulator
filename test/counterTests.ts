@@ -22,9 +22,10 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-        enp.value = true;
-        ent.value = true;
+      
         //active lows.
+        enp.value = false;
+        ent.value = false;
         clear.value = true;
         load.value = true;
 
@@ -51,9 +52,10 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-        enp.value = true;
-        ent.value = true;
+       
         //active lows.
+        enp.value = false;
+        ent.value = false;
         clear.value = true;
         load.value = true;
 
@@ -93,9 +95,10 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-        enp.value = true;
-        ent.value = true;
+    
         //active lows.
+        enp.value = false;
+        ent.value = false;
         clear.value = true;
         load.value = true;
 
@@ -135,9 +138,10 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-        enp.value = true;
-        ent.value = true;
+     
         //active lows.
+        enp.value = false;
+        ent.value = false;
         clear.value = true;
         load.value = true;
 

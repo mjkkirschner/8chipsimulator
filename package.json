@@ -7,7 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc \n browserify src/main.js -o output.js \n ./node_modules/mocha/bin/mocha",
     "buildGlobal": "tsc \n browserify src/main.js -o output.js -s chips \n ./node_modules/mocha/bin/mocha",
-
     "gen": "tsc -d --emitDeclarationOnly --declarationDir ./outputTest"
   },
   "author": "",
@@ -26,6 +25,7 @@
     "underscore": "^1.8.3"
   },
   "devDependencies": {
+    "@types/node": "^10.5.1",
     "@types/react": "^16.3.13",
     "mocha": "^4.1.0"
   }
