@@ -3,6 +3,7 @@ import { Ipart } from "./primitives";
 import * as _ from "underscore";
 import { IPartViewState } from "./views/partView";
 import { clock } from "./clock";
+import { outputPin } from "./pins_wires";
 
 
 export class graph {
@@ -207,17 +208,17 @@ export class simulatorExecution {
         return filtered;
     }
 
-    private scheduleDownStreamTasks(task: Task): void {
+    private scheduleDownStreamTasks(task: Task, portIdsToSchedule: string[]): void {
 
         let downStreamParts = _.flatten(task.partUpdated.outputs.map(x => x.attachedWires.map(y => y.endPin.owner))) as Ipart[];
         let uniqueDownStreamParts = _.unique(downStreamParts);
 
-        //we do this so we can only update parts which lie downstream of an updated port - 
-        //instead of updating all downstream parts... This shouldn't be an issue, except clock parts
-        //keep internal state that is unfortunately effected by update being called...
+        // we do this so we can only update parts which lie downstream of an updated port - 
+        // instead of updating all downstream parts... This shouldn't be an issue, except clockWithMode parts
+        // keep internal state that is effected by update being called...
 
         //find which ports connect to each of these unique parts...
-      /*  let portPartMap = {};
+        let portPartMap = {};
         task.partUpdated.outputs.forEach(port => {
             let downStreamPartsOnThisPort = port.attachedWires.map(x => x.endPin.owner);
             let uniquePartsOnThisPort = _.intersection(downStreamPartsOnThisPort, uniqueDownStreamParts.map(x => x));
@@ -225,12 +226,12 @@ export class simulatorExecution {
                 portPartMap[port.id] = uniquePartsOnThisPort;
             }
         });
-*/
 
+        //grab all the matching parts
+        let uniqueDownstreamPartsOnModifiedPortsOnly = _.unique(_.flatten(portIdsToSchedule.map((id) => { return portPartMap[id] }))) as Ipart[];
 
-
-        let downstreamTasks = uniqueDownStreamParts.map(part => {
-            //tricky recrusive scheduling.
+        let downstreamTasks = uniqueDownstreamPartsOnModifiedPortsOnly.map(part => {
+            //tricky recursive scheduling.
             let downstreamTask = new Task(task, part, null, this.time + 1);
             downstreamTask.callBack = () => {   //here we determine if we should schedule any more downstream tasks.
                 //we'll check what the current output values are and run an update of the part
@@ -241,9 +242,25 @@ export class simulatorExecution {
                 part.update(this);
                 let newOutputs = part.outputs.map(x => x.value);
 
+                //we should only schedule downstream tasks on parts that are attached to ports
+                //which have changed their value.
+
+                let equalVals = currentOutputs.map((x, i) => x == newOutputs[i]);
+                let portsToSchedule: outputPin[] = []
+                equalVals.forEach((v, i) => {
+                    //port at i had a different value...
+                    //so schedule that.
+                    if (v == false) {
+                        let port = part.outputs[i];
+                        if (port.attachedWires.length > 0) {
+                            portsToSchedule.push(port);
+                        }
+                    }
+                });
+
                 //if there is a difference then we need to schedule downstream tasks
                 if (!(_.isEqual(currentOutputs, newOutputs))) {
-                    this.scheduleDownStreamTasks(downstreamTask);
+                    this.scheduleDownStreamTasks(downstreamTask, portsToSchedule.map(x => x.id));
                 }
             }
             return downstreamTask;
@@ -257,9 +274,26 @@ export class simulatorExecution {
             let currentOutputs = part.outputs.map(x => x.value);
             part.update(this);
             let newOutputs = part.outputs.map(x => x.value);
+
+            //we should only schedule downstream tasks on parts that are attached to ports
+            //which have changed their value.
+
+            let equalVals = currentOutputs.map((x, i) => x == newOutputs[i]);
+            let portsToSchedule: outputPin[] = []
+            equalVals.forEach((v, i) => {
+                //port at i had a different value...
+                //so schedule that.
+                if (v == false) {
+                    let port = part.outputs[i];
+                    if (port.attachedWires.length > 0) {
+                        portsToSchedule.push(port);
+                    }
+                }
+            });
+
             //if there is a difference then we need to schedule downstream tasks
             if (!(_.isEqual(currentOutputs, newOutputs))) {
-                this.scheduleDownStreamTasks(mainTask);
+                this.scheduleDownStreamTasks(mainTask, portsToSchedule.map(x => x.id));
             }
         };
         return mainTask;
