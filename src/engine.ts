@@ -211,6 +211,24 @@ export class simulatorExecution {
 
         let downStreamParts = _.flatten(task.partUpdated.outputs.map(x => x.attachedWires.map(y => y.endPin.owner))) as Ipart[];
         let uniqueDownStreamParts = _.unique(downStreamParts);
+
+        //we do this so we can only update parts which lie downstream of an updated port - 
+        //instead of updating all downstream parts... This shouldn't be an issue, except clock parts
+        //keep internal state that is unfortunately effected by update being called...
+
+        //find which ports connect to each of these unique parts...
+      /*  let portPartMap = {};
+        task.partUpdated.outputs.forEach(port => {
+            let downStreamPartsOnThisPort = port.attachedWires.map(x => x.endPin.owner);
+            let uniquePartsOnThisPort = _.intersection(downStreamPartsOnThisPort, uniqueDownStreamParts.map(x => x));
+            if (uniquePartsOnThisPort.length > 0) {
+                portPartMap[port.id] = uniquePartsOnThisPort;
+            }
+        });
+*/
+
+
+
         let downstreamTasks = uniqueDownStreamParts.map(part => {
             //tricky recrusive scheduling.
             let downstreamTask = new Task(task, part, null, this.time + 1);

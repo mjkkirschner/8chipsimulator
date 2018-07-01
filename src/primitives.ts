@@ -299,6 +299,10 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
 
     }
 
+    public toOutputString(){
+        return parseInt(this.outputs.map(pin => { return Number(pin.value) }).join(""), 2).toString();
+    }
+
 }
 
 /**

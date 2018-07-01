@@ -13,7 +13,7 @@ export class clock extends basePart implements Ipart {
     protected cycle;
     protected state = false;
     protected stateMode = 0;
-    protected intervalID: number
+    protected intervalID: any
 
     private highCallbacks: Function[];
     private lowCallbacks: Function[];
