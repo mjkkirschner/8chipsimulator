@@ -1,4 +1,4 @@
-import { Ipart, nRegister, VoltageRail, nBuffer, bus, inverter } from "../src/primitives";
+import { Ipart, nRegister, VoltageRail, nBuffer, bus, inverter, ANDGATE, ORGATE } from "../src/primitives";
 import { clock, clockWithMode } from "../src/clock";
 import { wire, pin, outputPin } from "../src/pins_wires";
 import { nbitAdder } from "../src/ALU";
@@ -9,6 +9,7 @@ import _ = require("underscore");
 import { grapher } from "../src/graphPart";
 import { twoLineToFourLineDecoder } from "../src/Decoder";
 import { toggleButton } from "../src/buttons";
+import { nbitComparator } from "../src/comparator";
 
 export function generate3Registers_Adder_Bus(): Ipart[] {
 
@@ -91,13 +92,8 @@ export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipa
     let resetPC = new VoltageRail("clearPC");
     resetPC.outputPin.value = true;
 
-    //TODO This will get replaced with jump signal
-    let loadPC = new VoltageRail("loadPC");
-    loadPC.outputPin.value = true;
-
     new wire(clockComp.outputPin, pc.clockPin);
     new wire(resetPC.outputPin, pc.clearPin);
-    new wire(loadPC.outputPin, pc.loadPin);
 
 
     pc.outputPins.forEach((pin, index) => { new wire(pin, PCbuffer.dataPins[index]) });
@@ -105,7 +101,7 @@ export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipa
 
     pc.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
-    return [pc, PCbuffer, buscomponent, resetPC, loadPC]
+    return [pc, PCbuffer, buscomponent, resetPC]
 }
 
 export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
@@ -164,9 +160,6 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     }
     EEPROM.data = microCode;
     //EEPROM outputs drive the rest of the computer's signals we'll need to invert some of them....
-    //TODO
-    //would be good to create named buffers foreach of these signals so we can easily grab them and treat them all as high when they are on
-    //even if the resulting signal needs a low signal. - for this we can use indicator LED or some other component like this.
 
     new wire(inv.outputPin, microCodeCounter.clockPin);
     let countEnable = new VoltageRail("count enable microcode counter");
@@ -243,7 +236,7 @@ function generateMicrocodeSignalBank(clock: clock,
             "MEMORYREGIN",
             "JUMP A < B",
             "JUMP A = B",
-            "JUMP A > B]", "", ""]);
+            "JUMP A > B]", "FLAGIN", ""]);
     //invert some of the signals.
     //TODO when we build jump board and flags reg then implement this.
     //let jumpInverter = new yadayada
@@ -319,14 +312,93 @@ function generateMicrocodeSignalBank(clock: clock,
     //memory register
     new wire(clock.outputPin, memoryReg.clockPin);
     new wire(signalBank.outputPins[18], memoryReg.enablePin);
+
+    //jump and flags circuits
+
+    let flagsRegister = new nRegister(4, "flags register");
+
+    new wire(clock.outputPin, flagsRegister.clockPin);
+    new wire(signalBank.outputPins[22], flagsRegister.enablePin);
+
+
+    //comparators for a and b.
+    let comparatorComp = new nbitComparator(8, "A_B Comparator");
+    let invertON = new VoltageRail("invertON");
+    invertON.outputPin.value = true;
+
+    let invert1 = new inverter("invertA=B");
+    let invert2 = new inverter("invertA<B");
+    new wire(invertON.outputPin, invert1.outputEnablePin);
+    new wire(invertON.outputPin, invert2.outputEnablePin);
+
+
+    let AGTB = new ANDGATE("A>B");
+
+
+    //wire comparator outputs to inverters
+    new wire(comparatorComp.AEBOUT, invert1.dataPin);
+    new wire(comparatorComp.AEBOUT, invert2.dataPin);
+
+    //AND the inverted signals to calculate our A > B signal
+    new wire(invert1.outputPin, AGTB.dataPin1);
+    new wire(invert2.outputPin, AGTB.dataPin2);
+
+    //hookup signals to the flags register itself.
+
+    new wire(AGTB.outputPin, flagsRegister.dataPins[0]);
+    new wire(comparatorComp.AEBOUT, flagsRegister.dataPins[1]);
+    new wire(comparatorComp.ALBOUT, flagsRegister.dataPins[2]);
+
+    //jump signal calculation//
+
+    let JE = signalBank.outputPins[20];
+    let JG = signalBank.outputPins[21];
+    let JL = signalBank.outputPins[19];
+
+    //to actually calculate the jump we use the incoming microcode signals
+    //and the flags register outputs - if any set are true we jump.
+
+    let ANDAGB = new ANDGATE("ANDAGB");
+    let ANDALB = new ANDGATE("ANDALESSB");
+    let ANDEB = new ANDGATE("ANDA=B");
+
+
+    new wire(flagsRegister.outputPins[0], ANDAGB.dataPin1);
+    new wire(JG, ANDAGB.dataPin2);
+
+    new wire(flagsRegister.outputPins[1], ANDEB.dataPin1);
+    new wire(JE, ANDEB.dataPin2);
+
+    new wire(flagsRegister.outputPins[2], ANDALB.dataPin1);
+    new wire(JL, ANDALB.dataPin2);
+
+    let OR1 = new ORGATE("OR1");
+    let OR2 = new ORGATE("OR2");
+
+    new wire(ANDAGB.outputPin, OR1.dataPin1);
+    new wire(ANDEB.outputPin, OR1.dataPin2);
+
+    //feed first or gate into second or gate.
+    new wire(OR1.outputPin, OR2.dataPin1);
+    new wire(ANDALB.outputPin, OR2.dataPin2);
+
+    //output of final OR is hooked to program counter jump/load signal.
+    //actually an inverter first.
+
+    let loadInverter = new inverter();
+    new wire(invertON.outputPin, loadInverter.outputEnablePin);
+    new wire(OR2.outputPin, loadInverter.dataPin);
+    //finally wire up the load pin...
+    new wire(loadInverter.outputPin, programCounter.loadPin);
+
+    new wire(signalBank.outputPins[18], memoryReg.enablePin);
+
+
+
     return [signalBank, invertSignal,
         ramInInverter,
         ramOutInverter,
-        programCounterCountInverter, outputOn]
-}
-
-function generateSignalStableSignals() {
-
+        programCounterCountInverter, outputOn,invertON,comparatorComp,invert1,invert2,loadInverter,flagsRegister,ANDAGB,ANDALB,ANDEB,OR1,OR2,AGTB]
 }
 
 export function generate8bitComputerDesign(): Ipart[] {

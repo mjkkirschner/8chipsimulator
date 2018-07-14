@@ -1,6 +1,7 @@
 import * as _ from "underscore";
 import { outputPin, pin, inputPin, wire, internalWire } from "./pins_wires";
 import { simulatorExecution } from "./engine";
+import { ipoint } from "./views/wireView";
 
 
 
@@ -10,7 +11,7 @@ export interface Ipart extends IObservablePart {
     inputs: Array<inputPin>
     id: string
     displayName?: string
-    toOutputString?():string
+    toOutputString?(): string
 }
 
 export interface IObservablePart {
@@ -59,6 +60,7 @@ export interface IAggregatePart {
     //internal wires are used to attach the external pins to the internal pins.
     internalWires: internalWire[];
 }
+
 
 
 export class VoltageRail extends basePart implements Ipart {
@@ -128,6 +130,61 @@ class binaryCell extends basePart implements Ipart {
     }
 
 }
+
+export class ANDGATE extends basePart implements Ipart {
+
+    public dataPin1 = new inputPin("data1", this);
+    public dataPin2 = new inputPin("data2", this);
+
+    public outputPin = new outputPin("andedOut", this);
+
+    public get inputs() {
+        return [this.dataPin1, this.dataPin2];
+    }
+
+    public get outputs() {
+        return [this.outputPin];
+    }
+
+    constructor(name?: string) {
+        super(name);
+    }
+
+    update() {
+
+        this.outputPin.value = (this.dataPin1.value && this.dataPin2.value);
+        super.update();
+    }
+}
+
+
+export class ORGATE extends basePart implements Ipart {
+
+    public dataPin1 = new inputPin("data1", this);
+    public dataPin2 = new inputPin("data2", this);
+
+    public outputPin = new outputPin("ordOUT", this);
+
+    public get inputs() {
+        return [this.dataPin1, this.dataPin2];
+    }
+
+    public get outputs() {
+        return [this.outputPin];
+    }
+
+    constructor(name?: string) {
+        super(name);
+    }
+
+    update() {
+
+        this.outputPin.value = (this.dataPin1.value || this.dataPin2.value);
+        super.update();
+    }
+}
+
+
 
 export class inverter extends basePart implements Ipart {
 
@@ -299,7 +356,7 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
 
     }
 
-    public toOutputString(){
+    public toOutputString() {
         return parseInt(this.outputs.map(pin => { return Number(pin.value) }).join(""), 2).toString();
     }
 

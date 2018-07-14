@@ -235,9 +235,8 @@ export class simulatorExecution {
             let downstreamTask = new Task(task, part, null, this.time + 1);
             downstreamTask.callBack = () => {   //here we determine if we should schedule any more downstream tasks.
                 //we'll check what the current output values are and run an update of the part
-                //if the output changes, we'll schedule tasks for the downstream parts - we may
-                //need to get more specific and only schedule downstream changes for those parts
-                //attached to downstream ports which actually changed... no need to schedule all downstream parts...
+                //if the output changes, we'll schedule tasks for the downstream parts which were on ports that changed their
+                //values
                 let currentOutputs = part.outputs.map(x => x.value);
                 part.update(this);
                 let newOutputs = part.outputs.map(x => x.value);
@@ -245,18 +244,7 @@ export class simulatorExecution {
                 //we should only schedule downstream tasks on parts that are attached to ports
                 //which have changed their value.
 
-                let equalVals = currentOutputs.map((x, i) => x == newOutputs[i]);
-                let portsToSchedule: outputPin[] = []
-                equalVals.forEach((v, i) => {
-                    //port at i had a different value...
-                    //so schedule that.
-                    if (v == false) {
-                        let port = part.outputs[i];
-                        if (port.attachedWires.length > 0) {
-                            portsToSchedule.push(port);
-                        }
-                    }
-                });
+                let portsToSchedule: outputPin[] = this.findPortsToSchedule(currentOutputs, newOutputs, part);
 
                 //if there is a difference then we need to schedule downstream tasks
                 if (!(_.isEqual(currentOutputs, newOutputs))) {
@@ -278,18 +266,7 @@ export class simulatorExecution {
             //we should only schedule downstream tasks on parts that are attached to ports
             //which have changed their value.
 
-            let equalVals = currentOutputs.map((x, i) => x == newOutputs[i]);
-            let portsToSchedule: outputPin[] = []
-            equalVals.forEach((v, i) => {
-                //port at i had a different value...
-                //so schedule that.
-                if (v == false) {
-                    let port = part.outputs[i];
-                    if (port.attachedWires.length > 0) {
-                        portsToSchedule.push(port);
-                    }
-                }
-            });
+            let portsToSchedule: outputPin[] = this.findPortsToSchedule(currentOutputs, newOutputs, part);
 
             //if there is a difference then we need to schedule downstream tasks
             if (!(_.isEqual(currentOutputs, newOutputs))) {
@@ -297,6 +274,22 @@ export class simulatorExecution {
             }
         };
         return mainTask;
+    }
+
+    private findPortsToSchedule(currentOutputs: boolean[], newOutputs: boolean[], part: Ipart) {
+        let equalVals = currentOutputs.map((x, i) => x == newOutputs[i]);
+        let portsToSchedule: outputPin[] = [];
+        equalVals.forEach((v, i) => {
+            //port at i had a different value...
+            //so schedule that.
+            if (v == false) {
+                let port = part.outputs[i];
+                if (port.attachedWires.length > 0) {
+                    portsToSchedule.push(port);
+                }
+            }
+        });
+        return portsToSchedule;
     }
 
     public Evaluate() {
