@@ -22,10 +22,9 @@ export class MemoryDataView extends React.Component<ImemoryDataProps> {
         'borderStyle': 'solid',
         display: "grid",
         gridTemplateColumns: 'auto auto auto auto auto auto auto auto',
-        "textAlign": "center",
+        "textAlign": "center" as "center",
         borderWidth: "1px",
         fontFamily: 'system-ui',
-        fontSize: "9pt"
     }
 
     protected boolsToInt(values: Boolean[]) {
@@ -33,23 +32,32 @@ export class MemoryDataView extends React.Component<ImemoryDataProps> {
     }
 
 
-    protected dataStyle(data: boolean[]) {
+    protected dataStyle(data: boolean[], index: number) {
 
 
         let style = {
-            backgroundColor: "#FF5733"
+            backgroundColor: "rgba(224,103,103,.71)",
+            padding: '0 4px'
         }
         if (_.any(data, (x) => { return x == true })) {
             style.backgroundColor = "#DAF7A6";
         }
+
+        let addressToRead = parseInt(this.props.model.addressPins.map(pin => { return Number(pin.value) }).join(""), 2);
+
+        if (addressToRead == index) {
+            style.backgroundColor = "#F43FF7";
+        }
+
         return style;
     }
+
 
     public render() {
 
         return (<div style={this.style}>
-            {this.props.model.data.map(word => {
-                return <div style={this.dataStyle(word)} > {this.boolsToInt(word)} </div>
+            {this.props.model.data.map((word, i) => {
+                return <div style={this.dataStyle(word, i)} > {this.boolsToInt(word)} </div>
             })}
         </div>)
     }

@@ -4,6 +4,10 @@ import { Ipart } from '../primitives';
 import { outputPin } from '../pins_wires';
 import { staticRam } from '../sram';
 import { MemoryDataView } from './memoryPartView';
+import { grapher } from '../graphPart';
+import { GrapherPartView } from './graphPartView';
+import { toggleButton } from '../buttons';
+import { ToggleButtonPartView } from './buttonViews';
 
 export interface IPartViewState {
     selected: Boolean
@@ -12,6 +16,8 @@ export interface IPartViewState {
 
 export interface IpartViewProps {
     pos: { x: number, y: number },
+    zoom: number,
+    canvasOffset: { x: number, y: number }
     model: Ipart,
     key: string,
     //we can change this so pass the positions of any ports or something like that?
@@ -31,20 +37,22 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
     style = {
         color: '41474E',
-        'backgroundColor': "#EEE",
+        'backgroundColor': "rgb(45, 64, 46)",
         'borderStyle': 'solid',
+        borderColor: "rgb(95, 255, 187)",
         display: "inline-block",
         "minWidth": "150px",
-        "textAlign": "center",
-        borderWidth: "1px",
+        "textAlign": "center" as "center",
+        borderWidth: "2px",
         fontFamily: 'system-ui',
         position: 'absolute' as 'absolute',
         left: 0,
         top: 0,
         fontSize: "9pt",
         zIndex: 0,
-        resize: 'both',
-        overflow: 'auto' as 'auto'
+        resize: 'both' as "both",
+        overflow: 'auto' as 'auto',
+        boxShadow: '0 0 5px rgb(95, 255, 187)'
     }
 
     componentDidMount() {
@@ -66,7 +74,6 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             }
         });
         let allBounds = (bounds1 as any[]).concat(bounds2);
-        console.log("gathered all pin bounds and positions...");
         this.props.onMount(allBounds);
     }
 
@@ -88,7 +95,6 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             }
         });
         let allBounds = (bounds1 as any[]).concat(bounds2);
-        console.log("gathered all pin bounds and positions...");
         this.props.onMount(allBounds);
     }
 
@@ -96,14 +102,12 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
         return parseInt(pins.map(pin => { return Number(pin.value) }).join(""), 2);
     }
 
-    componentWillReceiveProps(props) {
-    }
-
     protected dataStyle(data: boolean) {
 
 
         let style = {
-            backgroundColor: "#FF5733"
+            backgroundColor: "rgba(224,103,103,.71)",
+            padding: '0 4px'
         }
         if (data) {
             style.backgroundColor = "#DAF7A6";
@@ -113,59 +117,92 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
 
     private addSpecificPartView(model: Ipart) {
-        //TODO we want to check if its a memory...
         if (model instanceof staticRam) {
             return (<MemoryDataView model={model}>
             </MemoryDataView>)
         }
+        if (model instanceof grapher) {
+            return (<GrapherPartView model={model} simulator={window["evaluator"]} >
+            </GrapherPartView>)
+
+        }
+        if (model instanceof toggleButton) {
+            return (<ToggleButtonPartView model={model} simulator={window["evaluator"]} >
+            </ToggleButtonPartView>)
+
+        }
+    }
+
+    private onMouseUp() {
+        document.removeEventListener('mouseup', this.mouseupWrapper, true);
+        document.removeEventListener('mousemove', this.mouseMoveWrapper, true);
+        this.setState({ selected: false })
+    }
+    private mouseupWrapper = () => {
+        this.onMouseUp();
+    }
+
+    private onMouseMove(event: React.MouseEvent<HTMLDivElement>) {
+        event.preventDefault()
+        if (this.state.selected) {
+            this.props.onMouseMove(this, event);
+        }
+    }
+    private mouseMoveWrapper = (event) => {
+        this.onMouseMove(event)
+    }
+
+    private renderToString(part: Ipart): string {
+        if (part.toOutputString) {
+            return part.toOutputString();
+        }
+        return this.pinsToInt(part.outputs).toString();
     }
 
     public render() {
 
         let spanStyle = {
-            backgroundColor: "lightGray"
+            backgroundColor: "rgb(55, 89, 49)",
+            color: "rgb(95, 255, 187)"
         }
 
         let inputStyle = {
-            backgroundColor: "darkGray",
+            backgroundColor: "rgba(218,247,166,.2)",
+            color: 'white'
         }
-
-
 
         let tableStyle = {
-            'font-weight': 'normal'
+            'font-weight': 'lighter',
+            letterSpacing: '2px'
         }
 
-        return (<div style={{ ...this.style, left: this.props.pos.x, top: this.props.pos.y, zIndex: this.state.selected ? 1 : 0 }}
-            
+        return (<div style={{
+            ...this.style,
+            fontSize: 9 * this.props.zoom,
+            left: (this.props.pos.x + this.props.canvasOffset.x) * this.props.zoom,
+            top: (this.props.pos.y + this.props.canvasOffset.y) * this.props.zoom,
+            zIndex: this.state.selected ? 1 : 0
+        }}
+
             onMouseDown={(event) => {
                 event.preventDefault()
+                let clickOffsetVector = {
+                    x: this.bounds.left - event.clientX,
+                    y: this.bounds.top - event.clientY
+                };
+
                 this.setState({
                     selected: true,
-                    clickOffset: {
-                        x: this.bounds.left - event.clientX,
-                        y: this.bounds.top - event.clientY
-                    }
-                })
-            }}
-            //TODO may want to put these on the document instead...
-            //when the mouseDown event gets called.
-            onMouseUp={(event) => { this.setState({ selected: false }) }}
-            onMouseMove={(event) => {
-                event.preventDefault()
-                if (this.state.selected) {
-                    this.props.onMouseMove(this, event);
-                }
-            }}
-            //if the mouse leaves but we're still selected - also update the position to the new mouse position...
-            onMouseLeave={(event) => {
-                if (this.state.selected) {
-                    this.props.onMouseMove(this, event);
-                }
-            }}
+                    clickOffset: clickOffsetVector,
+                });
+                document.addEventListener('mouseup', this.mouseupWrapper, true);
+                document.addEventListener('mousemove', this.mouseMoveWrapper, true);
+            }
+            }
         >
 
-
+            <div style={spanStyle}> {this.props.model.constructor.name}</div>
+            <div style={spanStyle}> {this.props.model.displayName}</div>
             <table >
                 <th style={tableStyle}>
                     {this.props.model.inputs.map((x, i) => {
@@ -176,7 +213,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                     })}
                 </th>
                 <th>
-                    <p>{this.props.model.constructor.name}</p>
+
                     {
                         this.addSpecificPartView(this.props.model)
                     }
@@ -191,7 +228,9 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                     })}
                 </th>
             </table>
-            <div style={spanStyle} >{this.pinsToInt(this.props.model.outputs).toString()}</div>
-        </div>)
+            <div style={spanStyle} >{
+                this.renderToString(this.props.model)
+            }</div>
+        </div >)
     }
 }

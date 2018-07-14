@@ -20,24 +20,25 @@ export class WireView extends React.Component<IWireViewProps> {
     }
 
     style = {
-        stroke: "black",
+        stroke: "rgb(95, 255, 187)",
         strokeWidth: "1",
         fill: "none",
+        strokeDasharray:"2, 2"
     }
 
     svgStyle = {
         overflow: 'visible' as 'visible',
         width: '100%',
         position: 'absolute' as 'absolute',
-        zIndex:-1
-
+        zIndex:0,
     }
 
-    private generateHermitePointsandTangents(start:ipoint, end:ipoint) {
+    private generatePolyLinePoints(start:ipoint, end:ipoint) {
   
-        var tan1 = new ipoint(Math.abs((start.x - end.x)) * 2,0 );
-        var tan2 = new ipoint(Math.abs((end.x - start.x)) * 2,0);
-        return [start, tan1, end, tan2];
+        var horizontal1 = new ipoint((end.x - start.x)*.5,0 );
+        var verticalVector1 = new ipoint(0,end.y - start.y)
+        var point2 =start.sum(horizontal1);
+        return [start, start.sum(horizontal1), start.sum(horizontal1).sum(verticalVector1), end];
     
       }
     
@@ -50,21 +51,21 @@ export class WireView extends React.Component<IWireViewProps> {
 
     public render() {
 
-        let pointsAndTans = this.generateHermitePointsandTangents(
+        let pointsAndTans = this.generatePolyLinePoints(
             new ipoint(this.props.startPos.x,this.props.startPos.y),
             new ipoint(this.props.endPos.x,this.props.endPos.y));
 
-        let finalPoints = _.range(0,101).map(x=>{return x/100}).map(x=>{
-            return this.evaluateCubicHermiteAtParamter(pointsAndTans[0],pointsAndTans[2],pointsAndTans[1],pointsAndTans[3],x)});
+        let finalPoints = pointsAndTans;
 
-      return (<svg style ={this.svgStyle}> <polyline style = {this.style}
-        points = {finalPoints.join(" ")}/>
+      return (<svg style ={this.svgStyle}> 
+        <polyline style = {this.style} 
+        points = {finalPoints.join(" ")} />
     </svg>);
     }
     
 }
 
-class ipoint {
+export class ipoint {
     x: number
     y: number
     constructor(x: number, y: number) {

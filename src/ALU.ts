@@ -2,7 +2,7 @@ import { Ipart, IAggregatePart, basePart } from "./primitives";
 import * as _ from "underscore";
 import { inputPin, outputPin, internalWire, wire } from "./pins_wires";
 
-
+//TODO add an ALU class...
 
 export class fullAdder extends basePart implements Ipart {
 
@@ -32,11 +32,11 @@ export class fullAdder extends basePart implements Ipart {
 
         this.sumPin.value = Boolean(SUM);
         this.carryOut.value = CARRYOUT;
-
+        super.update();
     }
 
-    constructor() {
-        super();
+    constructor(name?:string) {
+        super(name);
     }
 
 }
@@ -65,8 +65,8 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
     }
 
 
-    constructor(n: number) {
-        super();
+    constructor(n: number,name?:string) {
+        super(name);
 
         this.n = n;
 
@@ -108,6 +108,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
 
     update() {
         this.parts.reverse().forEach(part => { part.update(); })
+        super.update();
     }
 
     getDataAsInteger(): number {

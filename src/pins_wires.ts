@@ -54,7 +54,7 @@ export class internalWire {
  */
 export abstract class pin {
 
-    name: String;
+    name: string;
     owner: Ipart;
     id: string
     protected uuidv4() {
@@ -96,6 +96,7 @@ export class inputPin extends pin {
         }
         console.log("nothing connected to this input pin, but we need the value");
         console.log("returning false");
+        console.log("for pin: ", this.name, "on part: ", this.owner? this.owner.displayName || "null display name" : "unkown is null- how?");
         return false;
     }
 }
@@ -117,7 +118,7 @@ export class outputPin extends pin {
     }
     set internalWire(val: internalWire) {
         if (this._internalWire != null) {
-            console.log("chaning internal wire for", this);
+            console.log("changing internal wire for", this);
         }
         this._internalWire = val;
     }

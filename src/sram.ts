@@ -50,8 +50,8 @@ export class staticRam extends basePart implements Ipart, Imemory {
      * @param wordSize size of the words this chip holds (usually 8bits).
      * @param length total number of words this chip can hold.
      */
-    constructor(wordSize: number, length: number) {
-        super();
+    constructor(wordSize: number, length: number, name?: string) {
+        super(name);
         //init data.
         this.wordSize = wordSize;
 
@@ -86,6 +86,7 @@ export class staticRam extends basePart implements Ipart, Imemory {
         }
 
         this.lastWEstate = this.writeEnable.value;
+        super.update();
     }
 
 
