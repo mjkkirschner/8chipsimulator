@@ -46,7 +46,7 @@ export class microCodeData {
             MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMOUT | B_IN | COUNTERENABLE, 0, 0, 0,                       //1011 LOADB
             MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | B_IN | COUNTERENABLE, 0, 0, 0, 0,                                          //1100 LOADBIMMEDIATE
             MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, MEMORYREGIN | COUNTEROUT, RAMOUT | MEMORYREGIN, RAMIN | BOUT | COUNTERENABLE, 0, 0, 0,                        //1101 STOREB (THERE WAS AN EXTRA 0 HERE WHICH MEANS IT IS IN THE EEPROMS ON MY DESK)
-            MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, FLAGIN, 0, 0, 0, 0, 0,                                                                                             //1110 NOP
+            MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, FLAGIN, 0, 0, 0, 0, 0,                                                                                        //1110 UPDATE FLAGS
             MEMORYREGIN | COUNTEROUT, RAMOUT | INSTRIN | COUNTERENABLE, HALT, 0, 0, 0, 0, 0,                                                                                          //1111 HALT
 
         ];

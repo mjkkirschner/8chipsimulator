@@ -48,5 +48,43 @@ describe("testing a full cpu/computer integreation", () => {
 
     }).timeout(60000);
 
+    it("can jump unconditionally ", (done) => {
+        let parts = utils.generate8bitComputerDesign();
+        let ram = parts.filter(x => x.displayName == "main ram")[0] as staticRam;
+        ram.writeData(0, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
+        ram.writeData(1, [0, 0, 0, 1, 0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
+        ram.writeData(2, [0, 0, 0, 0, 1, 1, 1, 0].map(x => Boolean(x))); //jump to line:
+        ram.writeData(3, [0, 0, 0, 0, 0, 1, 1, 1].map(x => Boolean(x))); //jump to line:
+        ram.writeData(4, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //address 0
+        //we should never execute this line
+        ram.writeData(5, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); // A transfer to Out reg.
+        ram.writeData(6, [0, 0, 0, 0, 1, 1, 1, 1].map(x => Boolean(x)));
+
+    
+        let gra = new graph(parts);
+        const orderedParts = gra.topoSort();
+
+        //get all parts into correct initial state.
+        orderedParts.forEach((x) => {
+            if (!(x.pointer instanceof clock)) {
+                x.pointer.update();
+            }
+        });
+
+        let evaluator = new simulatorExecution(parts);
+        
+        evaluator.Evaluate();
+
+        //let the simulation run for a bit.
+        setTimeout(() => {
+            const outReg = orderedParts.filter((x) => { return x.pointer.displayName == "OUT register" })[0].pointer;
+            assert.equal(outReg.toOutputString(), "0");
+            const aReg = orderedParts.filter((x) => { return x.pointer.displayName == "A register" })[0].pointer;
+            assert.equal(aReg.toOutputString(), "20");
+            done();
+        }, 30000);
+
+    }).timeout(60000);
+
 });
 
