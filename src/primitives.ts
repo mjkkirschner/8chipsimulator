@@ -2,7 +2,15 @@ import * as _ from "underscore";
 import { outputPin, pin, inputPin, wire, internalWire } from "./pins_wires";
 import { simulatorExecution } from "./engine";
 import { ipoint } from "./views/wireView";
+import * as fs from 'fs';
+import * as Console from 'console';
 
+
+const output = fs.createWriteStream('./stdout.log');
+const errorOutput = fs.createWriteStream('./stderr.log');
+// custom simple logger
+const logger = new Console.Console(output, errorOutput);
+// use it like console
 
 
 export interface Ipart extends IObservablePart {
@@ -34,6 +42,7 @@ export abstract class basePart implements Ipart {
     }
 
     update(simulator?: simulatorExecution) {
+       
         this.updateCallbacks.forEach(x => x());
     }
 
@@ -89,8 +98,8 @@ class binaryCell extends basePart implements Ipart {
 
     public clockPin: inputPin = new inputPin("clockPin", this);
     public dataPin: inputPin = new inputPin("data", this);
-    public outputPin: outputPin = new outputPin();
-    public enablePin: inputPin = new inputPin("data", this);
+    public outputPin: outputPin = new outputPin("output",this);
+    public enablePin: inputPin = new inputPin("enable", this);
 
     private state: boolean = false;
     private lastClockpinValue;
@@ -238,6 +247,8 @@ class buffer extends basePart implements Ipart {
         //if the output enable pin are high - output the input value.
         if (this.outputEnablePin && this.outputEnablePin.value == true) {
             this.outputPin.value = this.dataPin.value;
+        }else{
+            this.outputPin.value = false;
         }
         super.update();
     }
@@ -349,7 +360,7 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
     public update() {
 
         let clockPinValue = this.clockPin.value;
-        this.parts.reverse().forEach(part => { part.update() });
+        this.parts.slice().reverse().forEach(part => { part.update() });
         var outputAsInt = this.getDataAsInteger();
         this.lastClockpinValue = this.clockPin.value;
         super.update();
@@ -408,7 +419,7 @@ export class bus extends basePart implements Ipart {
             let activeinput = this.inputGroups[index];
             activeinput.forEach((pin, index) => this.outputPins[index].value = pin.value);
         }
-        //if there is one writing to the bus, turn off all pins.
+        //if there is no one writing to the bus, turn off all pins.
         else {
             this.outputPins.forEach(x => x.value = false);
         }

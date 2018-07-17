@@ -6,7 +6,7 @@ import { inputPin, outputPin, internalWire, wire } from "./pins_wires";
 
 export class fullAdder extends basePart implements Ipart {
 
-    public datapins: inputPin[] = [new inputPin(), new inputPin()];
+    public datapins: inputPin[] = [new inputPin("data1",this), new inputPin("data2",this)];
     public sumPin = new outputPin("SumOut", this);
     public carryOut = new outputPin("carryOut", this);
     public carryIn:inputPin = new inputPin("carryIn",this);
@@ -107,7 +107,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
     }
 
     update() {
-        this.parts.reverse().forEach(part => { part.update(); })
+        this.parts.slice().reverse().forEach(part => { part.update(); })
         super.update();
     }
 

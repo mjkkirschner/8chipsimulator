@@ -22,7 +22,7 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-      
+
         //active lows.
         enp.value = false;
         ent.value = false;
@@ -33,6 +33,15 @@ describe('Binary counter component', function () {
         clockcomp.incrementTimedFullCycle(() => {
             counter.update();
             assert.equal(counter.countAsInteger(), 1);
+            assert.equal(counter.outputPins[0].value, 0);
+            assert.equal(counter.outputPins[1].value, 0);
+            assert.equal(counter.outputPins[2].value, 0);
+            assert.equal(counter.outputPins[3].value, 0);
+            assert.equal(counter.outputPins[4].value, 0);
+            assert.equal(counter.outputPins[5].value, 0);
+            assert.equal(counter.outputPins[6].value, 0);
+            assert.equal(counter.outputPins[7].value, 1);
+
             done();
         });
     });
@@ -52,7 +61,7 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-       
+
         //active lows.
         enp.value = false;
         ent.value = false;
@@ -75,6 +84,9 @@ describe('Binary counter component', function () {
             assert.equal(counter.countAsInteger(), 2);
             clockcomp.pulseNumberOfTimes(2, () => {
                 assert.equal(counter.countAsInteger(), 0);
+                assert.equal(counter.outputPins[0].value, 0);
+                assert.equal(counter.outputPins[1].value, 0);
+
                 done();
             });
         });
@@ -95,7 +107,7 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-    
+
         //active lows.
         enp.value = false;
         ent.value = false;
@@ -119,6 +131,9 @@ describe('Binary counter component', function () {
             clear.value = false;
             counter.update();
             assert.equal(counter.countAsInteger(), 0);
+            assert.equal(counter.outputPins[0].value, 0);
+            assert.equal(counter.outputPins[1].value, 0);
+
             done();
         });
     });
@@ -138,7 +153,7 @@ describe('Binary counter component', function () {
         new wire(load, counter.loadPin);
         new wire(clockcomp.outputPin, counter.clockPin);
 
-     
+
         //active lows.
         enp.value = false;
         ent.value = false;
@@ -171,6 +186,9 @@ describe('Binary counter component', function () {
             load.value = false;
             clockcomp.pulseNumberOfTimes(2, () => {
                 assert.equal(counter.countAsInteger(), 3);
+                assert.equal(counter.outputPins[0].value, 1);
+                assert.equal(counter.outputPins[1].value, 1);
+
                 done();
             });
         });

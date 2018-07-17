@@ -53,6 +53,13 @@ export class binaryCounter extends basePart implements Ipart {
         this.dataPins = _.range(0, n).map(x => { return new inputPin("input" + x, this) });
     }
 
+    private setOutputPins(){
+        let bitArray = leadingNullString(this.currentState.toString(2), this.outputPins.length).split("").map(bit => { return Boolean(parseInt(bit)); });
+        bitArray.forEach((bit, ind) => { this.outputPins[ind].value = bit });
+        //ripple carry out should mimic the value of MSB.
+        this.rippleCarryOut.value = this.outputPins[0].value;
+    }
+
     update() {
 
         let clockPinValue = this.clockPin.value;
@@ -64,6 +71,7 @@ export class binaryCounter extends basePart implements Ipart {
         if (clockPulsed && this.loadPin.value == false) {
             let inputCount = parseInt(this.dataPins.map(pin => { return Number(pin.value) }).join(""), 2);
             this.currentState = inputCount;
+            this.setOutputPins();
 
             //else if the clock pulsed, but we're not loading - increment the state
         } else if (clockPulsed && countEnabled) {
@@ -75,13 +83,11 @@ export class binaryCounter extends basePart implements Ipart {
                 this.currentState = 0;
             }
 
-            let bitArray = leadingNullString(this.currentState.toString(2), this.outputPins.length).split("").map(bit => { return Boolean(parseInt(bit)); });
-            bitArray.forEach((bit, ind) => { this.outputPins[ind].value = bit });
-            //ripple carry out should mimic the value of MSB.
-            this.rippleCarryOut.value = this.outputPins[0].value;
+           this.setOutputPins();
         }
         if (this.clearPin.value == false) {
             this.currentState = 0;
+            this.setOutputPins();
         }
 
         this.lastClockpinValue = this.clockPin.value;

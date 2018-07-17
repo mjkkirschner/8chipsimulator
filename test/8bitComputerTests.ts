@@ -18,7 +18,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
 
     let outReg = new nRegister(8, "OUT register");
 
-    let regB = new nRegister(8, " B register");
+    let regB = new nRegister(8, "B register");
     let regBbuffer = new nBuffer(8, "B reg buffer");
 
     let adder = new nbitAdder(8, "adder");
@@ -323,6 +323,11 @@ function generateMicrocodeSignalBank(clock: clock,
 
     //comparators for a and b.
     let comparatorComp = new nbitComparator(8, "A_B Comparator");
+
+    aReg.outputPins.forEach((x,i)=>{new wire(x,comparatorComp.dataPinsA[i])})
+    bReg.outputPins.forEach((x,i)=>{new wire(x,comparatorComp.dataPinsB[i])})
+
+
     let invertON = new VoltageRail("invertON");
     invertON.outputPin.value = true;
 
@@ -337,7 +342,7 @@ function generateMicrocodeSignalBank(clock: clock,
 
     //wire comparator outputs to inverters
     new wire(comparatorComp.AEBOUT, invert1.dataPin);
-    new wire(comparatorComp.AEBOUT, invert2.dataPin);
+    new wire(comparatorComp.ALBOUT, invert2.dataPin);
 
     //AND the inverted signals to calculate our A > B signal
     new wire(invert1.outputPin, AGTB.dataPin1);
@@ -350,10 +355,9 @@ function generateMicrocodeSignalBank(clock: clock,
     new wire(comparatorComp.ALBOUT, flagsRegister.dataPins[2]);
 
     //jump signal calculation//
-
+    let JL = signalBank.outputPins[19];
     let JE = signalBank.outputPins[20];
     let JG = signalBank.outputPins[21];
-    let JL = signalBank.outputPins[19];
 
     //to actually calculate the jump we use the incoming microcode signals
     //and the flags register outputs - if any set are true we jump.
