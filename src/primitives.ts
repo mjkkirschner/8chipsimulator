@@ -32,7 +32,7 @@ export abstract class basePart implements Ipart {
     displayName: string = ""
     private updateCallbacks = [];
     protected uuidv4() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        return 'xxxxxxxx_xxxx_4xxx_yxxx_xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
             return v.toString(16);
         });
@@ -198,9 +198,9 @@ export class ORGATE extends basePart implements Ipart {
 export class inverter extends basePart implements Ipart {
 
     //default input pin disconnected;
-    public dataPin = new inputPin("data", this);
-    public outputEnablePin = new inputPin("outputEnable", this);
-    public outputPin = new outputPin("invertedOut", this);
+    public dataPin:inputPin = new inputPin("data", this);
+    public outputEnablePin:inputPin = new inputPin("outputEnable", this);
+    public outputPin:outputPin = new outputPin("invertedOut", this);
 
     public get inputs() {
         return [this.dataPin, this.outputEnablePin];
@@ -219,6 +219,8 @@ export class inverter extends basePart implements Ipart {
         if (this.outputEnablePin && this.outputEnablePin.value == true) {
             this.outputPin.value = !(this.dataPin.value);
         }
+        //TODO seems like a bug, this seems to be keeping state - it needs to
+        //reset if the outputEnable goes low. right?
         super.update();
     }
 }
@@ -311,10 +313,10 @@ export class nBuffer extends basePart implements Ipart, IAggregatePart {
 
 export class nRegister extends basePart implements Ipart, IAggregatePart {
     internalWires: internalWire[] = [];
-    public clockPin = new inputPin("clockPin", this);
+    public clockPin:inputPin = new inputPin("clockPin", this);
     public dataPins: inputPin[] = [];
     public outputPins: outputPin[] = [];
-    public enablePin = new inputPin("Enable", this);
+    public enablePin:inputPin = new inputPin("Enable", this);
 
     //build a bunch of internal parts and map the outputs of this chip to the
     //outputs of the internal parts.

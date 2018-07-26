@@ -13,18 +13,18 @@ import { nbitComparator } from "../src/comparator";
 
 export function generate3Registers_Adder_Bus(): Ipart[] {
 
-    let regA = new nRegister(8, "A register");
-    let regAbuffer = new nBuffer(8, "A reg buffer");
+    let regA = new nRegister(8, "A_register");
+    let regAbuffer = new nBuffer(8, "A_reg_buffer");
 
-    let outReg = new nRegister(8, "OUT register");
+    let outReg = new nRegister(8, "OUT_register");
 
-    let regB = new nRegister(8, "B register");
-    let regBbuffer = new nBuffer(8, "B reg buffer");
+    let regB = new nRegister(8, "B_register");
+    let regBbuffer = new nBuffer(8, "B_reg_buffer");
 
     let adder = new nbitAdder(8, "adder");
-    let adderBbuffer = new nBuffer(8, "adder buffer");
+    let adderBbuffer = new nBuffer(8, "adder_buffer");
 
-    let buscomponent = new bus(8, 5, "main bus");
+    let buscomponent = new bus(8, 5, "main_bus");
 
     //hook up registers to adders
     regA.outputPins.forEach((pin, index) => { new wire(pin, adder.dataPinsA[index]) });
@@ -60,10 +60,15 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
 export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
 
 
-    let memoryAddressREG = new nRegister(8, "memory address register");
+    let memoryAddressREG = new nRegister(8, "memory_address_register");
 
-    let ram = new staticRam(8, 256, "main ram");
-    let ramBuffer = new nBuffer(8, "ram output buffer");
+
+    let ce = new VoltageRail("ram_chipEnable");
+    ce.outputPin.value = false;
+
+    let ram = new staticRam(8, 256, "main_ram");
+    new wire(ce.outputPin, ram.chipEnable);
+    let ramBuffer = new nBuffer(8, "ram_output_buffer");
 
     //attach ram address lines to MAR outputs.
     memoryAddressREG.outputPins.forEach((outPut, index) => {
@@ -79,13 +84,13 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
     memoryAddressREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
     ram.InputOutputPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin.internalInput) });
 
-    return [memoryAddressREG, ram, ramBuffer, buscomponent]
+    return [memoryAddressREG, ram, ramBuffer, buscomponent, ce]
 }
 
 export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipart[] {
 
-    let pc = new binaryCounter(8, "Program Counter");
-    let PCbuffer = new nBuffer(8, "pc buffer");
+    let pc = new binaryCounter(8, "Program_Counter");
+    let PCbuffer = new nBuffer(8, "pc_buffer");
 
 
     //TODO This will get replaced with reset computer signal
@@ -107,7 +112,7 @@ export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipa
 export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
 
     let eepromLen = 256;
-    let EEPROM = new staticRam(24, eepromLen, "microcode rom");
+    let EEPROM = new staticRam(24, eepromLen, "microcode_rom");
 
     let eepromWriteDisabled = new VoltageRail("eepromWriteDisabled");
     eepromWriteDisabled.outputPin.value = true;
@@ -123,21 +128,21 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     new wire(eepromChipEnable.outputPin, EEPROM.chipEnable);
 
 
-    let instructionREG = new nRegister(8, "instruction register");
+    let instructionREG = new nRegister(8, "instruction_register");
     //attach instruction reg inputs to bus - we shouldn't usually care about getting data out of the instruc reg.
     instructionREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
 
     //we need to invert the count clock signal for the microcodeCounter
-    let invEnable = new VoltageRail("invert clock signal enable");
+    let invEnable = new VoltageRail("invert_clock_signal_enable");
     //we need to invert the count clock signal for the microcodeCounter
     invEnable.outputPin.value = true;
-    let inv = new inverter("invert clock signal");
+    let inv = new inverter("invert_clock_signal");
     new wire(invEnable.outputPin, inv.outputEnablePin);
 
 
     new wire(clock.outputPin, inv.dataPin);
     //count to 8
-    let microCodeCounter = new binaryCounter(3, "microcode step counter");
+    let microCodeCounter = new binaryCounter(3, "microcode_step_counter");
     //connect clock to binaryCounter through inverter
     new wire(inv.outputPin, microCodeCounter.clockPin);
 
@@ -162,7 +167,7 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     //EEPROM outputs drive the rest of the computer's signals we'll need to invert some of them....
 
     new wire(inv.outputPin, microCodeCounter.clockPin);
-    let countEnable = new VoltageRail("count enable microcode counter");
+    let countEnable = new VoltageRail("count_enable_microcode_counter");
 
     new wire(countEnable.outputPin, microCodeCounter.outputEnablePin1);
     new wire(countEnable.outputPin, microCodeCounter.outputEnablePin2);
@@ -188,7 +193,7 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     //TODO!!!!! Something is wrong here I think because we have 1 output going to 2
     //inputs not sure this is handled in the graph search...?
 
-    let loadEnable = new VoltageRail("load disabled");
+    let loadEnable = new VoltageRail("load_disabled");
     loadEnable.outputPin.value = true;
     new wire(loadEnable.outputPin, microCodeCounter.loadPin);
     let stepGraph = new grapher(3, "tstep");
@@ -214,18 +219,18 @@ function generateMicrocodeSignalBank(clock: clock,
     outReg: nRegister,
     memoryReg: nRegister,
     adderBbuffer: nBuffer): Ipart[] {
-    let signalBank = new nBuffer(24, "microCode SIGNAL bank",
+    let signalBank = new nBuffer(24, "microCode_SIGNAL_bank",
         ["RAMIN",
             "RAMOUT",
             "INSTRUCTIONIN",
             "INSTROUT",
             "COUNTEROUT",
-            "EMPTY BIT!",
+            "EMPTY_BIT",
             "COUNTERENABLE",
             "AIN",
             "AOUT",
             "SUMOUT",
-            "SUBTRACT(ALUMODE?)",
+            "SUBTRACT_ALUMODE_",
             "ALUMODE",
             "ALUMODE",
             "ALUMODE",
@@ -234,9 +239,10 @@ function generateMicrocodeSignalBank(clock: clock,
             "OUTIN",
             "HALT",
             "MEMORYREGIN",
-            "JUMP A < B",
-            "JUMP A = B",
-            "JUMP A > B]", "FLAGIN", ""]);
+            "JUMP_A_LESS_B",
+            "JUMP_A_EQUAL_B",
+            "JUMP_A_GREATER_ B]",
+            "FLAGIN", "_"]);
     //invert some of the signals.
     //TODO when we build jump board and flags reg then implement this.
     //let jumpInverter = new yadayada
@@ -315,29 +321,29 @@ function generateMicrocodeSignalBank(clock: clock,
 
     //jump and flags circuits
 
-    let flagsRegister = new nRegister(4, "flags register");
+    let flagsRegister = new nRegister(4, "flags_register");
 
     new wire(clock.outputPin, flagsRegister.clockPin);
     new wire(signalBank.outputPins[22], flagsRegister.enablePin);
 
 
     //comparators for a and b.
-    let comparatorComp = new nbitComparator(8, "A_B Comparator");
+    let comparatorComp = new nbitComparator(8, "A_B_Comparator");
 
-    aReg.outputPins.forEach((x,i)=>{new wire(x,comparatorComp.dataPinsA[i])})
-    bReg.outputPins.forEach((x,i)=>{new wire(x,comparatorComp.dataPinsB[i])})
+    aReg.outputPins.forEach((x, i) => { new wire(x, comparatorComp.dataPinsA[i]) })
+    bReg.outputPins.forEach((x, i) => { new wire(x, comparatorComp.dataPinsB[i]) })
 
 
     let invertON = new VoltageRail("invertON");
     invertON.outputPin.value = true;
 
-    let invert1 = new inverter("invertA=B");
-    let invert2 = new inverter("invertA<B");
+    let invert1 = new inverter("invertAEQUALB");
+    let invert2 = new inverter("invertALESSB");
     new wire(invertON.outputPin, invert1.outputEnablePin);
     new wire(invertON.outputPin, invert2.outputEnablePin);
 
 
-    let AGTB = new ANDGATE("A>B");
+    let AGTB = new ANDGATE("AGREATERB");
 
 
     //wire comparator outputs to inverters
@@ -364,7 +370,7 @@ function generateMicrocodeSignalBank(clock: clock,
 
     let ANDAGB = new ANDGATE("ANDAGB");
     let ANDALB = new ANDGATE("ANDALESSB");
-    let ANDEB = new ANDGATE("ANDA=B");
+    let ANDEB = new ANDGATE("ANDAEQUALB");
 
 
     new wire(flagsRegister.outputPins[0], ANDAGB.dataPin1);
@@ -389,7 +395,7 @@ function generateMicrocodeSignalBank(clock: clock,
     //output of final OR is hooked to program counter jump/load signal.
     //actually an inverter first.
 
-    let loadInverter = new inverter();
+    let loadInverter = new inverter("loadInverter");
     new wire(invertON.outputPin, loadInverter.outputEnablePin);
     new wire(OR2.outputPin, loadInverter.dataPin);
     //finally wire up the load pin...
@@ -402,14 +408,14 @@ function generateMicrocodeSignalBank(clock: clock,
     return [signalBank, invertSignal,
         ramInInverter,
         ramOutInverter,
-        programCounterCountInverter, outputOn,invertON,comparatorComp,invert1,invert2,loadInverter,flagsRegister,ANDAGB,ANDALB,ANDEB,OR1,OR2,AGTB]
+        programCounterCountInverter, outputOn, invertON, comparatorComp, invert1, invert2, loadInverter, flagsRegister, ANDAGB, ANDALB, ANDEB, OR1, OR2, AGTB]
 }
 
 export function generate8bitComputerDesign(): Ipart[] {
 
     var parts1 = generate3Registers_Adder_Bus();
     var bus = _.last(parts1) as bus;
-    var clockcomp = new clockWithMode(50);
+    var clockcomp = new clockWithMode(50,"mainClock");
     let modeButton = new toggleButton("clockMode");
     let stepButton = new toggleButton("stepButton");
 
@@ -421,7 +427,7 @@ export function generate8bitComputerDesign(): Ipart[] {
     var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
 
 
-    var parts5 = [new grapher(1, "clock data view test")];
+    var parts5 = [new grapher(1, "clock_data_view_test")];
     new wire(clockcomp.outputPin, parts5[0].dataPins[0]);
 
     var parts6 = generateMicrocodeSignalBank(
