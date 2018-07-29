@@ -6,10 +6,10 @@ import { inputPin, outputPin, internalWire, wire } from "./pins_wires";
 
 export class fullAdder extends basePart implements Ipart {
 
-    public datapins: inputPin[] = [new inputPin("data1",this), new inputPin("data2",this)];
+    public datapins: inputPin[] = [new inputPin("data1", this), new inputPin("data2", this)];
     public sumPin = new outputPin("SumOut", this);
     public carryOut = new outputPin("carryOut", this);
-    public carryIn:inputPin = new inputPin("carryIn",this);
+    public carryIn: inputPin = new inputPin("carryIn", this);
 
     public get inputs() {
         return this.datapins.concat(this.carryIn);
@@ -35,7 +35,7 @@ export class fullAdder extends basePart implements Ipart {
         super.update();
     }
 
-    constructor(name?:string) {
+    constructor(name?: string) {
         super(name);
     }
 
@@ -46,7 +46,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
     //0->N-1 are Apins, N -> (N*2)-1 are Bpins
     public dataPinsA: inputPin[] = [];
     public dataPinsB: inputPin[] = [];
-    public carryIn = new inputPin("carryIn",this);
+    public carryIn = new inputPin("carryIn", this);
     private n: number;
     public internalWires: internalWire[] = [];
 
@@ -65,16 +65,16 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
     }
 
 
-    constructor(n: number,name?:string) {
+    constructor(n: number, name?: string) {
         super(name);
 
         this.n = n;
 
         this.parts = _.range(0, n).map((x, index) => {
             let part = new fullAdder();
-            this.dataPinsA[index] = new inputPin("inputA" + index, this);
-            this.dataPinsB[index] = new inputPin("inputB" + index, this);
-            this.sumOutPins[index] = new outputPin("output" + index, this);
+            this.dataPinsA[index] = new inputPin("inputA" + index, this, false, index);
+            this.dataPinsB[index] = new inputPin("inputB" + index, this, false, index);
+            this.sumOutPins[index] = new outputPin("output" + index, this, index);
 
             let intDataWire = new internalWire(this.dataPinsA[index], part.datapins[0]);
             let intDataWire2 = new internalWire(this.dataPinsB[index], part.datapins[1]);

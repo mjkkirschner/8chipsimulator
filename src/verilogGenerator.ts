@@ -7,6 +7,7 @@ import { binaryCounter } from "./counter";
 import { nbitComparator } from "./comparator";
 import { twoLineToFourLineDecoder } from "./Decoder";
 import { staticRam } from "./sram";
+import { clockWithMode } from "./clock";
 
 
 /**
@@ -15,10 +16,22 @@ import { staticRam } from "./sram";
  */
 export class verilogGenerator {
     private graph: graph;
+    private wireMap: any = {};
 
 
     constructor(graph: graph) {
         this.graph = graph;
+    }
+
+    public generateBinaryMemoryFiles(): Array<string> {
+        let rams = this.graph.nodes.filter(x => x.pointer instanceof staticRam)
+
+        let strings = rams.map(x => {
+            return (x.pointer as staticRam).data.map(data => {
+                return data.map(bool => bool as any * 1).join("");
+            }).join("\n");
+        })
+        return strings;
     }
 
     public generateVerilog() {
@@ -50,9 +63,13 @@ export class verilogGenerator {
             }
             return matches;
         }).join("\n");
-        
+
         //replace wires with the ""
         verilog = verilog.map(x => (x as string).replace(/^wire.*;$/mg, ""));
+        //TODO replace references to [null] with [0]...?
+        // verilog = verilog.map(x => (x as string).replace(/(\[null\])+/mg, "[0]"));
+        // wires = wires.replace(/(\[null\])+/mg, "[0]");
+
         console.log("match WIRE statements", wires);
 
         //insert the wires string into the verilog array as the first entry.
@@ -67,11 +84,22 @@ export class verilogGenerator {
     private generateTopModule(implementation: string, modules: string): string {
         return `
         ${modules}
-        module top(input clock);
+        module top(input CLK,output reg [3:0] LED);
         reg HIGH = 1;
         reg LOW = 0;
         reg SUBMODE = 0;
         reg UNCONNECTED = 0;
+        reg [0:0]clock;
+        
+        //lets reduce clock to a 1.5hzish clock:
+        reg [32:0] counter;
+        
+            always @ (posedge CLK) 
+            begin
+                counter <= counter + 1;
+                clock[0] <= counter[26];
+                LED[0] = OUT_register5c46b2f8_03c8_469f_ae98_91d9ef3ff6eb[0];
+            end
         ${implementation}
         endmodule;
         `;
@@ -79,6 +107,11 @@ export class verilogGenerator {
 
 
     private partToModule = {
+
+        clockWithMode: (part: clockWithMode) => {
+            this.wireMap[part.outputPin.id] = "clock";
+            return "";
+        },
 
         //each of of these functions should take a part, generate input names, and output names for each port
         //and generate a wire for any outputs using the same form for generating names
@@ -89,18 +122,29 @@ export class verilogGenerator {
             //so this should evaluate to be the bus's first output pin + part name- and then we'll have the bus generate a wire with the same name...
             // for its output.
 
-            let dataInputName = part.dataPins[0].attachedWire.startPin.owner.displayName + part.dataPins[0].attachedWire.startPin.id;
-            let enableInputName = part.enablePin.attachedWire.startPin.owner.displayName + part.enablePin.attachedWire.startPin.id;
-            let clockInputName = part.clockPin.attachedWire.startPin.owner.displayName + part.clockPin.attachedWire.startPin.id;
+            const n = part.dataPins.length;
+            let dataInputName = 'allInputsFor' + part.id;
 
+            //this will generate a wire concatenation of all the input wires at the required indices. {wire1[0], wire2[0]} for example... if a part's inputs come from 2 different parts/wires.
+            let concatenatedDatas = `wire [${n}-1:0] ` + dataInputName + '= {' + part.dataPins.map(x => {
+                if (x.attachedWire == null) {
+                    return "UNCONNECTED";
+                }
+                return this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`
+            }).join(",") + '};';
+
+            let enableInputName = this.wireMap[part.enablePin.attachedWire.startPin.id] + `[${part.enablePin.attachedWire.startPin.index}]`
+            let clockInputName = this.wireMap[part.clockPin.attachedWire.startPin.id] + `[${part.clockPin.attachedWire.startPin.index}]`
             let outputName = part.displayName + part.outputPins[0].id;
 
-            let n = part.dataPins.length;
             let func = this.moduleConstructorMap[part.constructor.name];
             let outputWireString = `wire [${n}-1:0] ${outputName};`
             let moduleInstanceString = func(dataInputName, clockInputName, enableInputName, outputName, part.displayName + part.id);
 
-            return [outputWireString, moduleInstanceString].join("\n");
+            //store the wire that output pins belong to in the wire map using the output pin ids.
+            part.outputPins.forEach(x => this.wireMap[x.id] = outputName);
+
+            return [outputWireString, concatenatedDatas, moduleInstanceString].join("\n");
 
         },
 
@@ -115,65 +159,76 @@ export class verilogGenerator {
             let outputWireString = `wire [${n}-1:0] ${outputName};`
             let moduleInstanceString = func(dataInputName, outputName, part.displayName + part.id);
 
+            this.wireMap[part.outputPin.id] = outputName;
+
             return [outputWireString, moduleInstanceString].join("\n");
 
         },
         nBuffer: (part: nBuffer) => {
 
-            let dataInputName = part.dataPins[0].attachedWire.startPin.owner.displayName + part.dataPins[0].attachedWire.startPin.id;
-            let enableInputName = part.outputEnablePin.attachedWire.startPin.owner.displayName + part.outputEnablePin.attachedWire.startPin.id;
+            const n = part.dataPins.length;
+            let dataInputName = 'allInputsFor' + part.id;
 
+            let concatenatedDatas = `wire [${n}-1:0] ` + dataInputName + '= {' + part.dataPins.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+            let enableInputName = this.wireMap[part.outputEnablePin.attachedWire.startPin.id] + `[${part.outputEnablePin.attachedWire.startPin.index}]`
             let outputName = part.displayName + part.outputPins[0].id;
 
-            let n = part.dataPins.length;
             let func = this.moduleConstructorMap[part.constructor.name];
             let outputWireString = `wire [${n}-1:0] ${outputName};`
-            let moduleInstanceString = func(dataInputName, outputName, enableInputName, part.displayName + part.id);
+            let moduleInstanceString = func(dataInputName, outputName, enableInputName,n, part.displayName + part.id);
 
-            return [outputWireString, moduleInstanceString].join("\n");
+            part.outputPins.forEach(x => this.wireMap[x.id] = outputName);
+
+            return [outputWireString, concatenatedDatas, moduleInstanceString].join("\n");
 
         },
         inverter: (part: inverter) => {
 
-            let dataInputName = part.dataPin.attachedWire.startPin.owner.displayName + part.dataPin.attachedWire.startPin.id;
-            let enableInputName = part.outputEnablePin.attachedWire.startPin.owner.displayName + part.outputEnablePin.attachedWire.startPin.id;
-
+            let dataInputName = this.wireMap[part.dataPin.attachedWire.startPin.id] + `[${part.dataPin.attachedWire.startPin.index}]`
+            let enableInputName = this.wireMap[part.outputEnablePin.attachedWire.startPin.id] + `[${part.outputEnablePin.attachedWire.startPin.index}]`
             let outputName = part.displayName + part.outputPin.id;
 
             let n = 1;
             let func = this.moduleConstructorMap[part.constructor.name];
             let outputWireString = `wire [${n}-1:0] ${outputName};`
             let moduleInstanceString = func(dataInputName, outputName, enableInputName, part.displayName + part.id);
+
+            this.wireMap[part.outputPin.id] = outputName;
+
 
             return [outputWireString, moduleInstanceString].join("\n");
 
         },
         ANDGATE: (part: ANDGATE) => {
 
-            let dataInputName = part.dataPin1.attachedWire.startPin.owner.displayName + part.dataPin1.attachedWire.startPin.id;
-            let dataInput2Name = part.dataPin2.attachedWire.startPin.owner.displayName + part.dataPin2.attachedWire.startPin.id;
-
+            let dataInputName = this.wireMap[part.dataPin1.attachedWire.startPin.id] + `[${part.dataPin1.attachedWire.startPin.index}]`
+            let dataInput2Name = this.wireMap[part.dataPin2.attachedWire.startPin.id] + `[${part.dataPin2.attachedWire.startPin.index}]`
             let outputName = part.displayName + part.outputPin.id;
 
             let n = 1;
             let func = this.moduleConstructorMap[part.constructor.name];
             let outputWireString = `wire [${n}-1:0] ${outputName};`
             let moduleInstanceString = func(dataInputName, dataInput2Name, outputName, part.displayName + part.id);
+
+            this.wireMap[part.outputPin.id] = outputName;
+
 
             return [outputWireString, moduleInstanceString].join("\n");
 
         },
         ORGATE: (part: ORGATE) => {
 
-            let dataInputName = part.dataPin1.attachedWire.startPin.owner.displayName + part.dataPin1.attachedWire.startPin.id;
-            let dataInput2Name = part.dataPin2.attachedWire.startPin.owner.displayName + part.dataPin2.attachedWire.startPin.id;
-
+            let dataInputName = this.wireMap[part.dataPin1.attachedWire.startPin.id] + `[${part.dataPin1.attachedWire.startPin.index}]`
+            let dataInput2Name = this.wireMap[part.dataPin2.attachedWire.startPin.id] + `[${part.dataPin2.attachedWire.startPin.index}]`
             let outputName = part.displayName + part.outputPin.id;
 
             let n = 1;
             let func = this.moduleConstructorMap[part.constructor.name];
             let outputWireString = `wire [${n}-1:0] ${outputName};`
             let moduleInstanceString = func(dataInputName, dataInput2Name, outputName, part.displayName + part.id);
+
+            this.wireMap[part.outputPin.id] = outputName;
+
 
             return [outputWireString, moduleInstanceString].join("\n");
 
@@ -181,26 +236,33 @@ export class verilogGenerator {
 
         bus: (part: bus) => {
 
+            //TODO this should probably use two nested maps to be a concat of each wire and each pin index... so we can build a really complex bus...
+            //though it should be safe for now because all inputs come from buffers wire homogenous wires.
 
             //get all the dataInputs... this will be the concatenation of all the data input parts output wires...
-
-
             let dataInputName = 'allInputsFor' + part.id;
 
             let n = part.outputPins.length;
-            let m = part.inputGroups[0].length;
+            let m = part.inputGroups.length;
 
             let concatenatedDatas = `wire [${n * m}-1:0] ` + dataInputName + '= {' + part.inputGroups.map(x => x[0].attachedWire.startPin.owner.displayName + x[0].attachedWire.startPin.id).join(",") + '};';
             let outputName = part.displayName + part.outputPins[0].id;
             //for the select signals we need to generate a concatenation of all the outputEnable signals from the inputs.
             //similar to what we did for the inputs themselves
             let selectInputName = 'allSelectsFor' + part.id;
-            let concatenatedSelects = `wire [${n * m}-1:0] ` + selectInputName + '= {' + part.inputGroups.map(x => x[0].attachedWire.startPin.owner.displayName + (x[0].attachedWire.startPin.owner as nBuffer).outputEnablePin.id).join(",") + '};';
+            // TODO this is crazy.
+            // this feeds the input attached to the outputenable of the buffer attached each input group into the wiremap, gets the wire, and then gets the index in that wire....
+            // this mostly gets outputs from the microcode signal bang at the right index... the wires should be the same... mostly.
+
+            let concatenatedSelects = `wire [${m}-1:0] ` + selectInputName + '= {' + part.inputGroups.map(x => (this.wireMap[(((x[0].attachedWire.startPin.owner as nBuffer).outputEnablePin as inputPin).attachedWire.startPin.id)] + `[${((x[0].attachedWire.startPin.owner as nBuffer).outputEnablePin as inputPin).attachedWire.startPin.index}]`)).join(",") + '};';
 
 
             let func = this.moduleConstructorMap[part.constructor.name];
             let outputWireString = `wire [${n}-1:0] ${outputName};`
-            let moduleInstanceString = func(selectInputName, dataInputName, outputName, part.displayName + part.id);
+            let moduleInstanceString = func(selectInputName, dataInputName, outputName,m,n, part.displayName + part.id);
+
+            part.outputPins.forEach(x => this.wireMap[x.id] = outputName);
+
 
             return [outputWireString, concatenatedDatas, concatenatedSelects, moduleInstanceString].join("\n");
 
@@ -208,8 +270,14 @@ export class verilogGenerator {
 
         nbitAdder: (part: nbitAdder) => {
 
-            let aInputName = part.dataPinsA[0].attachedWire.startPin.owner.displayName + part.dataPinsA[0].attachedWire.startPin.id;
-            let bInputName = part.dataPinsB[0].attachedWire.startPin.owner.displayName + part.dataPinsB[0].attachedWire.startPin.id;
+            let aInputName = 'allADataInputsFor' + part.id;
+            let bInputName = 'allBDataInputsFor' + part.id;
+
+            let n = part.dataPinsA.length;
+
+            let concatenatedADatas = `wire [${n}-1:0] ` + aInputName + '= {' + part.dataPinsA.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+            let concatenatedBDatas = `wire [${n}-1:0] ` + bInputName + '= {' + part.dataPinsB.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+
             //TODO eventually use the 4 signals for adder mode - for now it's just 0.
             //defined in top module.
             let subModeInputName = "SUBMODE";
@@ -221,14 +289,16 @@ export class verilogGenerator {
 
             let outputName = part.displayName + part.sumOutPins[0].id;
 
-            let n = part.dataPinsA.length;
             let func = this.moduleConstructorMap[part.constructor.name];
 
 
             let outputWireString = `wire [${n}-1:0] ${outputName};`
             let moduleInstanceString = func(subModeInputName, carryInInputName, aInputName, bInputName, outputName, carryOutputName, part.displayName + part.id);
 
-            return [outputWireString, carryOutWire, moduleInstanceString].join("\n");
+            part.sumOutPins.forEach(x => this.wireMap[x.id] = outputName);
+            this.wireMap[part.carryOut.id] = carryOutputName;
+
+            return [outputWireString, carryOutWire, concatenatedADatas, concatenatedBDatas, moduleInstanceString].join("\n");
 
         },
 
@@ -239,11 +309,11 @@ export class verilogGenerator {
                 dataInputName = part.dataPins[0].attachedWire.startPin.owner.displayName + part.dataPins[0].attachedWire.startPin.id;
             }
 
-            let enableInput1Name = part.outputEnablePin1.attachedWire.startPin.owner.displayName + part.outputEnablePin1.attachedWire.startPin.id;
-            let enableInput2Name = part.outputEnablePin2.attachedWire.startPin.owner.displayName + part.outputEnablePin2.attachedWire.startPin.id;
-            let clockInputName = part.clockPin.attachedWire.startPin.owner.displayName + part.clockPin.attachedWire.startPin.id;
-            let clearInputName = part.clearPin.attachedWire.startPin.owner.displayName + part.clearPin.attachedWire.startPin.id;
-            let loadInputName = part.loadPin.attachedWire.startPin.owner.displayName + part.loadPin.attachedWire.startPin.id;
+            let enableInput1Name = this.wireMap[part.outputEnablePin1.attachedWire.startPin.id] + `[${part.outputEnablePin1.attachedWire.startPin.index}]`
+            let enableInput2Name = this.wireMap[part.outputEnablePin2.attachedWire.startPin.id] + `[${part.outputEnablePin2.attachedWire.startPin.index}]`
+            let clockInputName = this.wireMap[part.clockPin.attachedWire.startPin.id] + `[${part.clockPin.attachedWire.startPin.index}]`
+            let clearInputName = this.wireMap[part.clearPin.attachedWire.startPin.id] + `[${part.clearPin.attachedWire.startPin.index}]`
+            let loadInputName = this.wireMap[part.loadPin.attachedWire.startPin.id] + `[${part.loadPin.attachedWire.startPin.index}]`
 
 
             let outputName = part.displayName + part.outputPins[0].id;
@@ -260,36 +330,45 @@ export class verilogGenerator {
                 outputName,
                 part.displayName + part.id);
 
+            part.outputPins.forEach(x => this.wireMap[x.id] = outputName);
+
             return [outputWireString, moduleInstanceString].join("\n");
 
         },
 
         nbitComparator: (part: nbitComparator) => {
 
-            let aInputName = part.dataPinsA[0].attachedWire.startPin.owner.displayName + part.dataPinsA[0].attachedWire.startPin.id;
-            let bInputName = part.dataPinsB[0].attachedWire.startPin.owner.displayName + part.dataPinsB[0].attachedWire.startPin.id;
+            let aInputName = 'allADataInputsFor' + part.id;
+            let bInputName = 'allBDataInputsFor' + part.id;
+
+            let n = part.dataPinsA.length;
+
+            let concatenatedADatas = `wire [${n}-1:0] ` + aInputName + '= {' + part.dataPinsA.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+            let concatenatedBDatas = `wire [${n}-1:0] ` + bInputName + '= {' + part.dataPinsB.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
 
             let equalOutputName = part.displayName + part.AEBOUT.id;
             let lowerOutputName = part.displayName + part.ALBOUT.id;
 
-            let n = part.dataPinsA.length;
             let func = this.moduleConstructorMap[part.constructor.name];
 
 
-            let equalOutputWireString = `wire [${n}-1:0] ${equalOutputName};`
-            let lowerOutputWireString = `wire [${n}-1:0] ${lowerOutputName};`
+            let equalOutputWireString = `wire [0:0] ${equalOutputName};`
+            let lowerOutputWireString = `wire [0:0] ${lowerOutputName};`
 
             let moduleInstanceString = func(aInputName, bInputName, equalOutputName, lowerOutputName, part.displayName + part.id);
 
-            return [equalOutputWireString, lowerOutputWireString, moduleInstanceString].join("\n");
+            this.wireMap[part.AEBOUT.id] = equalOutputName;
+            this.wireMap[part.ALBOUT.id] = lowerOutputName;
+
+            return [equalOutputWireString, concatenatedADatas, concatenatedBDatas, lowerOutputWireString, moduleInstanceString].join("\n");
 
         },
 
         twoLineToFourLineDecoder: (part: twoLineToFourLineDecoder) => {
 
-            let aInputName = part.dataPins[0].attachedWire.startPin.owner.displayName + part.dataPins[0].attachedWire.startPin.id;
-            let bInputName = part.dataPins[1].attachedWire.startPin.owner.displayName + part.dataPins[1].attachedWire.startPin.id;
-            let enableInputName = part.outputEnablePin.attachedWire.startPin.owner.displayName + part.outputEnablePin.attachedWire.startPin.id;
+            let aInputName = this.wireMap[part.dataPins[0].attachedWire.startPin.id] + `[${part.dataPins[0].attachedWire.startPin.index}]`
+            let bInputName = this.wireMap[part.dataPins[1].attachedWire.startPin.id] + `[${part.dataPins[1].attachedWire.startPin.index}]`
+            let enableInputName = this.wireMap[part.outputEnablePin.attachedWire.startPin.id] + `[${part.outputEnablePin.attachedWire.startPin.index}]`
 
             let yoOutputname = part.displayName + part.outputPins[0].id;
             let y1Outputname = part.displayName + part.outputPins[1].id;
@@ -313,6 +392,11 @@ export class verilogGenerator {
                 y3Outputname,
                 part.displayName + part.id);
 
+            this.wireMap[part.outputPins[0].id] = yoOutputname;
+            this.wireMap[part.outputPins[1].id] = y1Outputname;
+            this.wireMap[part.outputPins[2].id] = y2Outputname;
+            this.wireMap[part.outputPins[3].id] = y3Outputname;
+
             return [yoOutputWire, y1OutputWire, y2OutputWire, y3OutputWire, moduleInstanceString].join("\n");
 
         },
@@ -321,41 +405,51 @@ export class verilogGenerator {
 
             //decide which rom file path to inject?
 
-            let csInputName = part.chipEnable.attachedWire.startPin.owner.displayName + part.chipEnable.attachedWire.startPin.id;
-            let weInputName = part.writeEnable.attachedWire.startPin.owner.displayName + part.writeEnable.attachedWire.startPin.id;
-            let oeInputName = part.outputEnable.attachedWire.startPin.owner.displayName + part.outputEnable.attachedWire.startPin.id;
-
-            //TODO BAD - this should check for unconnected or something better.
-            let addressInputs = part.addressPins[7].attachedWire.startPin.owner.displayName + part.addressPins[7].attachedWire.startPin.id;
-            //this is the bus output wire.
-            //this is empty for microcode rom...
-            //TODO FIX IT...
-            let dataInputName = "UNCONNECTED";
-            if (part.InputOutputPins[0].internalInput.attachedWire) {
-                dataInputName = part.InputOutputPins[0].internalInput.attachedWire.startPin.owner.displayName + part.InputOutputPins[0].internalInput.attachedWire.startPin.id;
-            }
+            let csInputName = this.wireMap[part.chipEnable.attachedWire.startPin.id] + `[${part.chipEnable.attachedWire.startPin.index}]`
+            let weInputName = this.wireMap[part.writeEnable.attachedWire.startPin.id] + `[${part.writeEnable.attachedWire.startPin.index}]`
+            let oeInputName = this.wireMap[part.outputEnable.attachedWire.startPin.id] + `[${part.outputEnable.attachedWire.startPin.index}]`
 
 
-            //this should be this part.
-            let outputName = part.InputOutputPins[0].internalOutput.attachedWires[0].startPin.owner.displayName + part.InputOutputPins[0].internalOutput.attachedWires[0].startPin.id;
+            let addressInputName = 'allAddressInputsFor' + part.id;
+            let dataInputName = "allDataInputsFor" + part.id;
 
             let n = part.wordSize;
+            let concatenatedAddressPins = `wire [${part.addressPins.length}-1:0] ` + addressInputName + '= {' + part.addressPins.map(x => {
+                if (x.attachedWire == null) {
+                    return "UNCONNECTED";
+                }
+                return this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`
+            }).join(",") + '};';
+
+            let concatenatedDataPins = `wire [${n}-1:0] ` + dataInputName + '= {' + part.InputOutputPins.map(x => {
+                if (x.internalInput.attachedWire == null) {
+                    return "UNCONNECTED";
+                }
+                return this.wireMap[x.internalInput.attachedWire.startPin.id] + `[${x.internalInput.attachedWire.startPin.index}]`
+            }).join(",") + '};';
+
+            //this should be this part.
+            let outputName = part.InputOutputPins[0].internalOutput.owner.displayName + part.InputOutputPins[0].internalOutput.id;
+
             let func = this.moduleConstructorMap[part.constructor.name];
 
 
             let outputWireString = `wire [${n}-1:0] ${outputName};`
-            let moduleInstanceString = func(addressInputs,
+            let moduleInstanceString = func(addressInputName,
                 dataInputName,
                 csInputName,
                 weInputName,
                 oeInputName,
                 outputName,
                 "TESTFILEPATH",
-                8,
-                256,
+                n,
+                part.addressPins.length,
                 part.displayName + part.id, );
 
-            return [outputWireString, moduleInstanceString].join("\n");
+            part.InputOutputPins.forEach(x => this.wireMap[x.internalOutput.id] = outputName);
+
+
+            return [outputWireString, concatenatedAddressPins, concatenatedDataPins, moduleInstanceString].join("\n");
         }
     }
 
@@ -369,8 +463,8 @@ export class verilogGenerator {
             return `voltageRail ${name} ( ${data}, ${Q} );`
         },
 
-        nBuffer: (data, Q, outputEnable, name) => {
-            return `nBuffer ${name} ( ${data}, ${Q} , ${outputEnable} );`
+        nBuffer: (data, Q, outputEnable, DATA_WIDTH, name) => {
+            return `nBuffer  #(${DATA_WIDTH}) ${name} ( ${data}, ${Q} , ${outputEnable} );`
         },
 
         inverter: (data, Q, outputEnable, name) => {
@@ -385,8 +479,8 @@ export class verilogGenerator {
             return `ORGATE ${name} ( ${a}, ${b} , ${c} );`
         },
 
-        bus: (selects, data_in, data_out, name) => {
-            return `bus_mux ${name} ( ${selects}, ${data_in} , ${data_out} );`
+        bus: (selects, data_in, data_out,BUSCOUNT,DATA_WIDTH, name) => {
+            return `bus_mux #(${BUSCOUNT},${DATA_WIDTH}) ${name} ( ${selects}, ${data_in} , ${data_out} );`
         },
 
         nbitAdder: (sub, cin, x, y, sum, cout, name) => {
@@ -431,7 +525,7 @@ export class verilogGenerator {
         input wire data;
         output reg Q;
         always@(data)
-        Q = data;
+        Q <= data;
         endmodule
         `,
 
@@ -547,7 +641,7 @@ export class verilogGenerator {
 
         "twoLineToFourLineDecoder":
             `module twoLineToFourLineDecoder (a,b,en_,y0,y1,y2,y3);
-          input a, b, en;
+          input a, b, en_;
           output y0,y1,y2,y3;
           assign y0= (~a) & (~b) & (~en_);
           assign y1= (~a) & b & (~en_);

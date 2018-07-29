@@ -5,7 +5,7 @@ import { clock } from "../src/clock";
 import { graph, simulatorExecution } from "../src/engine";
 import * as assert from "assert";
 import { verilogGenerator } from "../src/verilogGenerator";
-
+import *  as fs from 'fs';
 
 
 
@@ -188,11 +188,26 @@ describe("testing a full cpu/computer verilog generation", () => {
         let parts = utils.generate8bitComputerDesign();
         let ram = parts.filter(x => x.displayName == "main_ram")[0] as staticRam;
 
-        ram.writeData(0, [0, 0, 0, 0, 1, 1, 1, 1].map(x => Boolean(x)));
+        ram.writeData(0, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
+        ram.writeData(1, [0, 0, 0, 1, 0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
+        ram.writeData(2, [0, 0, 0, 0, 0, 0, 1, 1].map(x => Boolean(x))); // Put whatever follows at memory address 100 into B // then add to A.
+        ram.writeData(3, [0, 1, 1, 0, 0, 1, 0, 0].map(x => Boolean(x))); // 100
 
-        //these should not be run.
-        ram.writeData(1, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
-        ram.writeData(2, [0, 0, 0, 1, 0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
+        ram.writeData(4, [0, 0, 0, 0, 1, 1, 0, 0].map(x => Boolean(x))); //loadBimmediate. - load what follows into B.
+        ram.writeData(5, [0, 0, 0, 1, 1, 0, 0, 1].map(x => Boolean(x))); //25 - after this B should contain 25.
+
+        ram.writeData(6, [0, 0, 0, 0, 1, 1, 1, 0].map(x => Boolean(x))); //update flag reg for jump
+
+        //conditionally jump to 2 if A < B... if A < 25 keep looping 
+        ram.writeData(7, [0, 0, 0, 0, 1, 0, 0, 1].map(x => Boolean(x))); //jump to line:
+        ram.writeData(8, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); //address 2
+        //25 to out
+        ram.writeData(9, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); // A transfer to Out reg.
+        //halt
+        ram.writeData(10, [0, 0, 0, 0, 1, 1, 1, 1].map(x => Boolean(x)));
+
+        ram.writeData(100, [0, 0, 0, 0, 0, 0, 0, 1].map(x => Boolean(x))); //1 at memory location 100
+
 
 
         let gra = new graph(parts);
@@ -206,7 +221,16 @@ describe("testing a full cpu/computer verilog generation", () => {
         });
 
         let generator = new verilogGenerator(gra);
-        console.log(generator.generateVerilog());
+        let generatedVerilog = generator.generateVerilog();
+        generatedVerilog = generator.generateVerilog();
+
+        console.log(generatedVerilog);
+        fs.writeFileSync("./generatedVerilog", generatedVerilog);
+
+        let memoryFiles = generator.generateBinaryMemoryFiles();
+        console.log(memoryFiles);
+        memoryFiles.forEach((x, i) => fs.writeFileSync("./memoryFile" + i, x));
+
     });
 });
 

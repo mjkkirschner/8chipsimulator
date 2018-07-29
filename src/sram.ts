@@ -58,10 +58,10 @@ export class staticRam extends basePart implements Ipart, Imemory {
         //generate empty data cells.
         this.data = _.range(0, length).map(x => { return _.range(0, wordSize).map(ind => { return false }) });
         //generate the input output pins.
-        this.InputOutputPins = _.range(0, wordSize).map(ind => { return new inputOutputPin("in/out:" + ind, this) });
+        this.InputOutputPins = _.range(0, wordSize).map(ind => { return new inputOutputPin("in/out:" + ind, this, false, ind) });
         //generate address pins
         let requiredBits = Math.ceil(Math.log(this.data.length) / Math.log(2));
-        this.addressPins = _.range(0, requiredBits).map(x => { return new inputPin("address" + x, this) });
+        this.addressPins = _.range(0, requiredBits).map(x => { return new inputPin("address" + x, this, false, x) });
     }
 
     update() {

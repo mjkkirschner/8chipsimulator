@@ -42,7 +42,22 @@ export abstract class basePart implements Ipart {
     }
 
     update(simulator?: simulatorExecution) {
-       
+
+        //TODO VERBOSE MODE.
+        if (false) {
+            if ((this as any).toOutputString) {
+                logger.log(this.displayName, this.constructor.name, "has value", (this as any).toOutputString());
+            } else {
+                logger.log(this.displayName, this.constructor.name, "has value: toOutputString not implemented");
+            }
+            logger.log("INPUT VALUES:");
+            logger.log("inputs:", this.inputs.map(x => (x as inputPin).name + ':' + (x as inputPin).value).join('\n'));
+            logger.log("OUTPUT VALUES:");
+            logger.log("outputs:", this.outputs.map(x => (x as outputPin).name + ':' + (x as outputPin).value).join('\n'));
+            logger.log("**********************");
+            logger.log("\n");
+        }
+
         this.updateCallbacks.forEach(x => x());
     }
 
@@ -98,7 +113,7 @@ class binaryCell extends basePart implements Ipart {
 
     public clockPin: inputPin = new inputPin("clockPin", this);
     public dataPin: inputPin = new inputPin("data", this);
-    public outputPin: outputPin = new outputPin("output",this);
+    public outputPin: outputPin = new outputPin("output", this);
     public enablePin: inputPin = new inputPin("enable", this);
 
     private state: boolean = false;
@@ -198,9 +213,9 @@ export class ORGATE extends basePart implements Ipart {
 export class inverter extends basePart implements Ipart {
 
     //default input pin disconnected;
-    public dataPin:inputPin = new inputPin("data", this);
-    public outputEnablePin:inputPin = new inputPin("outputEnable", this);
-    public outputPin:outputPin = new outputPin("invertedOut", this);
+    public dataPin: inputPin = new inputPin("data", this);
+    public outputEnablePin: inputPin = new inputPin("outputEnable", this);
+    public outputPin: outputPin = new outputPin("invertedOut", this);
 
     public get inputs() {
         return [this.dataPin, this.outputEnablePin];
@@ -249,7 +264,7 @@ class buffer extends basePart implements Ipart {
         //if the output enable pin are high - output the input value.
         if (this.outputEnablePin && this.outputEnablePin.value == true) {
             this.outputPin.value = this.dataPin.value;
-        }else{
+        } else {
             this.outputPin.value = false;
         }
         super.update();
@@ -284,8 +299,8 @@ export class nBuffer extends basePart implements Ipart, IAggregatePart {
                 name = names[index];
             }
 
-            this.dataPins[index] = new inputPin(name + index, this);
-            this.outputPins[index] = new outputPin(name + index, this);
+            this.dataPins[index] = new inputPin(name + index, this, false, index);
+            this.outputPins[index] = new outputPin(name + index, this, index);
             //build internal wires
 
             let intWire = new internalWire(this.dataPins[index], part.dataPin);
@@ -313,10 +328,10 @@ export class nBuffer extends basePart implements Ipart, IAggregatePart {
 
 export class nRegister extends basePart implements Ipart, IAggregatePart {
     internalWires: internalWire[] = [];
-    public clockPin:inputPin = new inputPin("clockPin", this);
+    public clockPin: inputPin = new inputPin("clockPin", this);
     public dataPins: inputPin[] = [];
     public outputPins: outputPin[] = [];
-    public enablePin:inputPin = new inputPin("Enable", this);
+    public enablePin: inputPin = new inputPin("Enable", this);
 
     //build a bunch of internal parts and map the outputs of this chip to the
     //outputs of the internal parts.
@@ -335,8 +350,8 @@ export class nRegister extends basePart implements Ipart, IAggregatePart {
         super(name);
         this.parts = _.range(0, n).map((x, index) => {
             let part = new binaryCell();
-            this.dataPins[index] = new inputPin("input" + index, this);
-            this.outputPins[index] = new outputPin("output" + index, this);
+            this.dataPins[index] = new inputPin("input" + index, this, false, index);
+            this.outputPins[index] = new outputPin("output" + index, this, index);
             //build internal wires
 
             let clockWire = new internalWire(this.clockPin, part.clockPin);
@@ -435,10 +450,10 @@ export class bus extends basePart implements Ipart {
     constructor(busWidth: number, NumberOfInputGroups: number, name?: string) {
         super(name);
         //create output pins
-        this.outputPins = _.range(0, busWidth).map((x, index) => { return new outputPin("output" + index, this) });
+        this.outputPins = _.range(0, busWidth).map((x, index) => { return new outputPin("output" + index, this, index) });
         this.inputGroups = _.range(0, NumberOfInputGroups).map((x, index) => {
             return _.range(0, busWidth).map(width => {
-                return new inputPin("input" + index, this);
+                return new inputPin("input" + index, this, false, index);
             });
         });
 

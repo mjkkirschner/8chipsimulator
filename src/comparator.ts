@@ -23,8 +23,8 @@ export class nbitComparator extends basePart implements Ipart {
     constructor(n: number, name?: string) {
         super(name);
 
-        this.dataPinsA = _.range(0, n).map(x => { return new inputPin("inputA" + x, this) });
-        this.dataPinsB = _.range(0, n).map(x => { return new inputPin("inputB" + x, this) });
+        this.dataPinsA = _.range(0, n).map((x, i) => { return new inputPin("inputA" + x, this, false, i) });
+        this.dataPinsB = _.range(0, n).map((x, i) => { return new inputPin("inputB" + x, this, false, i) });
 
     }
 

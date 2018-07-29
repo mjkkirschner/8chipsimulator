@@ -63,13 +63,17 @@ export abstract class pin {
             return v.toString(16);
         });
     }
-    constructor(name?: string, owner?: Ipart) {
+    index:number = 0;
+    constructor(name?: string, owner?: Ipart, index?:number) {
         this.id = this.uuidv4();
         if (name) {
             this.name = name;
         }
         if (owner) {
             this.owner = owner;
+        }
+        if(index != null){
+            this.index = index;
         }
     }
 }
@@ -78,8 +82,8 @@ export class inputPin extends pin {
     activeLow: boolean = false;
     attachedWire: wire | internalWire
 
-    constructor(name?: string, owner?: Ipart, activeLow?: boolean) {
-        super(name, owner);
+    constructor(name?: string, owner?: Ipart, activeLow?: boolean, index?:number) {
+        super(name, owner,index);
 
         if (activeLow != null) {
             this.activeLow = activeLow
@@ -154,10 +158,10 @@ export class inputOutputPin extends pin {
     public internalInput: inputPin;
     public internalOutput: outputPin;
 
-    constructor(name?: string, owner?: Ipart) {
-        super(name, owner);
-        this.internalInput = new inputPin(name + "input", this.owner);
-        this.internalOutput = new outputPin(name + "output", this.owner);
+    constructor(name?: string, owner?: Ipart, activeLowInput?:boolean, index?:number) {
+        super(name, owner,index);
+        this.internalInput = new inputPin(name + "input", this.owner,activeLowInput,index);
+        this.internalOutput = new outputPin(name + "output", this.owner,index);
     }
 
     get value(): boolean {
