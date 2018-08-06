@@ -1,0 +1,479 @@
+#-----------------------------------------------------------
+# Vivado v2017.4 (64-bit)
+# SW Build 2086221 on Fri Dec 15 20:55:39 MST 2017
+# IP Build 2085800 on Fri Dec 15 22:25:07 MST 2017
+# Start of session at: Mon Aug  6 00:01:46 2018
+# Process ID: 6552
+# Current directory: C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.runs/synth_1
+# Command line: vivado.exe -log top.vds -product Vivado -mode batch -messageDb vivado.pb -notrace -source top.tcl
+# Log file: C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.runs/synth_1/top.vds
+# Journal file: C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.runs/synth_1\vivado.jou
+#-----------------------------------------------------------
+source top.tcl -notrace
+Command: synth_design -top top -part xc7a35ticsg324-1L
+Starting synth_design
+Attempting to get a license for feature 'Synthesis' and/or device 'xc7a35ti'
+INFO: [Common 17-349] Got license for feature 'Synthesis' and/or device 'xc7a35ti'
+INFO: Launching helper process for spawning children vivado processes
+INFO: Helper process launched with PID 3896 
+---------------------------------------------------------------------------------
+Starting RTL Elaboration : Time (s): cpu = 00:00:07 ; elapsed = 00:00:07 . Memory (MB): peak = 356.637 ; gain = 100.402
+---------------------------------------------------------------------------------
+INFO: [Synth 8-638] synthesizing module 'top' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:178]
+INFO: [Synth 8-638] synthesizing module 'voltageRail' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:13]
+INFO: [Synth 8-256] done synthesizing module 'voltageRail' (1#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:13]
+INFO: [Synth 8-638] synthesizing module 'inverter' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:34]
+INFO: [Synth 8-256] done synthesizing module 'inverter' (2#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:34]
+INFO: [Synth 8-638] synthesizing module 'binaryCounter' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:91]
+	Parameter n bound to: 8 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'binaryCounter' (3#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:91]
+WARNING: [Synth 8-689] width (3) of port connection 'Q' does not match port width (8) of module 'binaryCounter' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:314]
+INFO: [Synth 8-638] synthesizing module 'twoLineToFourLineDecoder' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:119]
+INFO: [Synth 8-256] done synthesizing module 'twoLineToFourLineDecoder' (4#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:119]
+INFO: [Synth 8-638] synthesizing module 'nBuffer' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:20]
+	Parameter n bound to: 8 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'nBuffer' (5#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:20]
+INFO: [Synth 8-638] synthesizing module 'bus_mux' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:58]
+	Parameter bus_count bound to: 5 - type: integer 
+	Parameter mux_width bound to: 8 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'bus_mux' (6#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:58]
+INFO: [Synth 8-638] synthesizing module 'nRegister' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:2]
+	Parameter n bound to: 8 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'nRegister' (7#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:2]
+INFO: [Synth 8-638] synthesizing module 'staticRamDiscretePorts' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:131]
+	Parameter ROMFILE bound to: microcode.mem - type: string 
+	Parameter DATA_WIDTH bound to: 24 - type: integer 
+	Parameter ADDR_WIDTH bound to: 8 - type: integer 
+	Parameter RAM_DEPTH bound to: 256 - type: integer 
+INFO: [Synth 8-3876] $readmem data file 'microcode.mem' is read successfully [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:162]
+INFO: [Synth 8-256] done synthesizing module 'staticRamDiscretePorts' (8#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:131]
+INFO: [Synth 8-638] synthesizing module 'nBuffer__parameterized0' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:20]
+	Parameter n bound to: 24 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'nBuffer__parameterized0' (8#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:20]
+INFO: [Synth 8-638] synthesizing module 'staticRamDiscretePorts__parameterized0' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:131]
+	Parameter ROMFILE bound to: staticram.mem - type: string 
+	Parameter DATA_WIDTH bound to: 8 - type: integer 
+	Parameter ADDR_WIDTH bound to: 8 - type: integer 
+	Parameter RAM_DEPTH bound to: 256 - type: integer 
+INFO: [Synth 8-3876] $readmem data file 'staticram.mem' is read successfully [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:162]
+INFO: [Synth 8-256] done synthesizing module 'staticRamDiscretePorts__parameterized0' (8#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:131]
+INFO: [Synth 8-638] synthesizing module 'nbitComparator' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:107]
+	Parameter n bound to: 8 - type: integer 
+WARNING: [Synth 8-589] replacing case/wildcard equality operator === with logical equality operator == [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:114]
+INFO: [Synth 8-256] done synthesizing module 'nbitComparator' (9#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:107]
+INFO: [Synth 8-638] synthesizing module 'ANDGATE' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:44]
+INFO: [Synth 8-256] done synthesizing module 'ANDGATE' (10#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:44]
+WARNING: [Synth 8-689] width (4) of port connection 'data' does not match port width (8) of module 'nRegister' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:411]
+WARNING: [Synth 8-689] width (4) of port connection 'Q' does not match port width (8) of module 'nRegister' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:411]
+INFO: [Synth 8-638] synthesizing module 'ORGATE' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:51]
+INFO: [Synth 8-256] done synthesizing module 'ORGATE' (11#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:51]
+INFO: [Synth 8-638] synthesizing module 'nbitAdder' [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:78]
+	Parameter n bound to: 8 - type: integer 
+INFO: [Synth 8-256] done synthesizing module 'nbitAdder' (12#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:78]
+INFO: [Synth 8-256] done synthesizing module 'top' (13#1) [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:178]
+---------------------------------------------------------------------------------
+Finished RTL Elaboration : Time (s): cpu = 00:00:08 ; elapsed = 00:00:09 . Memory (MB): peak = 409.109 ; gain = 152.875
+---------------------------------------------------------------------------------
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 1 : Time (s): cpu = 00:00:08 ; elapsed = 00:00:09 . Memory (MB): peak = 409.109 ; gain = 152.875
+---------------------------------------------------------------------------------
+INFO: [Device 21-403] Loading part xc7a35ticsg324-1L
+INFO: [Project 1-570] Preparing netlist for logic optimization
+
+Processing XDC Constraints
+Initializing timing engine
+Parsing XDC File [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/constrs_1/new/arty_constraints.xdc]
+Finished Parsing XDC File [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/constrs_1/new/arty_constraints.xdc]
+INFO: [Project 1-236] Implementation specific constraints were found while reading constraint file [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/constrs_1/new/arty_constraints.xdc]. These constraints will be ignored for synthesis but will be used in implementation. Impacted constraints are listed in the file [.Xil/top_propImpl.xdc].
+Resolution: To avoid this warning, move constraints listed in [.Xil/top_propImpl.xdc] to another XDC file and exclude this new file from synthesis with the used_in_synthesis property (File Properties dialog in GUI) and re-run elaboration/synthesis.
+Completed Processing XDC Constraints
+
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+Constraint Validation Runtime : Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.004 . Memory (MB): peak = 738.711 ; gain = 0.000
+---------------------------------------------------------------------------------
+Finished Constraint Validation : Time (s): cpu = 00:00:23 ; elapsed = 00:00:25 . Memory (MB): peak = 738.711 ; gain = 482.477
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Loading Part and Timing Information
+---------------------------------------------------------------------------------
+Loading part: xc7a35ticsg324-1L
+---------------------------------------------------------------------------------
+Finished Loading Part and Timing Information : Time (s): cpu = 00:00:23 ; elapsed = 00:00:25 . Memory (MB): peak = 738.711 ; gain = 482.477
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Applying 'set_property' XDC Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished applying 'set_property' XDC Constraints : Time (s): cpu = 00:00:23 ; elapsed = 00:00:25 . Memory (MB): peak = 738.711 ; gain = 482.477
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-6014] Unused sequential element Q_reg was removed.  [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:99]
+WARNING: [Synth 8-6014] Unused sequential element counter_reg was removed.  [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:451]
+---------------------------------------------------------------------------------
+Finished RTL Optimization Phase 2 : Time (s): cpu = 00:00:23 ; elapsed = 00:00:25 . Memory (MB): peak = 738.711 ; gain = 482.477
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start RTL Component Statistics 
+---------------------------------------------------------------------------------
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input      9 Bit       Adders := 1     
+	   2 Input      8 Bit       Adders := 3     
++---XORs : 
+	   2 Input      8 Bit         XORs := 1     
++---Registers : 
+	               24 Bit    Registers := 1     
+	                8 Bit    Registers := 10    
+	                4 Bit    Registers := 1     
+	                1 Bit    Registers := 4     
++---RAMs : 
+	               6K Bit         RAMs := 1     
+	               2K Bit         RAMs := 1     
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 2     
+	   2 Input      8 Bit        Muxes := 8     
+	   2 Input      1 Bit        Muxes := 2     
+---------------------------------------------------------------------------------
+Finished RTL Component Statistics 
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start RTL Hierarchical Component Statistics 
+---------------------------------------------------------------------------------
+Hierarchical RTL Component report 
+Module top 
+Detailed RTL Component Info : 
++---Registers : 
+	                8 Bit    Registers := 1     
+	                4 Bit    Registers := 1     
+	                1 Bit    Registers := 4     
+Module binaryCounter 
+Detailed RTL Component Info : 
++---Adders : 
+	   2 Input      8 Bit       Adders := 1     
++---Registers : 
+	                8 Bit    Registers := 1     
++---Muxes : 
+	   2 Input      8 Bit        Muxes := 1     
+	   2 Input      1 Bit        Muxes := 1     
+Module nBuffer 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input      8 Bit        Muxes := 1     
+Module nRegister 
+Detailed RTL Component Info : 
++---Registers : 
+	                8 Bit    Registers := 1     
+Module staticRamDiscretePorts 
+Detailed RTL Component Info : 
++---Registers : 
+	               24 Bit    Registers := 1     
++---RAMs : 
+	               6K Bit         RAMs := 1     
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+Module nBuffer__parameterized0 
+Detailed RTL Component Info : 
++---Muxes : 
+	   2 Input     24 Bit        Muxes := 1     
+Module staticRamDiscretePorts__parameterized0 
+Detailed RTL Component Info : 
++---Registers : 
+	                8 Bit    Registers := 1     
++---RAMs : 
+	               2K Bit         RAMs := 1     
++---Muxes : 
+	   2 Input      8 Bit        Muxes := 1     
+Module nbitAdder 
+Detailed RTL Component Info : 
++---Adders : 
+	   3 Input      9 Bit       Adders := 1     
+	   2 Input      8 Bit       Adders := 1     
++---XORs : 
+	   2 Input      8 Bit         XORs := 1     
+---------------------------------------------------------------------------------
+Finished RTL Hierarchical Component Statistics
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Part Resource Summary
+---------------------------------------------------------------------------------
+Part Resources:
+DSPs: 90 (col length:60)
+BRAMs: 100 (col length: RAMB18 60 RAMB36 30)
+---------------------------------------------------------------------------------
+Finished Part Resource Summary
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Cross Boundary and Area Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-6014] Unused sequential element Q_reg was removed.  [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:99]
+WARNING: [Synth 8-6014] Unused sequential element Q_reg was removed.  [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:99]
+WARNING: [Synth 8-6014] Unused sequential element counter_reg was removed.  [C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.srcs/sources_1/new/8chipstop.v:451]
+WARNING: [Synth 8-3332] Sequential element (counter_reg[8]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[7]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[6]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[5]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[4]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[3]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[2]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[1]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[0]) is unused and will be removed from module top.
+---------------------------------------------------------------------------------
+Finished Cross Boundary and Area Optimization : Time (s): cpu = 00:00:24 ; elapsed = 00:00:27 . Memory (MB): peak = 738.711 ; gain = 482.477
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Preliminary Mapping  Report (see note below)
++--------------------------------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name                                       | RTL Object | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++--------------------------------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|microcode_rom196a21c8_55be_4cef_aca1_0dcc542d7eb2 | mem_reg    | 128 x 24(WRITE_FIRST)  | W | R |                        |   |   | Port A           | 1      | 0      | 
+|main_ram058f23a5_f365_4220_8e38_da596e15e48f      | mem_reg    | 256 x 8(WRITE_FIRST)   | W | R |                        |   |   | Port A           | 1      | 0      | 
++--------------------------------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+Note: The tale above is a preliminary report that shows the Block RAMs at the current stage of the synthesis flow. Some Block RAMs may be reimplemented as non Block RAM primitives later in the synthesis flow. Multiple instantiated Block RAMs are reported only once. 
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Applying XDC Timing Constraints
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Applying XDC Timing Constraints : Time (s): cpu = 00:00:36 ; elapsed = 00:00:40 . Memory (MB): peak = 738.711 ; gain = 482.477
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Timing Optimization
+---------------------------------------------------------------------------------
+WARNING: [Synth 8-3332] Sequential element (counter_reg[8]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[7]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[6]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[5]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[4]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[3]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[2]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[1]) is unused and will be removed from module top.
+WARNING: [Synth 8-3332] Sequential element (counter_reg[0]) is unused and will be removed from module top.
+---------------------------------------------------------------------------------
+Finished Timing Optimization : Time (s): cpu = 00:00:36 ; elapsed = 00:00:40 . Memory (MB): peak = 738.711 ; gain = 482.477
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Block RAM: Final Mapping  Report
++--------------------------------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|Module Name                                       | RTL Object | PORT A (Depth x Width) | W | R | PORT B (Depth x Width) | W | R | Ports driving FF | RAMB18 | RAMB36 | 
++--------------------------------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+|microcode_rom196a21c8_55be_4cef_aca1_0dcc542d7eb2 | mem_reg    | 128 x 24(WRITE_FIRST)  | W | R |                        |   |   | Port A           | 1      | 0      | 
+|main_ram058f23a5_f365_4220_8e38_da596e15e48f      | mem_reg    | 256 x 8(WRITE_FIRST)   | W | R |                        |   |   | Port A           | 1      | 0      | 
++--------------------------------------------------+------------+------------------------+---+---+------------------------+---+---+------------------+--------+--------+
+
+---------------------------------------------------------------------------------
+Finished ROM, RAM, DSP and Shift Register Reporting
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Technology Mapping
+---------------------------------------------------------------------------------
+INFO: [Synth 8-4480] The timing for the instance microcode_rom196a21c8_55be_4cef_aca1_0dcc542d7eb2/mem_reg (implemented as a block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-4480] The timing for the instance microcode_rom196a21c8_55be_4cef_aca1_0dcc542d7eb2/mem_reg (implemented as a block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+INFO: [Synth 8-4480] The timing for the instance main_ram058f23a5_f365_4220_8e38_da596e15e48f/mem_reg (implemented as a block RAM) might be sub-optimal as no optional output register could be merged into the block ram. Providing additional output register may help in improving timing.
+---------------------------------------------------------------------------------
+Finished Technology Mapping : Time (s): cpu = 00:00:37 ; elapsed = 00:00:41 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Flattening Before IO Insertion
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Final Netlist Cleanup
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished IO Insertion : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+
+Report Check Netlist: 
++------+------------------+-------+---------+-------+------------------+
+|      |Item              |Errors |Warnings |Status |Description       |
++------+------------------+-------+---------+-------+------------------+
+|1     |multi_driven_nets |      0|        0|Passed |Multi driven nets |
++------+------------------+-------+---------+-------+------------------+
+---------------------------------------------------------------------------------
+Start Renaming Generated Instances
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Instances : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+
+Report RTL Partitions: 
++-+--------------+------------+----------+
+| |RTL Partition |Replication |Instances |
++-+--------------+------------+----------+
++-+--------------+------------+----------+
+---------------------------------------------------------------------------------
+Start Rebuilding User Hierarchy
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Rebuilding User Hierarchy : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Ports
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Ports : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Handling Custom Attributes
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Handling Custom Attributes : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Renaming Generated Nets
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Finished Renaming Generated Nets : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------
+Start Writing Synthesis Report
+---------------------------------------------------------------------------------
+
+Report BlackBoxes: 
++-+--------------+----------+
+| |BlackBox name |Instances |
++-+--------------+----------+
++-+--------------+----------+
+
+Report Cell Usage: 
++------+-----------+------+
+|      |Cell       |Count |
++------+-----------+------+
+|1     |BUFG       |     1|
+|2     |CARRY4     |    10|
+|3     |LUT1       |     5|
+|4     |LUT2       |    81|
+|5     |LUT3       |    15|
+|6     |LUT4       |    15|
+|7     |LUT5       |    17|
+|8     |LUT6       |    20|
+|9     |RAMB18E1   |     1|
+|10    |RAMB18E1_1 |     1|
+|11    |FDRE       |   104|
+|12    |IBUF       |     2|
+|13    |OBUF       |    14|
++------+-----------+------+
+
+Report Instance Areas: 
++------+---------------------------------------------------------------------+---------------------------------------+------+
+|      |Instance                                                             |Module                                 |Cells |
++------+---------------------------------------------------------------------+---------------------------------------+------+
+|1     |top                                                                  |                                       |   286|
+|2     |  invertONbc0746dc_ab62_4712_b2f1_f5dd137359a1                       |voltageRail__1                         |     0|
+|3     |  signalBankOutputOn69a8c057_1105_47fd_a815_a2a514aa0826             |voltageRail__2                         |     0|
+|4     |  invertOnbd1cb875_2eeb_43a8_913f_1dc564b94bf2                       |voltageRail__3                         |     0|
+|5     |  eepromChipEnable0e3997be_f309_4e71_81db_5ba52d9addda               |voltageRail__4                         |     0|
+|6     |  eepromOutEnable94e8ad10_095e_4772_b748_3535be944002                |voltageRail__5                         |     0|
+|7     |  eepromWriteDisabled20a253e9_a5ca_4950_9b22_e13f287ef657            |voltageRail__6                         |     0|
+|8     |  load_disabled59497c56_d228_4b12_927e_a5c9ab9ad810                  |voltageRail__7                         |     0|
+|9     |  count_enable_microcode_counterfc58f480_6c3d_4e18_926d_32092ea744e3 |voltageRail__8                         |     0|
+|10    |  invert_clock_signal_enable8a4a87ed_2f0e_49f3_9afa_1ab1b82a4e39     |voltageRail__9                         |     0|
+|11    |  clearPC5d073ad4_4fd6_40a7_a8b8_ab4cd5946e0c                        |voltageRail__10                        |     0|
+|12    |  ram_chipEnableb2dfd491_cdc4_4ab0_82e6_dbeb6def4528                 |voltageRail                            |     0|
+|13    |  invert_clock_signale2c11c96_487a_459d_827c_e49ab66a4801            |inverter__1                            |     1|
+|14    |  microcode_step_counterdade7a7c_6f4d_4d87_97e4_e6ad97bc619f         |binaryCounter__1                       |    20|
+|15    |  decodeInverter050744c7_5801_470f_9499_216fe428d79c                 |inverter__2                            |     1|
+|16    |  decoder2fd954b6a_36df_4fde_8909_20001e287d62                       |twoLineToFourLineDecoder__1            |     4|
+|17    |  decoder14f1ec580_fb26_447a_96f2_8d9d48c6a5ca                       |twoLineToFourLineDecoder               |     4|
+|18    |  Program_Counterc36da09d_cc52_43a9_a1d9_c841131cb066                |binaryCounter                          |    20|
+|19    |  pc_bufferab17648b_fdd9_4308_b146_b5509f453bac                      |nBuffer__1                             |     8|
+|20    |  main_busea6e3600_5feb_43e3_856c_9ab9aa7665eb                       |bus_mux                                |    16|
+|21    |  instruction_register9e5dabe8_e0a0_42c4_b393_6af36048eb59           |nRegister__1                           |     8|
+|22    |  microcode_rom196a21c8_55be_4cef_aca1_0dcc542d7eb2                  |staticRamDiscretePorts                 |     2|
+|23    |  microCode_SIGNAL_banka29e44c5_d6ee_42ae_b9be_d8ee6e3c7508          |nBuffer__parameterized0                |    24|
+|24    |  countEnableInverterc86811f8_28c6_41a7_bf63_5992422ed3a9            |inverter__3                            |     1|
+|25    |  ramOutInverteree0e0b73_36c7_4c59_91d5_cd5587fd2b0c                 |inverter__4                            |     1|
+|26    |  ramInInverteraeec2b6c_d7fb_4d49_a8b8_06fcd32bd9fe                  |inverter__5                            |     1|
+|27    |  memory_address_register04bc32f9_9690_4e31_8392_6fb6950c4c9d        |nRegister__2                           |     8|
+|28    |  main_ram058f23a5_f365_4220_8e38_da596e15e48f                       |staticRamDiscretePorts__parameterized0 |     2|
+|29    |  ram_output_buffercbc2a54b_aace_44fa_b35c_8f1bbda139af              |nBuffer__2                             |     8|
+|30    |  OUT_registerb6bda39a_f152_436e_a45e_e386c475386c                   |nRegister__3                           |     8|
+|31    |  B_register6a6161ba_30b5_46f4_b70b_5d08d83841f2                     |nRegister__4                           |     8|
+|32    |  B_reg_bufferc921f68c_903c_4852_b0d5_5512e7dfd00c                   |nBuffer__3                             |     8|
+|33    |  A_register7f6259ba_4079_4214_8482_3b7541d380bc                     |nRegister__5                           |     8|
+|34    |  A_B_Comparator2a1c439a_c9bd_4101_94e0_ddbf4974c53c                 |nbitComparator                         |    12|
+|35    |  invertALESSB57a1b1c6_2b08_4f35_8240_68773b47ec50                   |inverter__6                            |     1|
+|36    |  invertAEQUALBd6adc99f_d43d_42b9_babd_57fc360388ae                  |inverter__7                            |     1|
+|37    |  AGREATERB4b44b68b_d9a7_421f_ad2a_32c496e6e60a                      |ANDGATE__1                             |     1|
+|38    |  flags_register7767ffe9_fc7b_465a_994c_5b37fa114233                 |nRegister                              |     8|
+|39    |  ANDALESSBf284eada_d2d1_4a34_9d15_4c0a3a179295                      |ANDGATE__2                             |     1|
+|40    |  ANDAEQUALB62d42f40_c62d_4725_a6d8_a5c17e67fd18                     |ANDGATE__3                             |     1|
+|41    |  ANDAGB273c43ac_6a4c_489c_9887_87587786a5cf                         |ANDGATE                                |     1|
+|42    |  OR123abe0a5_d31b_4ce2_b17f_1bb26d641ba6                            |ORGATE__1                              |     1|
+|43    |  OR230cd6685_5b17_496b_ab1e_d5a31c7593e7                            |ORGATE                                 |     1|
+|44    |  loadInverter5f94730a_641d_476e_ad61_79ee8bba1f52                   |inverter                               |     1|
+|45    |  A_reg_buffer6c77fa5e_eed9_4eb4_b395_22571967cdf7                   |nBuffer__4                             |     8|
+|46    |  adder4bbdc06a_df58_4a3d_8b2d_dab62b1a1fed                          |nbitAdder                              |    14|
+|47    |  adder_buffer367f9b23_b9c9_4e7a_be78_da0039d22dae                   |nBuffer                                |     8|
++------+---------------------------------------------------------------------+---------------------------------------+------+
+---------------------------------------------------------------------------------
+Finished Writing Synthesis Report : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+---------------------------------------------------------------------------------
+Synthesis finished with 0 errors, 0 critical warnings and 23 warnings.
+Synthesis Optimization Runtime : Time (s): cpu = 00:00:22 ; elapsed = 00:00:34 . Memory (MB): peak = 749.242 ; gain = 163.406
+Synthesis Optimization Complete : Time (s): cpu = 00:00:38 ; elapsed = 00:00:42 . Memory (MB): peak = 749.242 ; gain = 493.008
+INFO: [Project 1-571] Translating synthesized netlist
+INFO: [Netlist 29-17] Analyzing 14 Unisim elements for replacement
+INFO: [Netlist 29-28] Unisim Transformation completed in 0 CPU seconds
+INFO: [Project 1-570] Preparing netlist for logic optimization
+INFO: [Opt 31-138] Pushed 0 inverter(s) to 0 load pin(s).
+INFO: [Project 1-111] Unisim Transformation Summary:
+No Unisim elements were transformed.
+
+INFO: [Common 17-83] Releasing license: Synthesis
+47 Infos, 27 Warnings, 0 Critical Warnings and 0 Errors encountered.
+synth_design completed successfully
+synth_design: Time (s): cpu = 00:00:41 ; elapsed = 00:00:46 . Memory (MB): peak = 749.242 ; gain = 504.613
+INFO: [Common 17-1381] The checkpoint 'C:/Users/michaelkirschner/8chipsGenerated/8chipsGenerated.runs/synth_1/top.dcp' has been generated.
+INFO: [runtcl-4] Executing : report_utilization -file top_utilization_synth.rpt -pb top_utilization_synth.pb
+report_utilization: Time (s): cpu = 00:00:00 ; elapsed = 00:00:00.040 . Memory (MB): peak = 749.242 ; gain = 0.000
+INFO: [Common 17-206] Exiting Vivado at Mon Aug  6 00:02:39 2018...

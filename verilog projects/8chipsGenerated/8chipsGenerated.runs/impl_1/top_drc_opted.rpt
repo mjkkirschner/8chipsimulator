@@ -1,0 +1,47 @@
+Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2017.4 (win64) Build 2086221 Fri Dec 15 20:55:39 MST 2017
+| Date         : Mon Aug  6 00:03:23 2018
+| Host         : MICHAELKIRSE6E4 running 64-bit major release  (build 9200)
+| Command      : report_drc -file top_drc_opted.rpt -pb top_drc_opted.pb -rpx top_drc_opted.rpx
+| Design       : top
+| Device       : xc7a35ticsg324-1L
+| Speed File   : -1L
+| Design State : Synthesized
+------------------------------------------------------------------------------------------------
+
+Report DRC
+
+Table of Contents
+-----------------
+1. REPORT SUMMARY
+2. REPORT DETAILS
+
+1. REPORT SUMMARY
+-----------------
+            Netlist: netlist
+          Floorplan: design_1
+      Design limits: <entire design considered>
+           Ruledeck: default
+             Max violations: <unlimited>
+             Violations found: 1
++-------------+----------+-------------------------------------------------------------+------------+
+| Rule        | Severity | Description                                                 | Violations |
++-------------+----------+-------------------------------------------------------------+------------+
+| PLHOLDVIO-2 | Warning  | Non-Optimal connections which could lead to hold violations | 1          |
++-------------+----------+-------------------------------------------------------------+------------+
+
+2. REPORT DETAILS
+-----------------
+PLHOLDVIO-2#1 Warning
+Non-Optimal connections which could lead to hold violations  
+A LUT invert_clock_signale2c11c96_487a_459d_827c_e49ab66a4801/Q_INST_0 is driving clock pin of 8 cells. This could lead to large hold time violations. First few involved cells are:
+    microcode_step_counterdade7a7c_6f4d_4d87_97e4_e6ad97bc619f/Q_reg[2] {FDRE}
+    microcode_step_counterdade7a7c_6f4d_4d87_97e4_e6ad97bc619f/Q_reg[3] {FDRE}
+    microcode_step_counterdade7a7c_6f4d_4d87_97e4_e6ad97bc619f/Q_reg[1] {FDRE}
+    microcode_step_counterdade7a7c_6f4d_4d87_97e4_e6ad97bc619f/Q_reg[0] {FDRE}
+    microcode_step_counterdade7a7c_6f4d_4d87_97e4_e6ad97bc619f/Q_reg[7] {FDRE}
+
+Related violations: <none>
+
+

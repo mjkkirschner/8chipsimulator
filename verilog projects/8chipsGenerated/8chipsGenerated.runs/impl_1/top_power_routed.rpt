@@ -1,0 +1,194 @@
+Copyright 1986-2017 Xilinx, Inc. All Rights Reserved.
+-------------------------------------------------------------------------------------------------------------------------------
+| Tool Version     : Vivado v.2017.4 (win64) Build 2086221 Fri Dec 15 20:55:39 MST 2017
+| Date             : Mon Aug  6 00:04:02 2018
+| Host             : MICHAELKIRSE6E4 running 64-bit major release  (build 9200)
+| Command          : report_power -file top_power_routed.rpt -pb top_power_summary_routed.pb -rpx top_power_routed.rpx
+| Design           : top
+| Device           : xc7a35ticsg324-1L
+| Design State     : routed
+| Grade            : industrial
+| Process          : typical
+| Characterization : Preliminary
+-------------------------------------------------------------------------------------------------------------------------------
+
+Power Report
+
+Table of Contents
+-----------------
+1. Summary
+1.1 On-Chip Components
+1.2 Power Supply Summary
+1.3 Confidence Level
+2. Settings
+2.1 Environment
+2.2 Clock Constraints
+3. Detailed Reports
+3.1 By Hierarchy
+
+1. Summary
+----------
+
++--------------------------+--------------+
+| Total On-Chip Power (W)  | 0.087        |
+| Design Power Budget (W)  | Unspecified* |
+| Power Budget Margin (W)  | NA           |
+| Dynamic (W)              | 0.025        |
+| Device Static (W)        | 0.062        |
+| Effective TJA (C/W)      | 4.8          |
+| Max Ambient (C)          | 99.6         |
+| Junction Temperature (C) | 25.4         |
+| Confidence Level         | Low          |
+| Setting File             | ---          |
+| Simulation Activity File | ---          |
+| Design Nets Matched      | NA           |
++--------------------------+--------------+
+* Specify Design Power Budget using, set_operating_conditions -design_power_budget <value in Watts>
+
+
+1.1 On-Chip Components
+----------------------
+
++----------------+-----------+----------+-----------+-----------------+
+| On-Chip        | Power (W) | Used     | Available | Utilization (%) |
++----------------+-----------+----------+-----------+-----------------+
+| Clocks         |     0.001 |        3 |       --- |             --- |
+| Slice Logic    |     0.001 |      282 |       --- |             --- |
+|   LUT as Logic |     0.001 |      106 |     20800 |            0.51 |
+|   Register     |    <0.001 |      104 |     41600 |            0.25 |
+|   CARRY4       |    <0.001 |       10 |      8150 |            0.12 |
+|   BUFG         |    <0.001 |        1 |        32 |            3.13 |
+|   Others       |     0.000 |       15 |       --- |             --- |
+| Signals        |     0.002 |      243 |       --- |             --- |
+| Block RAM      |    <0.001 |        1 |        50 |            2.00 |
+| I/O            |     0.021 |       16 |       210 |            7.62 |
+| Static Power   |     0.062 |          |           |                 |
+| Total          |     0.087 |          |           |                 |
++----------------+-----------+----------+-----------+-----------------+
+
+
+1.2 Power Supply Summary
+------------------------
+
++-----------+-------------+-----------+-------------+------------+
+| Source    | Voltage (V) | Total (A) | Dynamic (A) | Static (A) |
++-----------+-------------+-----------+-------------+------------+
+| Vccint    |       0.950 |     0.010 |       0.004 |      0.006 |
+| Vccaux    |       1.800 |     0.012 |       0.001 |      0.011 |
+| Vcco33    |       3.300 |     0.007 |       0.006 |      0.001 |
+| Vcco25    |       2.500 |     0.000 |       0.000 |      0.000 |
+| Vcco18    |       1.800 |     0.000 |       0.000 |      0.000 |
+| Vcco15    |       1.500 |     0.000 |       0.000 |      0.000 |
+| Vcco135   |       1.350 |     0.000 |       0.000 |      0.000 |
+| Vcco12    |       1.200 |     0.000 |       0.000 |      0.000 |
+| Vccaux_io |       1.800 |     0.000 |       0.000 |      0.000 |
+| Vccbram   |       0.950 |     0.000 |       0.000 |      0.000 |
+| MGTAVcc   |       1.000 |     0.000 |       0.000 |      0.000 |
+| MGTAVtt   |       1.200 |     0.000 |       0.000 |      0.000 |
+| Vccadc    |       1.800 |     0.018 |       0.000 |      0.018 |
++-----------+-------------+-----------+-------------+------------+
+
+
+1.3 Confidence Level
+--------------------
+
++-----------------------------+------------+-------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| User Input Data             | Confidence | Details                                               | Action                                                                                                             |
++-----------------------------+------------+-------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------+
+| Design implementation state | High       | Design is routed                                      |                                                                                                                    |
+| Clock nodes activity        | Low        | User specified less than 75% of clocks                | Provide missing clock activity with a constraint file, simulation results or by editing the "By Clock Domain" view |
+| I/O nodes activity          | Medium     | More than 5% of inputs are missing user specification | Provide missing input activity with simulation results or by editing the "By Resource Type -> I/Os" view           |
+| Internal nodes activity     | Medium     | User specified less than 25% of internal nodes        | Provide missing internal nodes activity with simulation results or by editing the "By Resource Type" views         |
+| Device models               | Medium     | Device models are not Production                      | Device models may change and in turn slightly affect accuracy                                                      |
+|                             |            |                                                       |                                                                                                                    |
+| Overall confidence level    | Low        |                                                       |                                                                                                                    |
++-----------------------------+------------+-------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------+
+
+
+2. Settings
+-----------
+
+2.1 Environment
+---------------
+
++-----------------------+--------------------------+
+| Ambient Temp (C)      | 25.0                     |
+| ThetaJA (C/W)         | 4.8                      |
+| Airflow (LFM)         | 250                      |
+| Heat Sink             | medium (Medium Profile)  |
+| ThetaSA (C/W)         | 4.6                      |
+| Board Selection       | medium (10"x10")         |
+| # of Board Layers     | 12to15 (12 to 15 Layers) |
+| Board Temperature (C) | 25.0                     |
++-----------------------+--------------------------+
+
+
+2.2 Clock Constraints
+---------------------
+
++-------------+--------+-----------------+
+| Clock       | Domain | Constraint (ns) |
++-------------+--------+-----------------+
+| sys_clk_pin | CLK    |            10.0 |
++-------------+--------+-----------------+
+
+
+3. Detailed Reports
+-------------------
+
+3.1 By Hierarchy
+----------------
+
++----------------------------------------------------------------------+-----------+
+| Name                                                                 | Power (W) |
++----------------------------------------------------------------------+-----------+
+| top                                                                  |     0.025 |
+|   AGREATERB4b44b68b_d9a7_421f_ad2a_32c496e6e60a                      |    <0.001 |
+|   ANDAEQUALB62d42f40_c62d_4725_a6d8_a5c17e67fd18                     |    <0.001 |
+|   ANDAGB273c43ac_6a4c_489c_9887_87587786a5cf                         |    <0.001 |
+|   ANDALESSBf284eada_d2d1_4a34_9d15_4c0a3a179295                      |    <0.001 |
+|   A_B_Comparator2a1c439a_c9bd_4101_94e0_ddbf4974c53c                 |    <0.001 |
+|   A_reg_buffer6c77fa5e_eed9_4eb4_b395_22571967cdf7                   |    <0.001 |
+|   A_register7f6259ba_4079_4214_8482_3b7541d380bc                     |    <0.001 |
+|   B_reg_bufferc921f68c_903c_4852_b0d5_5512e7dfd00c                   |    <0.001 |
+|   B_register6a6161ba_30b5_46f4_b70b_5d08d83841f2                     |    <0.001 |
+|   OR123abe0a5_d31b_4ce2_b17f_1bb26d641ba6                            |    <0.001 |
+|   OR230cd6685_5b17_496b_ab1e_d5a31c7593e7                            |    <0.001 |
+|   OUT_registerb6bda39a_f152_436e_a45e_e386c475386c                   |    <0.001 |
+|   Program_Counterc36da09d_cc52_43a9_a1d9_c841131cb066                |    <0.001 |
+|   adder4bbdc06a_df58_4a3d_8b2d_dab62b1a1fed                          |    <0.001 |
+|   adder_buffer367f9b23_b9c9_4e7a_be78_da0039d22dae                   |    <0.001 |
+|   clearPC5d073ad4_4fd6_40a7_a8b8_ab4cd5946e0c                        |     0.000 |
+|   countEnableInverterc86811f8_28c6_41a7_bf63_5992422ed3a9            |    <0.001 |
+|   count_enable_microcode_counterfc58f480_6c3d_4e18_926d_32092ea744e3 |     0.000 |
+|   decodeInverter050744c7_5801_470f_9499_216fe428d79c                 |    <0.001 |
+|   decoder14f1ec580_fb26_447a_96f2_8d9d48c6a5ca                       |    <0.001 |
+|   decoder2fd954b6a_36df_4fde_8909_20001e287d62                       |    <0.001 |
+|   eepromChipEnable0e3997be_f309_4e71_81db_5ba52d9addda               |     0.000 |
+|   eepromOutEnable94e8ad10_095e_4772_b748_3535be944002                |     0.000 |
+|   eepromWriteDisabled20a253e9_a5ca_4950_9b22_e13f287ef657            |     0.000 |
+|   flags_register7767ffe9_fc7b_465a_994c_5b37fa114233                 |    <0.001 |
+|   instruction_register9e5dabe8_e0a0_42c4_b393_6af36048eb59           |    <0.001 |
+|   invertAEQUALBd6adc99f_d43d_42b9_babd_57fc360388ae                  |    <0.001 |
+|   invertALESSB57a1b1c6_2b08_4f35_8240_68773b47ec50                   |    <0.001 |
+|   invertONbc0746dc_ab62_4712_b2f1_f5dd137359a1                       |     0.000 |
+|   invertOnbd1cb875_2eeb_43a8_913f_1dc564b94bf2                       |     0.000 |
+|   invert_clock_signal_enable8a4a87ed_2f0e_49f3_9afa_1ab1b82a4e39     |     0.000 |
+|   invert_clock_signale2c11c96_487a_459d_827c_e49ab66a4801            |    <0.001 |
+|   loadInverter5f94730a_641d_476e_ad61_79ee8bba1f52                   |    <0.001 |
+|   load_disabled59497c56_d228_4b12_927e_a5c9ab9ad810                  |     0.000 |
+|   main_busea6e3600_5feb_43e3_856c_9ab9aa7665eb                       |    <0.001 |
+|   main_ram058f23a5_f365_4220_8e38_da596e15e48f                       |    <0.001 |
+|   memory_address_register04bc32f9_9690_4e31_8392_6fb6950c4c9d        |    <0.001 |
+|   microCode_SIGNAL_banka29e44c5_d6ee_42ae_b9be_d8ee6e3c7508          |    <0.001 |
+|   microcode_rom196a21c8_55be_4cef_aca1_0dcc542d7eb2                  |    <0.001 |
+|   microcode_step_counterdade7a7c_6f4d_4d87_97e4_e6ad97bc619f         |    <0.001 |
+|   pc_bufferab17648b_fdd9_4308_b146_b5509f453bac                      |    <0.001 |
+|   ramInInverteraeec2b6c_d7fb_4d49_a8b8_06fcd32bd9fe                  |    <0.001 |
+|   ramOutInverteree0e0b73_36c7_4c59_91d5_cd5587fd2b0c                 |    <0.001 |
+|   ram_chipEnableb2dfd491_cdc4_4ab0_82e6_dbeb6def4528                 |     0.000 |
+|   ram_output_buffercbc2a54b_aace_44fa_b35c_8f1bbda139af              |    <0.001 |
+|   signalBankOutputOn69a8c057_1105_47fd_a815_a2a514aa0826             |     0.000 |
++----------------------------------------------------------------------+-----------+
+
+
