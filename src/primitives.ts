@@ -6,10 +6,10 @@ import * as fs from 'fs';
 import * as Console from 'console';
 
 
-const output = fs.createWriteStream('./stdout.log');
-const errorOutput = fs.createWriteStream('./stderr.log');
+//const output = fs.createWriteStream('./stdout.log');
+//const errorOutput = fs.createWriteStream('./stderr.log');
 // custom simple logger
-const logger = new Console.Console(output, errorOutput);
+//const logger = new Console.Console(output, errorOutput);
 // use it like console
 
 

@@ -10,7 +10,7 @@ import *  as fs from 'fs';
 
 
 
-xdescribe("testing a full cpu/computer integreation", () => {
+describe("testing a full cpu/computer integreation", () => {
 
     it("can halt ", (done) => {
         let parts = utils.generate8bitComputerDesign();
@@ -182,7 +182,7 @@ xdescribe("testing a full cpu/computer integreation", () => {
 });
 
 
-describe("testing a full cpu/computer verilog generation", () => {
+xdescribe("testing a full cpu/computer verilog generation", () => {
 
     it("can generate something ", (done) => {
         let parts = utils.generate8bitComputerDesign();

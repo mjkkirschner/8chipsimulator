@@ -307,18 +307,20 @@ export class simulatorExecution {
 
     private runTasksInSchedule() {
         setInterval(() => {
-            if (this.schedule.length > 0) {
-                let currentTasks = this.schedule.filter(x => x.executedAtTime == this.time);
-                currentTasks.forEach((currentTask) => {
-                    this.currentTask = currentTask;
-                    // if the current task has a specified time to execute
-                    // then only run the task if this matches the current simulation time
-                    this.schedule.splice(_.indexOf(this.schedule, this.currentTask), 1);
-                    this.currentTask.callBack();
-                });
-                this.validateSchedule();
-                this.incrementTime(1);
-            }
+            _.range(0, 200).forEach(x => {
+                if (this.schedule.length > 0) {
+                    let currentTasks = this.schedule.filter(x => x.executedAtTime == this.time);
+                    currentTasks.forEach((currentTask) => {
+                        this.currentTask = currentTask;
+                        // if the current task has a specified time to execute
+                        // then only run the task if this matches the current simulation time
+                        this.schedule.splice(_.indexOf(this.schedule, this.currentTask), 1);
+                        this.currentTask.callBack();
+                    });
+                    this.validateSchedule();
+                    this.incrementTime(1);
+                }
+            })
         }, 1);
     }
 }
