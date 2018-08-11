@@ -32,6 +32,7 @@ class App extends React.Component<{}, ICanvasState> {
 
   boundsData: { [id: string]: ClientRect } = {};
   zoom: number = 1;
+  selectedPartId: string = null;
   //TODO use type.
   orderedParts: graphNode[];
 
@@ -54,6 +55,7 @@ class App extends React.Component<{}, ICanvasState> {
           canvasOffset={newCanvasOffset || x.props.canvasOffset}
           key={x.props.model.id}
           model={newModel}
+          onSelectionChange={x.props.onSelectionChange}
           onMount={x.props.onMount}
           onMouseMove={x.props.onMouseMove} > </PartView>
         return newPart;
@@ -74,6 +76,7 @@ class App extends React.Component<{}, ICanvasState> {
         canvasOffset={newCanvasOffset || x.props.canvasOffset}
         key={x.props.model.id}
         model={x.props.model}
+        onSelectionChange={x.props.onSelectionChange}
         onMount={x.props.onMount}
         onMouseMove={x.props.onMouseMove} > </PartView>
       return newPart;
@@ -102,7 +105,11 @@ class App extends React.Component<{}, ICanvasState> {
         }, null, null);
     }
 
-    let newPartElement = <PartView pos={newNode.pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={part.id} model={part} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
+    let onSelectionChange = (id: string) => {
+      this.selectedPartId = id;
+    }
+
+    let newPartElement = <PartView pos={newNode.pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={part.id} model={part} onSelectionChange={onSelectionChange} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
 
     this.setState({ parts: this.state.parts.concat(newPartElement) });
 
@@ -121,25 +128,25 @@ class App extends React.Component<{}, ICanvasState> {
 
     let parts = utils.generate8bitComputerDesign();
     let ram = parts.filter(x => x.displayName == "main_ram")[0] as staticRam;
-    ram.writeData(0, [0, 0, 0, 0,  0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
-    ram.writeData(1, [0, 0, 0, 1,  0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
-    ram.writeData(2, [0, 0, 0, 0,  0, 0, 1, 1].map(x => Boolean(x))); // Put whatever follows at memory address 100 into B // then add to A.
-    ram.writeData(3, [0, 1, 1, 0,  0, 1, 0, 0].map(x => Boolean(x))); // 100
+    ram.writeData(0, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
+    ram.writeData(1, [0, 0, 0, 1, 0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
+    ram.writeData(2, [0, 0, 0, 0, 0, 0, 1, 1].map(x => Boolean(x))); // Put whatever follows at memory address 100 into B // then add to A.
+    ram.writeData(3, [0, 1, 1, 0, 0, 1, 0, 0].map(x => Boolean(x))); // 100
 
-    ram.writeData(4, [0, 0, 0, 0,  1, 1, 0, 0].map(x => Boolean(x))); //loadBimmediate. - load what follows into B.
-    ram.writeData(5, [0, 0, 0, 1,  1, 0, 0, 1].map(x => Boolean(x))); //25 - after this B should contain 25.
+    ram.writeData(4, [0, 0, 0, 0, 1, 1, 0, 0].map(x => Boolean(x))); //loadBimmediate. - load what follows into B.
+    ram.writeData(5, [0, 0, 0, 1, 1, 0, 0, 1].map(x => Boolean(x))); //25 - after this B should contain 25.
 
-    ram.writeData(6, [0, 0, 0, 0,  1, 1, 1, 0].map(x => Boolean(x))); //update flag reg for jump
+    ram.writeData(6, [0, 0, 0, 0, 1, 1, 1, 0].map(x => Boolean(x))); //update flag reg for jump
 
     //conditionally jump to 2 if A < B... if A < 25 keep looping 
-    ram.writeData(7, [0, 0, 0, 0,   1, 0, 0, 1].map(x => Boolean(x))); //jump to line:
-    ram.writeData(8, [0, 0, 0, 0,  0, 0, 1, 0].map(x => Boolean(x))); //address 2
+    ram.writeData(7, [0, 0, 0, 0, 1, 0, 0, 1].map(x => Boolean(x))); //jump to line:
+    ram.writeData(8, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); //address 2
     //25 to out
-    ram.writeData(9, [0, 0, 0, 0,  0, 0, 1, 0].map(x => Boolean(x))); // A transfer to Out reg.
+    ram.writeData(9, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); // A transfer to Out reg.
     //halt
-    ram.writeData(10, [0, 0, 0, 0,  1, 1, 1, 1].map(x => Boolean(x)));
-    
-    ram.writeData(100, [0, 0, 0, 0,  0, 0, 0, 1].map(x => Boolean(x))); //1 at memory location 100
+    ram.writeData(10, [0, 0, 0, 0, 1, 1, 1, 1].map(x => Boolean(x)));
+
+    ram.writeData(100, [0, 0, 0, 0, 0, 0, 0, 1].map(x => Boolean(x))); //1 at memory location 100
 
 
     var clockcomp = (parts[0] as clock);
@@ -192,7 +199,11 @@ class App extends React.Component<{}, ICanvasState> {
           }, null, null);
       }
 
-      return <PartView pos={pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={model.id} model={model} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
+      let onSelectionChange = (id: string) => {
+        this.selectedPartId = id;
+      }
+
+      return <PartView pos={pos} zoom={1} canvasOffset={{ x: 0, y: 0 }} key={model.id} model={model} onSelectionChange={onSelectionChange} onMount={onMount} onMouseMove={onMouseMove} > </PartView>
     });
     this.setState({ parts: newParts });
   }
@@ -208,7 +219,14 @@ class App extends React.Component<{}, ICanvasState> {
       //find endView
       let end = _.find(this.state.parts, (p) => { return p.props.model == x.endPin.owner });
 
-      return <WireView model={x}
+      let color = null;
+      if (start.props.model.id == this.selectedPartId || end.props.model.id == this.selectedPartId) {
+        color = "rgb(255, 0, 191)";
+      }
+
+      return <WireView 
+        model={x}
+        color={color}
         startPos={{ x: this.boundsData[x.startPin.id].right + window.scrollX, y: this.boundsData[x.startPin.id].top + window.scrollY }}
         endPos={{ x: this.boundsData[x.endPin.id].left + window.scrollX, y: this.boundsData[x.endPin.id].top + window.scrollY }} />
 

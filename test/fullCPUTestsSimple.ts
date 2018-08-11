@@ -42,7 +42,7 @@ describe("testing a full cpu/computer integreation", () => {
             const aReg = orderedParts.filter((x) => { return x.pointer.displayName == "OUT_register" })[0].pointer;
             assert.equal(aReg.toOutputString(), "0");
             done();
-        }, 30000);
+        }, 10000);
 
     }).timeout(60000);
 
@@ -84,7 +84,7 @@ describe("testing a full cpu/computer integreation", () => {
             const outReg = orderedParts.filter((x) => { return x.pointer.displayName == "A_register" })[0].pointer;
             assert.equal(outReg.toOutputString(), "25");
             done();
-        }, 30000);
+        }, 10000);
 
     }).timeout(60000);
 
@@ -122,7 +122,7 @@ describe("testing a full cpu/computer integreation", () => {
             const aReg = orderedParts.filter((x) => { return x.pointer.displayName == "A_register" })[0].pointer;
             assert.equal(aReg.toOutputString(), "20");
             done();
-        }, 30000);
+        }, 10000);
 
     }).timeout(60000);
 
@@ -175,7 +175,7 @@ describe("testing a full cpu/computer integreation", () => {
             assert.equal(outReg.toOutputString(), "25");
 
             done();
-        }, 30000);
+        }, 10000);
 
     }).timeout(60000);
 

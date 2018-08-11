@@ -20,6 +20,7 @@ export interface IpartViewProps {
     canvasOffset: { x: number, y: number }
     model: Ipart,
     key: string,
+    onSelectionChange: (id: string) => any
     //we can change this so pass the positions of any ports or something like that?
     onMount: (pinBoundsDataArray: { id: string, bounds: ClientRect }[]) => any
     //onMouseDown: (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => any
@@ -195,6 +196,7 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
                     selected: true,
                     clickOffset: clickOffsetVector,
                 });
+                this.props.onSelectionChange(this.props.model.id);
                 document.addEventListener('mouseup', this.mouseupWrapper, true);
                 document.addEventListener('mousemove', this.mouseMoveWrapper, true);
             }

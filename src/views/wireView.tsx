@@ -4,12 +4,14 @@ import { Ipart } from '../primitives';
 import { outputPin, wire, internalWire } from '../pins_wires';
 import { PartView } from './partView';
 import * as _ from 'underscore';
+import { Color } from '../../node_modules/csstype';
 
 interface IWireViewProps {
     model: wire | internalWire,
     //TODO these should be portViews in the future...
     startPos: {x:number,y:number}
     endPos: {x:number,y:number}
+    color:string
 }
 
 export class WireView extends React.Component<IWireViewProps> {
@@ -17,13 +19,6 @@ export class WireView extends React.Component<IWireViewProps> {
     constructor(props: IWireViewProps) {
         super(props);
         this.state = {};
-    }
-
-    style = {
-        stroke: "rgb(95, 255, 187)",
-        strokeWidth: "1",
-        fill: "none",
-        strokeDasharray:"2, 2"
     }
 
     svgStyle = {
@@ -49,6 +44,20 @@ export class WireView extends React.Component<IWireViewProps> {
           (tan1.scale((parameter * parameter * parameter) - (parameter * parameter)))
       }
 
+      private generatePolyLineStyle(){
+
+    let style = {
+        stroke: "rgb(95, 255, 187)",
+        strokeWidth: "1",
+        fill: "none",
+        strokeDasharray:"2, 2"
+    }
+        if(this.props.color){
+            style.stroke = this.props.color;
+        }
+        return style;
+      }
+
     public render() {
 
         let pointsAndTans = this.generatePolyLinePoints(
@@ -58,7 +67,7 @@ export class WireView extends React.Component<IWireViewProps> {
         let finalPoints = pointsAndTans;
 
       return (<svg style ={this.svgStyle}> 
-        <polyline style = {this.style} 
+        <polyline style = {{...this.generatePolyLineStyle()}} 
         points = {finalPoints.join(" ")} />
     </svg>);
     }
