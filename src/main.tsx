@@ -14,6 +14,7 @@ import { CommandLineView } from "./views/console";
 import { VoltageRail } from "./primitives";
 import { grapher } from "./graphPart";
 import { staticRam } from "./sram";
+import * as ReactGridLayout from 'react-grid-layout';
 //reexport objects into the chips object which gets injected into the window using browserify.
 export { VoltageRail };
 export { grapher };
@@ -39,9 +40,9 @@ class App extends React.Component<{}, ICanvasState> {
   style = {
     backgroundColor: 'rgb(42, 40, 39)',
     //set height based on children?
-    zIndex: -2,
-    width: '100%',
-    height: '90%',
+    //zIndex: -2,
+    //width: '100%',
+    //height: '90%',
     overflow: 'hidden' as 'hidden'
   }
 
@@ -224,7 +225,7 @@ class App extends React.Component<{}, ICanvasState> {
         color = "rgb(255, 0, 191)";
       }
 
-      return <WireView 
+      return <WireView
         model={x}
         color={color}
         startPos={{ x: this.boundsData[x.startPin.id].right + window.scrollX, y: this.boundsData[x.startPin.id].top + window.scrollY }}
@@ -244,9 +245,21 @@ class App extends React.Component<{}, ICanvasState> {
 
 
   public render() {
+    var layout = [
+      { i: 'a', x: 0, y: 0, w: 2, h: 2, static: true },
+      { i: 'b', x: 0, y: 1, w: 1, h: 1 }
+    ];
+
     return (
-      <div style={{ height: window.innerHeight, position: "relative", overflow: "hidden" }} >
-        <div tabIndex={0} onWheel={(event) => {
+      <ReactGridLayout className="layout"
+        layout={layout}
+        cols={2}
+        rowHeight={300}
+        width={1000}
+        isResizable ={false}
+        isDraggable={false} >
+
+        <div key="a" tabIndex={0} onWheel={(event) => {
           event.preventDefault();
           this.zoom = this.zoom - event.deltaY / 1000;
           //now we should recreate the elements with different zoom.
@@ -322,8 +335,10 @@ class App extends React.Component<{}, ICanvasState> {
           {this.state.parts}
           {this.state.wires}
         </div >
-        <CommandLineView> </CommandLineView>
-      </div>
+        {/*<CommandLineView key = "b">  </CommandLineView>*/}
+        <div key="b">SOME OTHER VIEW</div>
+      </ReactGridLayout>
+
     );
   }
 }

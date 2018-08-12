@@ -64,7 +64,7 @@ export class CommandLineView extends React.Component<any> {
     public render() {
         let eval2 = eval;
         return (
-            <div style={this.containerStyle}>
+            <div>
                 <div id="consolecode" style={this.style} >
                 </div >
                 <button style={{ float: 'right', position: "relative", top: "-50px", left: "-50px" }}
