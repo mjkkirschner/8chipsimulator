@@ -30,10 +30,10 @@ export class WireView extends React.Component<IWireViewProps> {
 
     private generatePolyLinePoints(start:ipoint, end:ipoint) {
   
-        var horizontal1 = new ipoint((end.x - start.x)*.5,0 );
+        var horizontal2 = new ipoint((end.x - start.x)*.5,0 );
         var verticalVector1 = new ipoint(0,end.y - start.y)
-        var point2 =start.sum(horizontal1);
-        return [start, start.sum(horizontal1), start.sum(horizontal1).sum(verticalVector1), end];
+        var point2 =start.sum(horizontal2);
+        return [start, start.sum(new ipoint(100,0)), start.sum(horizontal2), start.sum(horizontal2).sum(verticalVector1), end.subtact(new ipoint(100,0)), end];
     
       }
     

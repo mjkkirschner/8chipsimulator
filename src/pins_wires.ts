@@ -98,9 +98,9 @@ export class inputPin extends pin {
         if (this.attachedWire) {
             return this.attachedWire.startPin.value;
         }
-        console.log("nothing connected to this input pin, but we need the value");
-        console.log("returning false");
-        console.log("for pin: ", this.name, "on part: ", this.owner? this.owner.displayName || "null display name" : "unkown is null- how?");
+        //console.log("nothing connected to this input pin, but we need the value");
+        //console.log("returning false");
+        //console.log("for pin: ", this.name, "on part: ", this.owner? this.owner.displayName || "null display name" : "unkown is null- how?");
         return false;
     }
 }

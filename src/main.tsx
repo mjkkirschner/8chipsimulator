@@ -36,6 +36,7 @@ class App extends React.Component<{}, ICanvasState> {
   selectedPartId: string = null;
   //TODO use type.
   orderedParts: graphNode[];
+  private dataMap = {};
 
   style = {
     backgroundColor: 'rgb(42, 40, 39)',
@@ -98,6 +99,7 @@ class App extends React.Component<{}, ICanvasState> {
       });
     }
     let onMouseMove = (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => {
+      this.recreateAllWires();
 
       this.updatePartModel(partView.props.model,
         {
@@ -172,14 +174,16 @@ class App extends React.Component<{}, ICanvasState> {
     evaluator.Evaluate();
 
     //TODO collect some events from the parts... like updating or something and watch those.
+
     setInterval(() => {
       this.orderedParts.forEach((x) => {
         let part = x.pointer;
-        return this.updatePartModel(part);
+        this.updatePartModel(part);
       });
-      this.recreateAllWires();
     }, 20);
-
+    setTimeout(()=>{
+      this.recreateAllWires();
+    },1000);
   }
 
   private createAllParts(parts: graphNode[]) {
@@ -194,6 +198,7 @@ class App extends React.Component<{}, ICanvasState> {
         });
       }
       let onMouseMove = (partView: PartView, data: React.MouseEvent<HTMLDivElement>) => {
+        this.recreateAllWires();
 
         this.updatePartModel(partView.props.model,
           {
@@ -223,11 +228,14 @@ class App extends React.Component<{}, ICanvasState> {
       let end = _.find(this.state.parts, (p) => { return p.props.model == x.endPin.owner });
 
       let color = null;
-      if (start.props.model.id == this.selectedPartId || end.props.model.id == this.selectedPartId) {
+      if (end.props.model.id == this.selectedPartId) {
         color = "rgb(255, 0, 191)";
       }
+      else if (start.props.model.id == this.selectedPartId) {
+        color = "rgb(255, 243, 0)";
+      }
 
-      return <WireView 
+      return <WireView
         model={x}
         color={color}
         startPos={{ x: this.boundsData[x.startPin.id].right + window.scrollX, y: this.boundsData[x.startPin.id].top + window.scrollY }}
@@ -241,8 +249,6 @@ class App extends React.Component<{}, ICanvasState> {
   //as we know all the parts will be rendered...
   componentDidMount() {
     this.createAllParts(this.orderedParts);
-    this.recreateAllWires();
-    //this.forceUpdate();
   }
 
 
@@ -254,7 +260,8 @@ class App extends React.Component<{}, ICanvasState> {
           this.zoom = this.zoom - event.deltaY / 1000;
           //now we should recreate the elements with different zoom.
           this.updateAllPartViews(
-            null, this.zoom, null)
+            null, this.zoom, null);
+          this.recreateAllWires();
         }}
 
           onMouseDown={(event) => {
@@ -282,6 +289,7 @@ class App extends React.Component<{}, ICanvasState> {
 
           onMouseMove={(event) => {
             if (this.state.viewPortSelected) {
+              this.recreateAllWires();
               let finalViewOffset = {
                 x: (event.clientX) + ((this.state.viewPorClicktOffset.x)),
                 y: (event.clientY) + ((this.state.viewPorClicktOffset.y))
@@ -314,7 +322,7 @@ class App extends React.Component<{}, ICanvasState> {
               viewPortoffset: finalViewOffset
             });
             this.updateAllPartViews(null, null, finalViewOffset);
-
+            this.recreateAllWires();
           }}
 
           onContextMenu={(event) => {
@@ -325,7 +333,7 @@ class App extends React.Component<{}, ICanvasState> {
           {this.state.parts}
           {this.state.wires}
         </div >
-      </div>
+      </div >
     );
   }
 }
