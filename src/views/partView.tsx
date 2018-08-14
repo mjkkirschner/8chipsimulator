@@ -8,6 +8,8 @@ import { grapher } from '../graphPart';
 import { GrapherPartView } from './graphPartView';
 import { toggleButton } from '../buttons';
 import { ToggleButtonPartView } from './buttonViews';
+import { RegistersDebug } from '../debugParts/RegistersDebug';
+import { RegistersDebugView } from './RegistersDebugView';
 
 export interface IPartViewState {
     selected: Boolean
@@ -131,6 +133,11 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
             return (<ToggleButtonPartView model={model} simulator={window["evaluator"]} >
             </ToggleButtonPartView>)
 
+        }
+
+        if(model instanceof RegistersDebug){
+            return <RegistersDebugView simulator={window["evaluator"]}>
+            </RegistersDebugView>
         }
     }
 

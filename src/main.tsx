@@ -14,6 +14,7 @@ import { CommandLineView } from "./views/console";
 import { VoltageRail } from "./primitives";
 import { grapher } from "./graphPart";
 import { staticRam } from "./sram";
+import { RegistersDebug } from "./debugParts/RegistersDebug";
 //reexport objects into the chips object which gets injected into the window using browserify.
 export { VoltageRail };
 export { grapher };
@@ -127,6 +128,9 @@ class App extends React.Component<{}, ICanvasState> {
     }
 
     let parts = utils.generate8bitComputerDesign();
+    //lets inject some debug parts
+    parts.push(new RegistersDebug("register file"));
+
     let ram = parts.filter(x => x.displayName == "main_ram")[0] as staticRam;
     ram.writeData(0, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
     ram.writeData(1, [0, 0, 0, 1, 0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
@@ -153,7 +157,6 @@ class App extends React.Component<{}, ICanvasState> {
 
     let gra = new graph(parts);
     this.orderedParts = gra.topoSort();
-
     gra.calculateColumnLayout(1500, 500);
     //get all parts into correct initial state.
     this.orderedParts.forEach((x) => {
@@ -322,7 +325,6 @@ class App extends React.Component<{}, ICanvasState> {
           {this.state.parts}
           {this.state.wires}
         </div >
-        <CommandLineView> </CommandLineView>
       </div>
     );
   }
