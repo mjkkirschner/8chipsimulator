@@ -12,6 +12,8 @@ interface IWireViewProps {
     startPos: {x:number,y:number}
     endPos: {x:number,y:number}
     color:string
+    startIndex:number,
+    endIndex:number
 }
 
 export class WireView extends React.Component<IWireViewProps> {
@@ -28,12 +30,20 @@ export class WireView extends React.Component<IWireViewProps> {
         zIndex:0,
     }
 
-    private generatePolyLinePoints(start:ipoint, end:ipoint) {
-  
-        var horizontal2 = new ipoint((end.x - start.x)*.5,0 );
+    private generatePolyLinePoints(start:ipoint, end:ipoint,startIndex:number,endIndex:number) {
         var verticalVector1 = new ipoint(0,end.y - start.y)
-        var point2 =start.sum(horizontal2);
-        return [start, start.sum(new ipoint(100,0)), start.sum(horizontal2), start.sum(horizontal2).sum(verticalVector1), end.subtact(new ipoint(100,0)), end];
+
+        var pt2 =  start.sum(new ipoint(20 * startIndex,0));
+        var pt3 = pt2.sum(new ipoint((end.x - start.x)*.5,0 ));
+        var pt4 = pt3.sum(verticalVector1);
+        var pt5 = end.subtact(new ipoint(20*endIndex,0));
+        
+        return [start,
+             pt2,
+             pt3,
+              pt4,
+                pt5,
+                end];
     
       }
     
@@ -50,7 +60,7 @@ export class WireView extends React.Component<IWireViewProps> {
         stroke: "rgb(95, 255, 187)",
         strokeWidth: "1",
         fill: "none",
-        strokeDasharray:"2, 2"
+        //strokeDasharray:"2, 2"
     }
         if(this.props.color){
             style.stroke = this.props.color;
@@ -62,7 +72,9 @@ export class WireView extends React.Component<IWireViewProps> {
 
         let pointsAndTans = this.generatePolyLinePoints(
             new ipoint(this.props.startPos.x,this.props.startPos.y),
-            new ipoint(this.props.endPos.x,this.props.endPos.y));
+            new ipoint(this.props.endPos.x,this.props.endPos.y)
+            ,this.props.startIndex,
+            this.props.endIndex);
 
         let finalPoints = pointsAndTans;
 

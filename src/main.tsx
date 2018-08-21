@@ -181,9 +181,9 @@ class App extends React.Component<{}, ICanvasState> {
         this.updatePartModel(part);
       });
     }, 20);
-    setTimeout(()=>{
+    setTimeout(() => {
       this.recreateAllWires();
-    },1000);
+    }, 1000);
   }
 
   private createAllParts(parts: graphNode[]) {
@@ -239,7 +239,10 @@ class App extends React.Component<{}, ICanvasState> {
         model={x}
         color={color}
         startPos={{ x: this.boundsData[x.startPin.id].right + window.scrollX, y: this.boundsData[x.startPin.id].top + window.scrollY }}
-        endPos={{ x: this.boundsData[x.endPin.id].left + window.scrollX, y: this.boundsData[x.endPin.id].top + window.scrollY }} />
+        endPos={{ x: this.boundsData[x.endPin.id].left + window.scrollX, y: this.boundsData[x.endPin.id].top + window.scrollY }}
+        startIndex={x.startPin.index}
+        endIndex={x.endPin.index}
+      />
 
     });
     this.setState({ wires: newWires });
