@@ -307,7 +307,7 @@ export class simulatorExecution {
 
     private runTasksInSchedule() {
         setInterval(() => {
-            _.range(0, 200).forEach(x => {
+            _.range(0, 100).forEach(x => {
                 if (this.schedule.length > 0) {
                     let currentTasks = this.schedule.filter(x => x.executedAtTime == this.time);
                     currentTasks.forEach((currentTask) => {

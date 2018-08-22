@@ -43,7 +43,7 @@ class App extends React.Component<{}, ICanvasState> {
     //set height based on children?
     zIndex: -2,
     width: '100%',
-    height: '90%',
+    height: '100%',
     overflow: 'hidden' as 'hidden'
   }
 
@@ -118,6 +118,21 @@ class App extends React.Component<{}, ICanvasState> {
 
   }
 
+  private hex2BinArray(hexString: string) {
+    let binString = this.convertNumber(hexString, 16, 2);
+    return binString.padStart(16, "0").split('').map(x => { return parseInt(x) });
+  }
+
+  private convertNumber(n: string, fromBase: number, toBase: number): string {
+    if (fromBase === void 0) {
+      fromBase = 10;
+    }
+    if (toBase === void 0) {
+      toBase = 10;
+    }
+    return (parseInt(n, fromBase)).toString(toBase);
+  }
+
   constructor(props: any) {
     super(props)
     this.state = {
@@ -133,26 +148,30 @@ class App extends React.Component<{}, ICanvasState> {
     //lets inject some debug parts
     parts.push(new RegistersDebug("register file"));
 
+
+
+
     let ram = parts.filter(x => x.displayName == "main_ram")[0] as staticRam;
-    ram.writeData(0, [0, 0, 0, 0, 0, 1, 1, 0].map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
-    ram.writeData(1, [0, 0, 0, 1, 0, 1, 0, 0].map(x => Boolean(x))); //20 - after this A should contain 20.
-    ram.writeData(2, [0, 0, 0, 0, 0, 0, 1, 1].map(x => Boolean(x))); // Put whatever follows at memory address 100 into B // then add to A.
-    ram.writeData(3, [0, 1, 1, 0, 0, 1, 0, 0].map(x => Boolean(x))); // 100
+    ram.writeData(0, this.hex2BinArray("0x0006").map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
+    ram.writeData(1, this.hex2BinArray("0x0014").map(x => Boolean(x))); //20 - after this A should contain 20.
+    
+    ram.writeData(2, this.hex2BinArray("0x0003").map(x => Boolean(x))); // Put whatever follows at memory address 100 into B // then add to A.
+    ram.writeData(3, this.hex2BinArray("0x0064").map(x => Boolean(x))); // 100
 
-    ram.writeData(4, [0, 0, 0, 0, 1, 1, 0, 0].map(x => Boolean(x))); //loadBimmediate. - load what follows into B.
-    ram.writeData(5, [0, 0, 0, 1, 1, 0, 0, 1].map(x => Boolean(x))); //25 - after this B should contain 25.
+    ram.writeData(4, this.hex2BinArray("0x000C").map(x => Boolean(x))); //loadBimmediate. - load what follows into B.
+    ram.writeData(5, this.hex2BinArray("0x0019").map(x => Boolean(x))); //25 - after this B should contain 25.
 
-    ram.writeData(6, [0, 0, 0, 0, 1, 1, 1, 0].map(x => Boolean(x))); //update flag reg for jump
+    ram.writeData(6, this.hex2BinArray("0x000E").map(x => Boolean(x))); //update flag reg for jump
 
     //conditionally jump to 2 if A < B... if A < 25 keep looping 
-    ram.writeData(7, [0, 0, 0, 0, 1, 0, 0, 1].map(x => Boolean(x))); //jump to line:
-    ram.writeData(8, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); //address 2
-    //25 to out
-    ram.writeData(9, [0, 0, 0, 0, 0, 0, 1, 0].map(x => Boolean(x))); // A transfer to Out reg.
+    ram.writeData(7, this.hex2BinArray("0x0009").map(x => Boolean(x))); //jump to line:
+    ram.writeData(8, this.hex2BinArray("0x0002").map(x => Boolean(x))); //address 2
+    //25 to out 
+    ram.writeData(9, this.hex2BinArray("0x0002").map(x => Boolean(x))); // A transfer to Out reg.
     //halt
-    ram.writeData(10, [0, 0, 0, 0, 1, 1, 1, 1].map(x => Boolean(x)));
+    ram.writeData(10, this.hex2BinArray("0x000F").map(x => Boolean(x)));
 
-    ram.writeData(100, [0, 0, 0, 0, 0, 0, 0, 1].map(x => Boolean(x))); //1 at memory location 100
+    ram.writeData(100, this.hex2BinArray("0x0001").map(x => Boolean(x))); //1 at memory location 100
 
 
     var clockcomp = (parts[0] as clock);
@@ -173,18 +192,40 @@ class App extends React.Component<{}, ICanvasState> {
     window["simulator"] = this;
     evaluator.Evaluate();
 
-    //TODO collect some events from the parts... like updating or something and watch those.
 
+    // for all parts except parts that need to be updated on a timer
+    // add handler which fires when the part is updated.
+    // do a compare to old data in this handler
+    // and only update the model for the view if the data has changed.
+    this.orderedParts.forEach(x => {
+      let partId = x.pointer.id;
+      x.pointer.registerCallbackOnUpdate((data) => {
+        let oldData = this.dataMap[partId];
+        let newData = x.pointer.outputs.map(x => x.value);
+        //if they are not equal update.
+        if ((oldData != null) && !(_.isEqual(newData, oldData))) {
+          this.updatePartModel(x.pointer);
+        }
+        //update the map
+        this.dataMap[partId] = newData;
+      })
+    });
+
+    // only set interval for parts that need to be redraw like this
+    // like the grapher
     setInterval(() => {
       this.orderedParts.forEach((x) => {
         let part = x.pointer;
-        this.updatePartModel(part);
+        if (part.constructor.name == "grapher") {
+          this.updatePartModel(part);
+        }
       });
     }, 20);
-    setTimeout(()=>{
+    setTimeout(() => {
       this.recreateAllWires();
-    },1000);
+    }, 1000);
   }
+
 
   private createAllParts(parts: graphNode[]) {
     let newParts = parts.map((x) => {
