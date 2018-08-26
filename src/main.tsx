@@ -153,23 +153,24 @@ class App extends React.Component<{}, ICanvasState> {
 
     let ram = parts.filter(x => x.displayName == "main_ram")[0] as staticRam;
     ram.writeData(0, this.hex2BinArray("0x0006").map(x => Boolean(x))); //loadAimmediate. - load what follows into A.
-    ram.writeData(1, this.hex2BinArray("0x0014").map(x => Boolean(x))); //20 - after this A should contain 20.
+    ram.writeData(1, this.hex2BinArray("0x0000").map(x => Boolean(x))); //0 - after this A should contain 0.
     
     ram.writeData(2, this.hex2BinArray("0x0003").map(x => Boolean(x))); // Put whatever follows at memory address 100 into B // then add to A.
     ram.writeData(3, this.hex2BinArray("0x0064").map(x => Boolean(x))); // 100
+    ram.writeData(4, this.hex2BinArray("0x0002").map(x => Boolean(x))); // A transfer to Out reg.
 
-    ram.writeData(4, this.hex2BinArray("0x000C").map(x => Boolean(x))); //loadBimmediate. - load what follows into B.
-    ram.writeData(5, this.hex2BinArray("0x0019").map(x => Boolean(x))); //25 - after this B should contain 25.
 
-    ram.writeData(6, this.hex2BinArray("0x000E").map(x => Boolean(x))); //update flag reg for jump
+    ram.writeData(5, this.hex2BinArray("0x000C").map(x => Boolean(x))); //loadBimmediate. - load what follows into B.
+    ram.writeData(6, this.hex2BinArray("0x0010").map(x => Boolean(x))); //16 - after this B should contain 16.
 
-    //conditionally jump to 2 if A < B... if A < 25 keep looping 
-    ram.writeData(7, this.hex2BinArray("0x0009").map(x => Boolean(x))); //jump to line:
-    ram.writeData(8, this.hex2BinArray("0x0002").map(x => Boolean(x))); //address 2
-    //25 to out 
-    ram.writeData(9, this.hex2BinArray("0x0002").map(x => Boolean(x))); // A transfer to Out reg.
-    //halt
-    ram.writeData(10, this.hex2BinArray("0x000F").map(x => Boolean(x)));
+    ram.writeData(7, this.hex2BinArray("0x000E").map(x => Boolean(x))); //update flag reg for jump
+
+    //conditionally jump to 2 if A < B... if A < 16 keep looping 
+    ram.writeData(8, this.hex2BinArray("0x0009").map(x => Boolean(x))); //jump to line:
+    ram.writeData(9, this.hex2BinArray("0x0002").map(x => Boolean(x))); //address 2
+    
+    ram.writeData(10, this.hex2BinArray("0x0008").map(x => Boolean(x))); //jump to line:
+    ram.writeData(11, this.hex2BinArray("0x0000").map(x => Boolean(x))); //address 2
 
     ram.writeData(100, this.hex2BinArray("0x0001").map(x => Boolean(x))); //1 at memory location 100
 

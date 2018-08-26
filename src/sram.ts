@@ -15,6 +15,8 @@ export interface Imemory {
     data: boolean[][];
 }
 
+
+
 /**
  * represents an SRAM chip with I/O pins-
  * the chip has chip, write, and output enable modes
@@ -122,6 +124,46 @@ export class staticRam extends basePart implements Ipart, Imemory {
     readData(address: number): boolean[] {
         return this.data[address];
     }
+}
+
+
+/**
+ * version of sram that can be addressed from two ports - 
+ * the second port is only capable of being read from and will not perform writes.
+ */
+export class dualPortStaticRam extends staticRam {
+    public addressPins2: inputPin[] = [];
+    public readonlyOutputPins: outputPin[] = [];
+
+
+    public get inputs() {
+        let step1 = this.addressPins.concat(this.addressPins2).concat(this.writeEnable, this.chipEnable,
+            this.outputEnable);
+        let step2 = step1.concat(this.InputOutputPins.map(x => { return x.internalInput }));
+        return step2;
+    }
+
+    public get outputs() {
+        return this.InputOutputPins.map(x => { return x.internalOutput }).concat(this.readonlyOutputPins);
+    }
+
+    constructor(wordSize: number, length: number, name?: string) {
+        super(wordSize, length, name);
+
+        this.readonlyOutputPins = _.range(0, wordSize).map(ind => { return new outputPin("out:" + ind, this, ind) });
+        //generate address pins2
+        this.addressPins2 = this.addressPins.map(x => new inputPin(x.name + "2", this, false, x.index))
+    }
+
+    update() {
+        super.update();
+        let addressToRead = parseInt(this.addressPins2.map(pin => { return Number(pin.value) }).join(""), 2);
+        let dataToOutput = this.data[addressToRead];
+
+        this.readonlyOutputPins.forEach((pin, index) => { pin.value = dataToOutput[index] });
+    }
+
+
 }
 
 
