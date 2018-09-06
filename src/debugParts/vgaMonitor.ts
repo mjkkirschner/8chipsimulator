@@ -1,6 +1,6 @@
-import { basePart } from "../primitives";
+import { basePart, Ipart } from "../primitives";
 import _ = require("underscore");
-import { inputPin } from "../pins_wires";
+import { inputPin, outputPin } from "../pins_wires";
 import { Color } from "csstype";
 
 
@@ -10,7 +10,7 @@ import { Color } from "csstype";
  * a horizontal sync pulse, then starts next line.
  * real implementation is time dependent and would require 3 DACs.
  */
-export class vgaMonitorPart extends basePart {
+export class vgaMonitorPart extends basePart implements Ipart {
 
     private RGBLineBuffer: number[] = [];
     public screen: number[][];
@@ -18,6 +18,9 @@ export class vgaMonitorPart extends basePart {
     public clock: inputPin = new inputPin("clock", this);
     public hsync: inputPin = new inputPin("hsync", this);
     public vsync: inputPin = new inputPin("vsync", this);
+
+    //this is a hack to get this view tp update.
+    public clockOUT: outputPin = new outputPin("clockout",this);
 
     private lasthsyncValue;
     private lastvsyncValue;
@@ -30,6 +33,17 @@ export class vgaMonitorPart extends basePart {
 
     public width;
     public height;
+
+    public get inputs(){
+        let step1  = [this.clock,this.hsync,this.vsync];
+        return step1.concat(this.red).concat(this.blue).concat(this.green);
+    }
+
+    public get outputs(){
+        return ([this.clockOUT]) as any[];
+    }
+
+
 
     constructor(x: number, y: number, name: string) {
         super(name);
@@ -57,12 +71,13 @@ export class vgaMonitorPart extends basePart {
         let blue = parseInt(this.red.map(pin => { return Number(pin.value) }).join(""), 2);
 
         if (this.clock.value == true && this.lastclockValue == false) {
-            this.RGBLineBuffer.push(red, green, blue, 255);
+            this.RGBLineBuffer.push(255, green, blue, 255);
         }
 
         this.lasthsyncValue = this.hsync.value;
         this.lastvsyncValue = this.vsync.value;
         this.lastclockValue = this.clock.value;
+        this.clockOUT.value = this.hsync.value;
         super.update();
 
     }

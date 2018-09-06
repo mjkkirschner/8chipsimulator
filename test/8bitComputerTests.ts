@@ -2,7 +2,7 @@ import { Ipart, nRegister, VoltageRail, nBuffer, bus, inverter, ANDGATE, ORGATE 
 import { clock, clockWithMode } from "../src/clock";
 import { wire, pin, outputPin } from "../src/pins_wires";
 import { nbitAdder } from "../src/ALU";
-import { staticRam } from "../src/sram";
+import { staticRam, dualPortStaticRam } from "../src/sram";
 import { binaryCounter } from "../src/counter";
 import { microCodeData } from "../src/8bitCPUDesign/microcode";
 import _ = require("underscore");
@@ -10,6 +10,8 @@ import { grapher } from "../src/graphPart";
 import { twoLineToFourLineDecoder } from "../src/Decoder";
 import { toggleButton } from "../src/buttons";
 import { nbitComparator } from "../src/comparator";
+import { vgaSignalGenerator } from "../src/vgaSignalGenerator";
+import { vgaMonitorPart } from "../src/debugParts/vgaMonitor";
 
 export function generate3Registers_Adder_Bus(): Ipart[] {
 
@@ -51,7 +53,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     return [regA, regB, regAbuffer, regBbuffer, adderBbuffer, adder, outReg, buscomponent];
 }
 
-export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
+export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus, clock: clockWithMode): Ipart[] {
 
 
     let memoryAddressREG = new nRegister(16, "memory_address_register");
@@ -60,7 +62,7 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
     let ce = new VoltageRail("ram_chipEnable");
     ce.outputPin.value = false;
 
-    let ram = new staticRam(16, 65536, "main_ram");
+    let ram = new dualPortStaticRam(16, 65536, "main_ram");
     new wire(ce.outputPin, ram.chipEnable);
     let ramBuffer = new nBuffer(16, "ram_output_buffer");
 
@@ -78,7 +80,40 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus): Ipart[] {
     memoryAddressREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
     ram.InputOutputPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin.internalInput) });
 
-    return [memoryAddressREG, ram, ramBuffer, buscomponent, ce]
+    //add our vga signal generator
+    //640 x 480 - but we'll discard a bunch of x and y positions...
+    let vgaSignalGen = new vgaSignalGenerator(10, 9,"sigGen");
+
+    new wire(clock.outputPin, vgaSignalGen.clockPin);
+
+
+    /*
+
+    //on the FPGA the monitor part are output pins
+    //on the FPGA chip or TOP module.
+
+    let vgaMonitor = new vgaMonitorPart(640, 480, "monitor");
+    new wire(vgaSignalGen.h_sync, vgaMonitor.hsync);
+    new wire(vgaSignalGen.v_sync, vgaMonitor.vsync);
+    new wire(clock.outputPin, vgaMonitor.clock);
+
+    new wire(ram.readonlyOutputPins[0], vgaMonitor.red[0]);
+    new wire(ram.readonlyOutputPins[1], vgaMonitor.red[1]);
+    new wire(ram.readonlyOutputPins[2], vgaMonitor.red[2]);
+    new wire(ram.readonlyOutputPins[3], vgaMonitor.red[3]);
+
+    new wire(ram.readonlyOutputPins[4], vgaMonitor.green[0]);
+    new wire(ram.readonlyOutputPins[5], vgaMonitor.green[1]);
+    new wire(ram.readonlyOutputPins[6], vgaMonitor.green[2]);
+    new wire(ram.readonlyOutputPins[7], vgaMonitor.green[3]);
+
+    new wire(ram.readonlyOutputPins[8], vgaMonitor.blue[0]);
+    new wire(ram.readonlyOutputPins[9], vgaMonitor.blue[1]);
+    new wire(ram.readonlyOutputPins[10], vgaMonitor.blue[2]);
+    new wire(ram.readonlyOutputPins[11], vgaMonitor.blue[3]);
+*/
+
+    return [memoryAddressREG, ram, ramBuffer, buscomponent, ce,vgaSignalGen]
 }
 
 export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipart[] {
@@ -407,7 +442,7 @@ export function generate8bitComputerDesign(): Ipart[] {
     new wire(modeButton.outputPin, clockcomp.modePin);
     new wire(stepButton.outputPin, clockcomp.stepPin);
 
-    var parts2 = generate_MAR_RAM_DATAINPUTS(bus);
+    var parts2 = generate_MAR_RAM_DATAINPUTS(bus, clockcomp);
     var parts3 = generateProgramCounter(clockcomp, bus);
     var parts4 = generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clockcomp, bus);
 

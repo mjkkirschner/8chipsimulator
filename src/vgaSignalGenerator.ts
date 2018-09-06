@@ -8,6 +8,7 @@ import _ = require("underscore");
 export class vgaSignalGenerator extends basePart implements Ipart {
 
     public clockPin: inputPin = new inputPin("clock", this);
+
     public h_sync: outputPin = new outputPin("hsync", this);
     public v_sync: outputPin = new outputPin("vsync", this);
     public validDisplayPosition: outputPin = new outputPin("validDisplayPosition", this);
@@ -30,7 +31,7 @@ export class vgaSignalGenerator extends basePart implements Ipart {
     }
 
 
-    constructor(xbits: number, ybits: number) {
+    constructor(xbits: number, ybits: number,name?:string) {
         super(name);
 
         //generate empty data cells.
@@ -56,12 +57,13 @@ export class vgaSignalGenerator extends basePart implements Ipart {
 
     update() {
         let clockPinValue = this.clockPin.value;
-        let clockPulsed = clockPinValue == true && this.lastClockpinValue == false;
+        let clockPulsed = (clockPinValue == true && this.lastClockpinValue == false);
 
         if (clockPulsed) {
             //reset x pos if we max out
             if (this.xcounter == 800) {
                 this.Xposition.forEach(x => x.value = false);
+                this.xcounter = 0;
             }
             else {
                 this.xcounter = this.xcounter + 1;
@@ -80,7 +82,7 @@ export class vgaSignalGenerator extends basePart implements Ipart {
                 bitArray.forEach((bit, ind) => { this.Xposition[ind].value = bit });
             }
 
-            if (this.xcounter = 0) {
+            if (this.xcounter == 0) {
                 this.ycounter = this.ycounter + 1;
 
                 //keep y within bounds of drawn pixels:

@@ -6,8 +6,9 @@ import { nbitAdder } from "./ALU";
 import { binaryCounter } from "./counter";
 import { nbitComparator } from "./comparator";
 import { twoLineToFourLineDecoder } from "./Decoder";
-import { staticRam } from "./sram";
+import { staticRam, dualPortStaticRam } from "./sram";
 import { clockWithMode } from "./clock";
+import { vgaSignalGenerator } from "./vgaSignalGenerator";
 
 
 /**
@@ -84,26 +85,45 @@ export class verilogGenerator {
     private generateTopModule(implementation: string, modules: string): string {
         return `
         ${modules}
-        module top(input CLK,output reg [0:3] LED);
-        reg HIGH = 1;
-        reg LOW = 0;
-        reg SUBMODE = 0;
-        reg UNCONNECTED = 0;
-        reg [0:0]clock;
+        (* DONT_TOUCH = "yes" *)
+        module top(input CLK,
+        
+            output reg [0:3] LED,
+            output wire VGA_HS_O,       // horizontal sync output
+            output wire VGA_VS_O,       // vertical sync output
+            output wire [3:0] VGA_R,    // 4-bit VGA red output
+            output wire [3:0] VGA_G,    // 4-bit VGA green output
+            output wire [3:0] VGA_B);     // 4-bit VGA blue output);
+               
+            reg HIGH = 1;
+            reg LOW = 0;
+            reg SUBMODE = 0;
+            reg UNCONNECTED = 0;
+
+            reg [0:0]clock;
+            reg [0:0]ClockFaster;
+            reg pix_stb;
+
         
         
         ${implementation}
-        //lets reduce clock to a 1.5hzish clock:
-        reg [0:32] counter = 32'b0;
-        
+
+        reg [32:0] counter = 32'b0;
             always @ (posedge CLK) 
             begin
+                LED = REPLACE WITH OUT REG STRING;          
                 counter <= counter + 1;
-                clock[0] <= counter[25];
-                LED = OUTREGISTER;
+                if(REPLACE WITH MICROCODE OUTPUT BANK[17] == 0) begin
+                clock[0] <= counter[9];
+                end
+                //TODO see if it works if we set strobe to counter[3 or 4];
+                 //{pix_stb, counter} <= counter + 32'h40000000;  // divide by 4: (2^16)/4 = 0x4000
+                 //RAM clock...
+                ClockFaster[0] <= counter[5];
+               
             end
 
-        endmodule;
+        endmodule
         `;
     }
 
@@ -139,9 +159,10 @@ export class verilogGenerator {
             let clockInputName = this.wireMap[part.clockPin.attachedWire.startPin.id] + `[${part.clockPin.attachedWire.startPin.index}]`
             let outputName = part.displayName + part.outputPins[0].id;
 
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.nRegister;
+
             let outputWireString = `wire [0:${n}-1] ${outputName};`
-            let moduleInstanceString = func(dataInputName, clockInputName, enableInputName, outputName, part.displayName + part.id);
+            let moduleInstanceString = func(dataInputName, clockInputName, enableInputName, outputName, n, part.displayName + part.id);
 
             //store the wire that output pins belong to in the wire map using the output pin ids.
             part.outputPins.forEach(x => this.wireMap[x.id] = outputName);
@@ -157,7 +178,7 @@ export class verilogGenerator {
             let dataInputName = part.outputPin.value == true ? "HIGH" : "LOW";
 
             let n = 1;
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.VoltageRail;
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(dataInputName, outputName, part.displayName + part.id);
 
@@ -176,7 +197,7 @@ export class verilogGenerator {
             let enableInputName = this.wireMap[part.outputEnablePin.attachedWire.startPin.id] + `[${part.outputEnablePin.attachedWire.startPin.index}]`
             let outputName = part.displayName + part.outputPins[0].id;
 
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.nBuffer;
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(dataInputName, outputName, enableInputName, n, part.displayName + part.id);
 
@@ -192,7 +213,7 @@ export class verilogGenerator {
             let outputName = part.displayName + part.outputPin.id;
 
             let n = 1;
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.inverter;
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(dataInputName, outputName, enableInputName, part.displayName + part.id);
 
@@ -209,7 +230,7 @@ export class verilogGenerator {
             let outputName = part.displayName + part.outputPin.id;
 
             let n = 1;
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.ANDGATE;
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(dataInputName, dataInput2Name, outputName, part.displayName + part.id);
 
@@ -226,7 +247,7 @@ export class verilogGenerator {
             let outputName = part.displayName + part.outputPin.id;
 
             let n = 1;
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.ORGATE;
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(dataInputName, dataInput2Name, outputName, part.displayName + part.id);
 
@@ -260,7 +281,7 @@ export class verilogGenerator {
             let concatenatedSelects = `wire [0:${m}-1] ` + selectInputName + '= {' + part.inputGroups.map(x => (this.wireMap[(((x[0].attachedWire.startPin.owner as nBuffer).outputEnablePin as inputPin).attachedWire.startPin.id)] + `[${((x[0].attachedWire.startPin.owner as nBuffer).outputEnablePin as inputPin).attachedWire.startPin.index}]`)).join(",") + '};';
 
 
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.bus;
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(selectInputName, dataInputName, outputName, m, n, part.displayName + part.id);
 
@@ -292,11 +313,11 @@ export class verilogGenerator {
 
             let outputName = part.displayName + part.sumOutPins[0].id;
 
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.nbitAdder;
 
 
             let outputWireString = `wire [0:${n}-1] ${outputName};`
-            let moduleInstanceString = func(subModeInputName, carryInInputName, aInputName, bInputName, outputName, carryOutputName, part.displayName + part.id);
+            let moduleInstanceString = func(subModeInputName, carryInInputName, aInputName, bInputName, outputName, carryOutputName, n, part.displayName + part.id);
 
             part.sumOutPins.forEach(x => this.wireMap[x.id] = outputName);
             this.wireMap[part.carryOut.id] = carryOutputName;
@@ -322,7 +343,7 @@ export class verilogGenerator {
             let outputName = part.displayName + part.outputPins[0].id;
 
             let n = part.dataPins.length;
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.binaryCounter;
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(dataInputName,
                 clearInputName,
@@ -331,6 +352,7 @@ export class verilogGenerator {
                 enableInput1Name,
                 enableInput2Name,
                 outputName,
+                n,
                 part.displayName + part.id);
 
             part.outputPins.forEach(x => this.wireMap[x.id] = outputName);
@@ -352,13 +374,13 @@ export class verilogGenerator {
             let equalOutputName = part.displayName + part.AEBOUT.id;
             let lowerOutputName = part.displayName + part.ALBOUT.id;
 
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.nbitComparator;
 
 
             let equalOutputWireString = `wire [0:0] ${equalOutputName};`
             let lowerOutputWireString = `wire [0:0] ${lowerOutputName};`
 
-            let moduleInstanceString = func(aInputName, bInputName, equalOutputName, lowerOutputName, part.displayName + part.id);
+            let moduleInstanceString = func(aInputName, bInputName, equalOutputName, lowerOutputName, n, part.displayName + part.id);
 
             this.wireMap[part.AEBOUT.id] = equalOutputName;
             this.wireMap[part.ALBOUT.id] = lowerOutputName;
@@ -383,7 +405,7 @@ export class verilogGenerator {
             let y2OutputWire = "wire " + y2Outputname + ";";
             let y3OutputWire = "wire " + y3Outputname + ";";
 
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.twoLineToFourLineDecoder;
 
 
             let moduleInstanceString = func(aInputName,
@@ -406,7 +428,9 @@ export class verilogGenerator {
 
         staticRam: (part: staticRam) => {
 
-            //decide which rom file path to inject?
+            //TODO a test. see if we can replace this in top module.
+            let clockInputName = "ClockFaster[0]"
+
 
             let csInputName = this.wireMap[part.chipEnable.attachedWire.startPin.id] + `[${part.chipEnable.attachedWire.startPin.index}]`
             let weInputName = this.wireMap[part.writeEnable.attachedWire.startPin.id] + `[${part.writeEnable.attachedWire.startPin.index}]`
@@ -443,82 +467,305 @@ export class verilogGenerator {
 
             let intialDataRegString = `reg [0:${(totalBitLength - 1)}] ${initalDataName} = ${totalBitLength}'b${dataString}; `
 
-            let func = this.moduleConstructorMap[part.constructor.name];
+            let func = this.moduleConstructorMap.staticRam;
 
 
             let outputWireString = `wire [0:${n}-1] ${outputName};`
             let moduleInstanceString = func(addressInputName,
                 dataInputName,
-                initalDataName,
                 csInputName,
                 weInputName,
                 oeInputName,
+                clockInputName,
                 outputName,
+                "ROMFILE",
                 n,
                 part.addressPins.length,
-                part.displayName + part.id, );
+                part.displayName + part.id);
 
             part.InputOutputPins.forEach(x => this.wireMap[x.internalOutput.id] = outputName);
 
 
-            return [outputWireString, intialDataRegString, concatenatedAddressPins, concatenatedDataPins, moduleInstanceString].join("\n");
-        }
+            return [outputWireString, concatenatedAddressPins, concatenatedDataPins, moduleInstanceString].join("\n");
+        },
+
+        dualPortStaticRam: (part: dualPortStaticRam) => {
+
+            //TODO a test. see if we can replace this in top module.
+            let clockInputName = "ClockFaster[0]";
+            let clockInputName2 = "ClockFaster[0]";
+
+            let csInputName = this.wireMap[part.chipEnable.attachedWire.startPin.id] + `[${part.chipEnable.attachedWire.startPin.index}]`
+            let weInputName = this.wireMap[part.writeEnable.attachedWire.startPin.id] + `[${part.writeEnable.attachedWire.startPin.index}]`
+            let oeInputName = this.wireMap[part.outputEnable.attachedWire.startPin.id] + `[${part.outputEnable.attachedWire.startPin.index}]`
+
+
+            let addressInputName1 = 'allAddress1InputsFor' + part.id;
+            let addressInputName2 = 'allAddress2InputsFor' + part.id;
+            let dataInputName = "allDataInputsFor" + part.id;
+
+            let n = part.wordSize;
+            let concatenatedAddress1Pins = `wire [0:${part.addressPins.length}-1] ` + addressInputName1 + '= {' + part.addressPins.map(x => {
+                if (x.attachedWire == null) {
+                    return "UNCONNECTED";
+                }
+                return this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`
+            }).join(",") + '};';
+
+            let concatenatedAddress2Pins = `wire [0:${part.addressPins2.length}-1] ` + addressInputName2 + '= {' + part.addressPins2.map(x => {
+                if (x.attachedWire == null) {
+                    return "UNCONNECTED";
+                }
+                return this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`
+            }).join(",") + '};';
+
+            let concatenatedDataPins = `wire [0:${n}-1] ` + dataInputName + '= {' + part.InputOutputPins.map(x => {
+                if (x.internalInput.attachedWire == null) {
+                    return "UNCONNECTED";
+                }
+                return this.wireMap[x.internalInput.attachedWire.startPin.id] + `[${x.internalInput.attachedWire.startPin.index}]`
+            }).join(",") + '};';
+
+            //this should be this part.
+            let outputName1 = part.InputOutputPins[0].internalOutput.owner.displayName + part.InputOutputPins[0].internalOutput.id;
+            let outputName2 = part.readonlyOutputPins[0].owner.displayName + part.readonlyOutputPins[0].id;
+
+
+            let initalDataName = 'initialDataFor' + part.id;
+            let totalBitLength = n * part.data.length;
+            let dataString = part.data.map(data => {
+                return data.map(bool => bool as any * 1).join("");
+            }).join("");
+
+            let intialDataRegString = `reg [0:${(totalBitLength - 1)}] ${initalDataName} = ${totalBitLength}'b${dataString}; `
+
+            let func = this.moduleConstructorMap.dualPortStaticRam;
+
+
+            let outputWireString1 = `wire [0:${n}-1] ${outputName1};`
+            let outputWireString2 = `wire [0:${n}-1] ${outputName2};`
+            let moduleInstanceString = func(addressInputName1, addressInputName2,
+                dataInputName,
+                csInputName,
+                weInputName,
+                oeInputName,
+                //TODO attach to faster clock automatically somehow..
+                //or add some post generation steps to solve this type of
+                //inconsistency between the simulation of the circuit here and in verilog...
+                //ie - this ram requires a different clock on the FPGA.
+                clockInputName,
+                clockInputName,
+                outputName1, outputName2,
+                "RAMFILE",
+                n,
+                part.addressPins.length,
+                part.displayName + part.id);
+
+            //update wiremap?
+            part.InputOutputPins.forEach(x => this.wireMap[x.internalOutput.id] = outputName1);
+            part.readonlyOutputPins.forEach(x => this.wireMap[x.id] = outputName2);
+
+
+            return [outputWireString1, outputWireString2,
+
+                concatenatedAddress1Pins, concatenatedAddress2Pins,
+                concatenatedDataPins,
+                moduleInstanceString].join("\n");
+        },
+
+        vgaSignalGenerator: (part: vgaSignalGenerator) => {
+
+            //decide which rom file path to inject?
+
+            let clockInputName = this.wireMap[part.clockPin.attachedWire.startPin.id] + `[${part.clockPin.attachedWire.startPin.index}]`
+            let pixClockInputName = "25MHZCLOCK";
+
+            let xlen = part.Xposition.length;
+            let ylen = part.YPosition.length;
+
+            let outputNameX = part.displayName + part.Xposition[0].id;
+            let outputNameY = part.displayName + part.YPosition[0].id;
+            let outputNameH = part.displayName + part.h_sync.id;
+            let outputNameV = part.displayName + part.v_sync.id;
+
+            let func = this.moduleConstructorMap.vgaSignalGenerator;
+
+
+            let outputWireStringX = `wire [0:${xlen}-1] ${outputNameX};`
+            let outputWireStringY = `wire [0:${ylen}-1] ${outputNameY};`
+
+            let hOutputWire = "wire " + outputNameH + ";";
+            let vOutputWire = "wire " + outputNameV + ";";
+
+            let moduleInstanceString = func(clockInputName,
+                pixClockInputName,
+                outputNameH,
+                outputNameV,
+                outputNameX,
+                outputNameY,
+                part.displayName + part.id);
+
+
+
+            //put all output names in wiremap.
+            part.Xposition.forEach(x => this.wireMap[x.id] = outputNameX);
+            part.YPosition.forEach(x => this.wireMap[x.id] = outputNameY);
+
+            this.wireMap[part.h_sync.id] = outputNameH;
+            this.wireMap[part.v_sync.id] = outputNameV;
+
+            return [outputWireStringX, outputWireStringY, hOutputWire, vOutputWire, moduleInstanceString].join("\n");
+        },
     }
 
     //TODO figure out how to get these signatures...
     private moduleConstructorMap = {
-        nRegister: (data, clock, enable, Q, name) => {
-            return `nRegister ${name} ( ${data}, ${clock}, ${enable}, ${Q} );`
+        nRegister: (data, clock, enable, Q, DATA_WIDTH, name) => {
+            return `nRegister #(.n(${DATA_WIDTH})) ${name} ( 
+                .data(${data}), 
+                .clock(${clock}), 
+                .enable(${enable}),
+                 .Q(${Q}) );`
         },
 
         VoltageRail: (data, Q, name) => {
-            return `voltageRail ${name} ( ${data}, ${Q} );`
+            return `voltageRail ${name} ( 
+                .data(${data}), 
+                .Q(${Q}) );`
         },
 
         nBuffer: (data, Q, outputEnable, DATA_WIDTH, name) => {
-            return `nBuffer  #(${DATA_WIDTH}) ${name} ( ${data}, ${Q} , ${outputEnable} );`
+            return `nBuffer  #(.n(${DATA_WIDTH})) ${name} (
+                  .data(${data}),
+                  .Q(${Q}), 
+                  .outputEnable(${outputEnable}) );`
         },
 
         inverter: (data, Q, outputEnable, name) => {
-            return `inverter ${name} ( ${data}, ${Q} , ${outputEnable} );`
+            return `inverter ${name} ( 
+                .data(${data}), 
+                .Q(${Q}), 
+                .outputEnable(${outputEnable}) );`
         },
 
         ANDGATE: (a, b, c, name) => {
-            return `ANDGATE ${name} ( ${a}, ${b} , ${c} );`
+            return `ANDGATE ${name} ( 
+                ${a}, 
+                ${b}, 
+                ${c} );`
         },
 
         ORGATE: (a, b, c, name) => {
-            return `ORGATE ${name} ( ${a}, ${b} , ${c} );`
+            return `ORGATE ${name} ( 
+                ${a}, 
+                ${b},
+                ${c});`
         },
 
         bus: (selects, data_in, data_out, BUSCOUNT, DATA_WIDTH, name) => {
-            return `bus_mux #(${BUSCOUNT},${DATA_WIDTH}) ${name} ( ${selects}, ${data_in} , ${data_out} );`
+            return `bus_mux #(.bus_count(${BUSCOUNT}),.mux_width(${DATA_WIDTH})) ${name} (
+                .selects(${selects}),
+                .data_in(${data_in}),
+                .data_out(${data_out}));`
         },
 
-        nbitAdder: (sub, cin, x, y, sum, cout, name) => {
-            return `nbitAdder ${name} ( ${sub}, ${cin} , ${x}, ${y}, ${sum}, ${cout}  );`
+        nbitAdder: (sub, cin, x, y, sum, cout, DATA_WIDTH, name) => {
+            return `nbitAdder #(.n(${DATA_WIDTH})) ${name} (
+                 .sub(${sub}),
+                .cin(${cin}),
+                .x(${x}),
+                .y(${y}),
+                .sum(${sum}),
+                .cout(${cout}));`
         },
 
-        binaryCounter: (D, clr_, load_, clock, enable1_, enable2_, Q, name) => {
-            return `binaryCounter ${name} ( ${D}, ${clr_} , ${load_}, ${clock}, ${enable1_}, ${enable2_}, ${Q}  );`
+        //module binaryCounter(D,clr_,load_,clock,enable1_,enable2_,Q);
+        binaryCounter: (D, clr_, load_, clock, enable1_, enable2_, Q, DATA_WIDTH, name) => {
+            return `binaryCounter #(.n(${DATA_WIDTH})) ${name} (
+                .D(${D}),
+                .clr_(${clr_}),
+                .load_(${load_}),
+                .clock(${clock}),
+                .enable1_(${enable1_}),
+                .enable2_(${enable2_}),
+                .Q(${Q}));`
         },
 
-        nbitComparator: (a, b, equal, lower, name) => {
-            return `nbitComparator ${name} ( ${a}, ${b} , ${equal}, ${lower});`
+        nbitComparator: (a, b, equal, lower, DATA_WIDTH, name) => {
+            return `nbitComparator #(.n(${DATA_WIDTH})) ${name} (
+                .a(${a}),
+                .b(${b}),
+                .equal(${equal}),
+                .lower(${lower}));`
         },
 
         twoLineToFourLineDecoder: (a, b, en_, y0, y1, y2, y3, name) => {
-            return `twoLineToFourLineDecoder ${name} ( ${a}, ${b} , ${en_}, ${y0},${y1},${y2},${y3});`
+            return `twoLineToFourLineDecoder ${name} (
+                 ${a},
+                  ${b},
+                   ${en_},
+                    ${y0},
+                    ${y1},
+                    ${y2},
+                    ${y3});`
         },
-        staticRam: (address, data, initialData, cs_, we_, oe_, Q, DATA_WIDTH, ADDR_WIDTH, name) => {
-            return `staticRamDiscretePorts #(${DATA_WIDTH},${ADDR_WIDTH}) ${name} ( ${address}, ${data} , ${initialData}, ${cs_}, ${we_},${oe_},${Q});`
+        /*
+         module staticRamDiscretePorts (
+            address     , // Address Input
+            data        , // Data input
+            cs_,
+            we_,
+            oe_,
+            clock,
+            Q               //output
+            );
+            parameter ROMFILE = "noFile";
+            parameter DATA_WIDTH = 8 ;
+            parameter ADDR_WIDTH = 8 ;
+            parameter RAM_DEPTH = 1 << ADDR_WIDTH; 
+        */
+        staticRam: (address, data, cs_, we_, oe_, clock, Q, ROMFILE, DATA_WIDTH, ADDR_WIDTH, name) => {
+            return `staticRamDiscretePorts #(.ROMFILE(${ROMFILE}),.DATA_WIDTH(${DATA_WIDTH}),.ADDR_WIDTH(${ADDR_WIDTH})) ${name} (
+                 .address(${address}),
+                  .data(${data}), 
+                  .cs_(${cs_}),
+                   .we_(${we_}),
+                   .oe_(${oe_}),
+                    .clock(${clock}),
+                   .Q(${Q}));`
         },
+        //TODO add clock inputs??
+        dualPortStaticRam: (address, address2, data, cs_, we_, oe_, clock, clock2, Q, Q2, ROMFILE, DATA_WIDTH, ADDR_WIDTH, name) => {
+            return `dualPortStaticRam #(.ROMFILE(${ROMFILE}),.DATA_WIDTH(${DATA_WIDTH}),.ADDR_WIDTH(${ADDR_WIDTH})) ${name} (
+                .address_1(${address}),
+                .address_2(${address2}),
+                 .data(${data}), 
+                 .cs_(${cs_}),
+                  .we_(${we_}),
+                  .oe_(${oe_}),
+                  .clock(${clock}),
+                  .clock2(${clock2}),
+                  .Q_1(${Q}),
+                  .Q_2(${Q2}));`
+        },
+        //TODO turn all these statements into more explicit construction calls with named parameters.
+        vgaSignalGenerator: (clk, pixClock, horizontalSync, verticalSync, xpos, ypos, name) => {
+            return `vgaSignalGenerator ${name} (
+                .i_clk(${clk}),
+                .i_pix_stb(${pixClock}),
+                .o_hs(${horizontalSync}),
+                .o_vs(${verticalSync}),
+                .o_x(${xpos}),
+                .o_y(${ypos})
+            );`
+        }
     }
 
     //standard modules:
     private moduleMap = {
         "nRegister":
-            `module nRegister(data,clock,enable,Q);
+            ` (* DONT_TOUCH = "yes" *)
+            module nRegister(data,clock,enable,Q);
         parameter n = 8;
         input [0:n-1] data;
         input clock,enable;
@@ -533,7 +780,8 @@ export class verilogGenerator {
         //eventually these should be turned into IO pins in the FPGA
         //for now we can make them registers of 1 bit.
         "VoltageRail":
-            `module voltageRail(data,Q);
+            ` (* DONT_TOUCH = "yes" *)
+            module voltageRail(data,Q);
         input wire data;
         output reg Q;
         always@(data)
@@ -542,7 +790,8 @@ export class verilogGenerator {
         `,
 
         "nBuffer":
-            `module nBuffer(data,Q,outputEnable);
+            ` (* DONT_TOUCH = "yes" *)
+            module nBuffer(data,Q,outputEnable);
         parameter n=8;
         input [0:n-1] data;
         input outputEnable;
@@ -556,7 +805,8 @@ export class verilogGenerator {
     endmodule`,
 
         "inverter":
-            `module inverter(data,Q,outputEnable);
+            ` (* DONT_TOUCH = "yes" *)
+            module inverter(data,Q,outputEnable);
     input data,outputEnable;
     output reg Q;
     always@(data,outputEnable)
@@ -568,7 +818,8 @@ export class verilogGenerator {
     `,
 
         "ANDGATE":
-            `module ANDGATE(a,b,c);
+            ` (* DONT_TOUCH = "yes" *)
+            module ANDGATE(a,b,c);
         input a,b;
         output c;
         and a1 (c,a,b);
@@ -586,7 +837,8 @@ export class verilogGenerator {
         //the select signals for all inputs - the bus component does not wire these up
         //as the select is implicit, but we'll need to wire these up for the verilog version.
         "bus":
-            `module bus_mux ( selects, data_in, data_out ); 
+            ` (* DONT_TOUCH = "yes" *)
+            module bus_mux ( selects, data_in, data_out ); 
         parameter bus_count = 16;                   // number of input buses 
         parameter mux_width = 8;                    // bit width of data buses 
         input  [0:bus_count-1]           selects;   // one-hot select signals 
@@ -607,7 +859,7 @@ export class verilogGenerator {
         `,
 
         "nbitAdder":
-            `
+            ` (* DONT_TOUCH = "yes" *)
         module nbitAdder(sub,cin,x,y,sum,cout);
         parameter n = 8;
         input sub,cin;
@@ -622,7 +874,8 @@ export class verilogGenerator {
         `,
 
         "binaryCounter":
-            `module binaryCounter(D,clr_,load_,clock,enable1_,enable2_,Q);
+            ` (* DONT_TOUCH = "yes" *)
+            module binaryCounter(D,clr_,load_,clock,enable1_,enable2_,Q);
         parameter n = 8;
         input [0:n-1] D;
         input clr_,clock,enable1_,enable2_,load_;
@@ -639,7 +892,8 @@ export class verilogGenerator {
         `,
 
         "nbitComparator":
-            `module nbitComparator (
+            ` (* DONT_TOUCH = "yes" *)
+            module nbitComparator (
             input wire [0:n-1] a,
             input wire [0:n-1] b,
             output wire equal,
@@ -652,7 +906,8 @@ export class verilogGenerator {
           `,
 
         "twoLineToFourLineDecoder":
-            `module twoLineToFourLineDecoder (a,b,en_,y0,y1,y2,y3);
+            ` (* DONT_TOUCH = "yes" *)
+            module twoLineToFourLineDecoder (a,b,en_,y0,y1,y2,y3);
           input a, b, en_;
           output y0,y1,y2,y3;
           assign y0= (~a) & (~b) & (~en_);
@@ -663,7 +918,7 @@ export class verilogGenerator {
           `,
 
         "staticRam": `
-
+        (* DONT_TOUCH = "yes" *)
         //-----------------------------------------------------
         module staticRamDiscretePorts (
             address     , // Address Input
@@ -710,6 +965,140 @@ export class verilogGenerator {
             end
             
             endmodule
+    `,
+
+        "dualPortStaticRam":
+            `(* DONT_TOUCH = "yes" *)
+    //-----------------------------------------------------
+    module dualPortStaticRam (
+        address_1     , // Address Input
+        address_2     , // Address Input
+        data        , // Data input
+        cs_,
+        we_,
+        oe_,
+        clock,
+        clock2,
+        Q_1,               //output
+        Q_2               //output
+        );
+        parameter ROMFILE = "noFile";
+        parameter DATA_WIDTH = 8 ;
+        parameter ADDR_WIDTH = 8 ;
+        parameter RAM_DEPTH = 1 << ADDR_WIDTH;
+        
+    
+        //--------------Input Ports----------------------- 
+        input [0:ADDR_WIDTH-1] address_1 ;
+        input [0:ADDR_WIDTH-1] address_2 ;
+        input [0:DATA_WIDTH-1]  data;
+        input cs_;
+        input we_;
+        input oe_;
+        input clock;
+        input clock2;
+    
+        //--------------Output Ports----------------------- 
+        output reg [0:DATA_WIDTH-1] Q_1;
+        output reg [0:DATA_WIDTH-1] Q_2;
+        integer i;
+        //--------------Internal variables----------------
+        reg [0:DATA_WIDTH-1] mem [0:RAM_DEPTH-1];
+        
+        //--------------Code Starts Here------------------ 
+        initial begin
+         $readmemb(ROMFILE, mem);
+          for (i = 0; i < RAM_DEPTH; i = i + 1) begin
+          #1 $display("%d",mem[i]);
+          end
+        end
+        
+        always @(posedge clock)
+        begin
+          if (!cs_ && !we_)
+            mem[address_1] = data;
+           Q_1 = (!cs_ && !oe_) ? mem[address_1] : {DATA_WIDTH{1'bz}};
+           Q_2 = mem[address_2];
+        end
+
+        always@(posedge clock2) begin
+            Q_2 = mem[address_2];
+        end
+        
+        endmodule
+    
+    `,
+        //verilog adapted from:
+        //https://timetoexplore.net/blog/arty-fpga-vga-verilog-01
+
+        "vgaSignalGenerator":
+            `(* DONT_TOUCH = "yes" *)
+    module vgaSignalGenerator(
+        input wire i_clk,           // base clock
+        input wire i_pix_stb,       // pixel clock strobe
+        output wire o_hs,           // horizontal sync
+        output wire o_vs,           // vertical sync
+        output wire o_blanking,     // high during blanking interval
+        output wire o_active,       // high during active pixel drawing
+        output wire o_screenend,    // high for one tick at the end of screen
+        output wire o_animate,      // high for one tick at end of active drawing
+        output wire [9:0] o_x,      // current pixel x position
+        output wire [8:0] o_y       // current pixel y position
+        );
+    
+        // VGA timings https://timetoexplore.net/blog/video-timings-vga-720p-1080p
+        localparam HS_STA = 16;              // horizontal sync start
+        localparam HS_END = 16 + 96;         // horizontal sync end
+        localparam HA_STA = 16 + 96 + 48;    // horizontal active pixel start
+        localparam VS_STA = 480 + 11;        // vertical sync start
+        localparam VS_END = 480 + 11 + 2;    // vertical sync end
+        localparam VA_END = 480;             // vertical active pixel end
+        localparam LINE   = 800;             // complete line (pixels)
+        localparam SCREEN = 524;             // complete screen (lines)
+    
+        reg [9:0] h_count = 0;  // line position
+        reg [9:0] v_count = 0;  // screen position
+    
+        // generate sync signals (active low for 640x480)
+        assign o_hs = ~((h_count >= HS_STA) & (h_count < HS_END));
+        assign o_vs = ~((v_count >= VS_STA) & (v_count < VS_END));
+    
+        // keep x and y bound within the active pixels
+        assign o_x = (h_count < HA_STA) ? 0 : (h_count - HA_STA);
+        assign o_y = (v_count >= VA_END) ? (VA_END - 1) : (v_count);
+    
+        // blanking: high within the blanking period
+        assign o_blanking = ((h_count < HA_STA) | (v_count > VA_END - 1));
+    
+        // active: high during active pixel drawing
+        assign o_active = ~((h_count < HA_STA) | (v_count > VA_END - 1)); 
+    
+        // screenend: high for one tick at the end of the screen
+        assign o_screenend = ((v_count == SCREEN - 1) & (h_count == LINE));
+    
+        // animate: high for one tick at the end of the final active pixel line
+        assign o_animate = ((v_count == VA_END - 1) & (h_count == LINE));
+    
+        always @ (posedge i_clk)
+        begin
+            if (i_pix_stb)  // once per pixel
+            begin
+                if (h_count == LINE)  // end of line
+                begin
+                    h_count <= 0;
+                    v_count <= v_count + 1;
+                end
+                else 
+                    h_count <= h_count + 1;
+    
+                if (v_count == SCREEN)  // end of screen
+                    begin
+                    v_count <= 0;
+                    end
+            end
+        end
+    endmodule
+
     `
 
     }
