@@ -762,7 +762,7 @@ nBuffer  #(.n(16)) adder_buffer643574c7_4a36_4242_aacb_90745571ece9 (
 
 
 
-
+wire screenend;
 
 vgaSignalGenerator sigGend2928bfa_f1fd_4ac2_bfb0_47ad30f4f4ee (
                 .i_clk(CLK),
@@ -771,10 +771,12 @@ vgaSignalGenerator sigGend2928bfa_f1fd_4ac2_bfb0_47ad30f4f4ee (
                 .o_hs(VGA_HS_O),
                 .o_vs(VGA_VS_O),
                 .o_x(sigGen96907574_0527_4692_98c4_9211f88e6b3f),
-                .o_y(sigGen35785bef_fbda_49d7_b46d_0c2fa0495eb2)
+                .o_y(sigGen35785bef_fbda_49d7_b46d_0c2fa0495eb2),
+                .o_active(screenend)
             );
        wire [9:0] x;  // current pixel x position: 10-bit value: 0-1023
        wire [8:0] y; 
+       reg [3:0] vgar_reg;
        
         assign x = sigGen96907574_0527_4692_98c4_9211f88e6b3f;
         assign y = sigGen35785bef_fbda_49d7_b46d_0c2fa0495eb2;
@@ -785,9 +787,9 @@ vgaSignalGenerator sigGend2928bfa_f1fd_4ac2_bfb0_47ad30f4f4ee (
            //  assign sq_c = ((x > 280) & (y > 200) & (x < 440) & (y < 360)) ? 1 : 0;
            //  assign sq_d = ((x > 360) & (y > 280) & (x < 520) & (y < 440)) ? 1 : 0;
          
-             assign VGA_R = OUT_register8d6e24d8_801d_4252_9209_3ec81dc74192;
-             assign VGA_G = OUT_register8d6e24d8_801d_4252_9209_3ec81dc74192;
-             assign VGA_B = OUT_register8d6e24d8_801d_4252_9209_3ec81dc74192;
+             assign VGA_R = vgar_reg;
+             assign VGA_G = vgar_reg;
+             assign VGA_B = vgar_reg;
 
         reg [32:0] counter = 32'b0;
         //counter for pixel clock... cant get other counter to work
@@ -798,10 +800,18 @@ vgaSignalGenerator sigGend2928bfa_f1fd_4ac2_bfb0_47ad30f4f4ee (
         
             always @ (posedge CLK) 
             begin
-                LED = OUT_register8d6e24d8_801d_4252_9209_3ec81dc74192;          
+                LED = OUT_register8d6e24d8_801d_4252_9209_3ec81dc74192;
+                //if the screen is done being drawn - latch next value.
+                if(screenend == 1) begin
+                vgar_reg <= LED;
+                end
+                else begin
+                 vgar_reg <= 4'b0000;
+                end
+                          
                 counter <= counter + 1;
                 if(microCode_SIGNAL_bankdf243095_8393_4aeb_a19d_4e8cf834908d[17] == 0) begin
-                clock[0] <= counter[17];
+                clock[0] <= counter[22];
                 end
                 //TODO see if it works if we set strobe to counter[3 or 4];
                  //{pix_stb, counter} <= counter + 32'h40000000;  // divide by 4: (2^16)/4 = 0x4000
