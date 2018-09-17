@@ -1,4 +1,4 @@
-import { Ipart, nRegister, VoltageRail, nBuffer, bus, inverter, ANDGATE, ORGATE } from "../src/primitives";
+import { Ipart, nRegister, VoltageRail, nBuffer, inverter, ANDGATE, ORGATE, bus } from "../src/primitives";
 import { clock, clockWithMode } from "../src/clock";
 import { wire, pin, outputPin } from "../src/pins_wires";
 import { nbitAdder } from "../src/ALU";
@@ -12,6 +12,7 @@ import { toggleButton } from "../src/buttons";
 import { nbitComparator } from "../src/comparator";
 import { vgaSignalGenerator } from "../src/vgaSignalGenerator";
 import { vgaMonitorPart } from "../src/debugParts/vgaMonitor";
+import { SPIComPart } from "../src/SPIpart";
 
 export function generate3Registers_Adder_Bus(): Ipart[] {
 
@@ -26,7 +27,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     let adder = new nbitAdder(16, "adder");
     let adderBbuffer = new nBuffer(16, "adder_buffer");
 
-    let buscomponent = new bus(16, 5, "main_bus");
+    let buscomponent = new bus(16, 7, "main_bus");
 
     //hook up registers to adders
     regA.outputPins.forEach((pin, index) => { new wire(pin, adder.dataPinsA[index]) });
@@ -82,7 +83,7 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus, clock: clockWithM
 
     //add our vga signal generator
     //640 x 480 - but we'll discard a bunch of x and y positions...
-    let vgaSignalGen = new vgaSignalGenerator(10, 9,"sigGen");
+    let vgaSignalGen = new vgaSignalGenerator(10, 9, "sigGen");
 
     new wire(clock.outputPin, vgaSignalGen.clockPin);
 
@@ -113,7 +114,7 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus, clock: clockWithM
     new wire(ram.readonlyOutputPins[11], vgaMonitor.blue[3]);
 */
 
-    return [memoryAddressREG, ram, ramBuffer, buscomponent, ce,vgaSignalGen]
+    return [memoryAddressREG, ram, ramBuffer, buscomponent, ce, vgaSignalGen]
 }
 
 export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipart[] {
@@ -141,7 +142,7 @@ export function generateProgramCounter(clockComp: clock, buscomponent: bus): Ipa
 export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, buscomponent: bus): Ipart[] {
 
     let eepromLen = 256;
-    let EEPROM = new staticRam(24, eepromLen, "microcode_rom");
+    let EEPROM = new staticRam(32, eepromLen, "microcode_rom");
 
     let eepromWriteDisabled = new VoltageRail("eepromWriteDisabled");
     eepromWriteDisabled.outputPin.value = true;
@@ -176,6 +177,7 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     new wire(inv.outputPin, microCodeCounter.clockPin);
 
     let instructionPinsLen = instructionREG.outputPins.length;
+    new wire(instructionREG.outputPins[instructionPinsLen - 5], EEPROM.addressPins[0]);
     new wire(instructionREG.outputPins[instructionPinsLen - 4], EEPROM.addressPins[1]);
     new wire(instructionREG.outputPins[instructionPinsLen - 3], EEPROM.addressPins[2]);
     new wire(instructionREG.outputPins[instructionPinsLen - 2], EEPROM.addressPins[3]);
@@ -185,9 +187,9 @@ export function generateMicroCodeCounter_EEPROMS_INSTRUCTIONREG(clock: clock, bu
     new wire(microCodeCounter.outputPins[1], EEPROM.addressPins[6]);
     new wire(microCodeCounter.outputPins[2], EEPROM.addressPins[7]);
 
-    let microCode = microCodeData.getData().map(number => { return number.toString(2).padStart(24, "0").split("").map(bit => { return Boolean(Number(bit)) }) });
+    let microCode = microCodeData.getData().map(number => { return number.toString(2).padStart(32, "0").split("").map(bit => { return Boolean(Number(bit)) }) });
     while (microCode.length < eepromLen) {
-        microCode.push(_.range(0, 24).map(x => { return false }))
+        microCode.push(_.range(0, 32).map(x => { return false }));
     }
     EEPROM.data = microCode;
     //EEPROM outputs drive the rest of the computer's signals we'll need to invert some of them....
@@ -241,9 +243,10 @@ function generateMicrocodeSignalBank(clock: clock,
     bReg: nRegister, bRegBuffer: nBuffer,
     outReg: nRegister,
     memoryReg: nRegister,
-    adderBbuffer: nBuffer): Ipart[] {
-    let signalBank = new nBuffer(24, "microCode_SIGNAL_bank",
-        ["RAMIN",
+    adderBbuffer: nBuffer, bus: bus): Ipart[] {
+    let signalBank = new nBuffer(32, "microCode_SIGNAL_bank",
+        [
+            "RAMIN",
             "RAMOUT",
             "INSTRUCTIONIN",
             "INSTROUT",
@@ -265,7 +268,12 @@ function generateMicrocodeSignalBank(clock: clock,
             "JUMP_A_LESS_B",
             "JUMP_A_EQUAL_B",
             "JUMP_A_GREATER_ B]",
-            "FLAGIN", "_"]);
+            "FLAGIN",
+            "COM_STATUS_OUT",
+            "COM_CONTROL_IN",
+            "COM_DATA_IN",
+            "26", "27", "28", "29", "30", "31"
+        ]);
 
     //wires go from eeprom to signalBank then to inverter (if applicable) - so signal bank shows state
     //of microinstruction
@@ -327,6 +335,52 @@ function generateMicrocodeSignalBank(clock: clock,
     new wire(clock.outputPin, bReg.clockPin);
     new wire(signalBank.outputPins[14], bReg.enablePin);
     new wire(signalBank.outputPins[15], bRegBuffer.outputEnablePin);
+
+
+    //com regs
+    //TODO general GPIO?
+    let comDataReg = new nRegister(16, "comDataReg");
+    let comDataRegBuffer = new nBuffer(16, "comDataRegBuffer");
+    let comControlReg = new nRegister(16, "comControlReg");
+    let comStatusReg = new nRegister(16, "comStatusReg");
+    let comStatusRegBuffer = new nBuffer(16, "comStatusRegBuffer");
+    let spi = new SPIComPart(16, "spi_test");
+    //connect spi part pins to the related registers
+    spi.dataoutputPins.forEach((x, i) => { new wire(x, comDataReg.inputs[i]) });
+    spi.statusPins.forEach((x, i) => { new wire(x, comStatusReg.inputs[i]) });
+    new wire(clock.outputPin,spi.clockPin);
+    
+    comControlReg.outputPins.forEach((x, i) => { new wire(x, spi.controlPins[i]) });
+
+    //attach the com registers to the bus....
+    //attach register inputs to the bus.
+    comControlReg.dataPins.forEach((pin, index) => { new wire(bus.outputPins[index], pin) });
+
+
+    //attach all outputs to bus.
+    comDataRegBuffer.outputPins.forEach((pin, index) => { new wire(pin, bus.inputGroups[5][index]) });
+    comStatusRegBuffer.outputPins.forEach((pin, index) => { new wire(pin, bus.inputGroups[6][index]) });
+
+    //attach register outputs to buffer inputs.
+    comDataReg.outputPins.forEach((x, i) => new wire(x, comDataRegBuffer.inputs[i]));
+    comStatusReg.outputPins.forEach((x, i) => new wire(x, comStatusRegBuffer.inputs[i]));
+
+
+    //comControlReg never outputs to the bus, only reads from the bus.
+    new wire(clock.outputPin, comControlReg.clockPin);
+    new wire(signalBank.outputPins[6], comControlReg.enablePin);
+
+    // comDataReg and comStatusReg enable are always off. - it never reads from the bus.
+    let comEnableOff = new VoltageRail("enableOff");
+    comEnableOff.outputPin.value = false;
+
+    new wire(clock.outputPin, comStatusReg.clockPin);
+    new wire(comEnableOff.outputPin, comStatusReg.enablePin);
+    new wire(signalBank.outputPins[5], comStatusRegBuffer.outputEnablePin);
+
+    new wire(clock.outputPin, comDataReg.clockPin);
+    new wire(comEnableOff.outputPin, comDataReg.enablePin);
+    new wire(signalBank.outputPins[7], comDataRegBuffer.outputEnablePin);
 
     //out register
     new wire(clock.outputPin, outReg.clockPin);
@@ -428,7 +482,9 @@ function generateMicrocodeSignalBank(clock: clock,
     return [signalBank, invertSignal,
         ramInInverter,
         ramOutInverter,
-        programCounterCountInverter, outputOn, invertON, comparatorComp, invert1, invert2, loadInverter, flagsRegister, ANDAGB, ANDALB, ANDEB, OR1, OR2, AGTB]
+        programCounterCountInverter, outputOn, invertON, comparatorComp, invert1, invert2, loadInverter,
+        flagsRegister, ANDAGB, ANDALB, ANDEB, OR1, OR2, AGTB,
+        comEnableOff, comControlReg, comStatusReg, comStatusRegBuffer, comDataReg, comDataRegBuffer, spi]
 }
 
 export function generate8bitComputerDesign(): Ipart[] {
@@ -453,7 +509,7 @@ export function generate8bitComputerDesign(): Ipart[] {
     var parts6 = generateMicrocodeSignalBank(
         clockcomp, parts4[0] as staticRam, parts3[0] as binaryCounter, parts3[1] as nBuffer, parts2[1] as staticRam, parts2[2] as nBuffer,
         parts4[4] as nRegister, parts1[0] as nRegister, parts1[2] as nBuffer, parts1[1] as nRegister, parts1[3] as nBuffer
-        , parts1[6] as nRegister, parts2[0] as nRegister, parts1[4] as nBuffer)
+        , parts1[6] as nRegister, parts2[0] as nRegister, parts1[4] as nBuffer, bus)
 
 
     var output = parts1.concat(parts2, parts3, parts4, parts5, parts6);

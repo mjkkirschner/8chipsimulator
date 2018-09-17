@@ -6,22 +6,7 @@ import { graph, simulatorExecution } from "../src/engine";
 import * as assert from "assert";
 import { verilogGenerator } from "../src/verilogGenerator";
 import *  as fs from 'fs';
-
-//TODO MOVE THESE TO UTILS
-function hex2BinArray(hexString: string) {
-    let binString = convertNumber(hexString, 16, 2);
-    return binString.padStart(16, "0").split('').map(x => { return parseInt(x) });
-  }
-
-  function convertNumber(n: string, fromBase: number, toBase: number): string {
-    if (fromBase === void 0) {
-      fromBase = 10;
-    }
-    if (toBase === void 0) {
-      toBase = 10;
-    }
-    return (parseInt(n, fromBase)).toString(toBase);
-  }
+import { hex2BinArray } from "../src/utils";
 
 
 xdescribe("testing a full cpu/computer integreation", () => {
@@ -223,8 +208,6 @@ describe("testing a full cpu/computer verilog generation", () => {
         ram.writeData(11, hex2BinArray("0x0000").map(x => Boolean(x))); //address 2
     
         ram.writeData(100, hex2BinArray("0x0001").map(x => Boolean(x))); //1 at memory location 100
-
-
 
         let gra = new graph(parts);
         const orderedParts = gra.topoSort();

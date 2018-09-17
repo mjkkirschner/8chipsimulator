@@ -9,6 +9,7 @@ import { twoLineToFourLineDecoder } from "./Decoder";
 import { staticRam, dualPortStaticRam } from "./sram";
 import { clockWithMode } from "./clock";
 import { vgaSignalGenerator } from "./vgaSignalGenerator";
+import { SPIComPart } from "./SPIpart";
 
 
 /**
@@ -323,6 +324,41 @@ export class verilogGenerator {
             this.wireMap[part.carryOut.id] = carryOutputName;
 
             return [outputWireString, carryOutWire, concatenatedADatas, concatenatedBDatas, moduleInstanceString].join("\n");
+
+        },
+
+        SPIComPart: (part: SPIComPart) => {
+
+            let controlRegInputName = 'AllControlInputsFor' + part.id;
+            let clockInputName = this.wireMap[part.clockPin.attachedWire.startPin.id] + `[${part.clockPin.attachedWire.startPin.index}]`
+
+
+            let n = part.dataoutputPins.length;
+
+            let concatenatedRegInputs = `wire [0:${n}-1] ` + controlRegInputName + '= {' + part.controlPins.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+
+            let outputDataName = part.displayName + part.dataoutputPins[0].id;
+            let outputStatusName = part.displayName + part.statusPins[0].id;
+
+
+            let func = this.moduleConstructorMap.SPIComPart;
+
+
+            let outputWire1String = `wire [0:${n}-1] ${outputDataName};`
+            let outputWire2String = `wire [0:${n}-1] ${outputStatusName};`
+
+            // control inputs, data out, status out, n, name)
+            let moduleInstanceString = func(clockInputName,
+                controlRegInputName,
+                outputDataName,
+                outputStatusName,
+                "CLOCKOUT", "SERIALIN", "ENABLEOUT",
+                n, part.displayName + part.id);
+
+            part.dataoutputPins.forEach(x => this.wireMap[x.id] = outputDataName);
+            part.statusPins.forEach(x => this.wireMap[x.id] = outputStatusName);
+
+            return [outputWire1String, outputWire2String, concatenatedRegInputs, moduleInstanceString].join("\n");
 
         },
 
@@ -758,7 +794,18 @@ export class verilogGenerator {
                 .o_x(${xpos}),
                 .o_y(${ypos})
             );`
+        },
+        SPIComPart: (clk, i_controlReg, o_dataReg, o_statusReg, o_clock, i_serial, o_enable, DATA_WIDTH, name) => {
+            return `SPIComPart #(.n(${DATA_WIDTH})) ${name} (
+                .i_controlReg(${i_controlReg}),
+                .o_dataReg(${o_dataReg}),
+                .o_statusReg(${o_statusReg}),
+                .i_serial(${i_serial}),
+                .o_enable(${o_enable}),
+                .o_clock(${o_clock}),
+               .i_clk(${clk}));`
         }
+
     }
 
     //standard modules:
@@ -1099,6 +1146,78 @@ export class verilogGenerator {
         end
     endmodule
 
+    `,
+        SPIComPart:
+            ` 
+            module SPIComPart(
+                input wire i_clk,                   // base clock
+                input wire [0:n-1] i_controlReg,    // control reg
+                input wire  i_serial,               // serialIn
+        
+                output reg [0:n-1] o_dataReg = 0,       //databits to write to
+                output reg [0:n-1] o_statReg = 0,       //status reg to write to
+        
+                output reg enable = 0,                 // start comms on slave
+                output reg o_clock = 0           // clock out for clock
+                );
+        
+                parameter n=16;
+        
+                //for now lets just count to 16.
+                reg [0:7]internalcounter = 0;
+                reg  startcoms = 0;
+        
+              
+                //when our start bit goes high
+                //start a request for data.
+        
+                always@(posedge i_controlReg[0]) 
+                begin
+                startcoms = 1;
+                end
+        
+                //when clock goes low -
+                //output a low clock.
+        
+                always @(negedge i_clk)
+                begin
+                 o_clock <= i_clk;
+                end
+        
+                //when the clock goes high and start is high
+                //then generate n clock pulses.
+                //then drive start low.
+                //and shift in data after each pulse.
+                
+                always @(posedge i_clk)
+                begin
+                
+                 //if coms is started, then we are not done
+                //if we finish, done bit will go high.
+                
+                        //if start coms is high
+                        //incrment counter
+                        if(internalcounter > 15)
+                        begin
+                            internalcounter = 0;
+                            startcoms = 0;
+        
+                        end
+                        //if we have not yet reset the start flag
+                        //then count on the clock
+                        if(startcoms == 1)begin
+                            internalcounter = internalcounter + 1;
+                            assign enable = startcoms;
+                            assign o_clock = i_clk;
+                            //shift in data from the serial port
+                            o_dataReg <= o_dataReg << i_serial;
+        
+                        end
+                         o_statReg[0] = ~startcoms;
+                
+                end
+        
+                endmodule
     `
 
     }

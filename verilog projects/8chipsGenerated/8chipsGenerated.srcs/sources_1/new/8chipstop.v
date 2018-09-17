@@ -762,7 +762,7 @@ nBuffer  #(.n(16)) adder_buffer643574c7_4a36_4242_aacb_90745571ece9 (
 
 
 
-wire screenend;
+wire active;
 
 vgaSignalGenerator sigGend2928bfa_f1fd_4ac2_bfb0_47ad30f4f4ee (
                 .i_clk(CLK),
@@ -772,7 +772,7 @@ vgaSignalGenerator sigGend2928bfa_f1fd_4ac2_bfb0_47ad30f4f4ee (
                 .o_vs(VGA_VS_O),
                 .o_x(sigGen96907574_0527_4692_98c4_9211f88e6b3f),
                 .o_y(sigGen35785bef_fbda_49d7_b46d_0c2fa0495eb2),
-                .o_active(screenend)
+                .o_active(active)
             );
        wire [9:0] x;  // current pixel x position: 10-bit value: 0-1023
        wire [8:0] y; 
@@ -802,16 +802,16 @@ vgaSignalGenerator sigGend2928bfa_f1fd_4ac2_bfb0_47ad30f4f4ee (
             begin
                 LED = OUT_register8d6e24d8_801d_4252_9209_3ec81dc74192;
                 //if the screen is done being drawn - latch next value.
-                if(screenend == 1) begin
-                vgar_reg <= LED;
-                end
-                else begin
-                 vgar_reg <= 4'b0000;
-                end
+                //if(active == 1) begin
+                vgar_reg <= sigGen35785bef_fbda_49d7_b46d_0c2fa0495eb2;
+                //end
+               // else begin
+               //  vgar_reg <= 4'b0000;
+               // end
                           
                 counter <= counter + 1;
                 if(microCode_SIGNAL_bankdf243095_8393_4aeb_a19d_4e8cf834908d[17] == 0) begin
-                clock[0] <= counter[22];
+                clock[0] <= counter[20];
                 end
                 //TODO see if it works if we set strobe to counter[3 or 4];
                  //{pix_stb, counter} <= counter + 32'h40000000;  // divide by 4: (2^16)/4 = 0x4000
