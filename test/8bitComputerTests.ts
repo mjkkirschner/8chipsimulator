@@ -346,8 +346,8 @@ function generateMicrocodeSignalBank(clock: clock,
     let comStatusRegBuffer = new nBuffer(16, "comStatusRegBuffer");
     let spi = new SPIComPart(16, "spi_test");
     //connect spi part pins to the related registers
-    spi.dataoutputPins.forEach((x, i) => { new wire(x, comDataReg.inputs[i]) });
-    spi.statusPins.forEach((x, i) => { new wire(x, comStatusReg.inputs[i]) });
+    spi.dataoutputPins.forEach((x, i) => { new wire(x, comDataReg.dataPins[i]) });
+    spi.statusPins.forEach((x, i) => { new wire(x, comStatusReg.dataPins[i]) });
     new wire(clock.outputPin,spi.clockPin);
     
     comControlReg.outputPins.forEach((x, i) => { new wire(x, spi.controlPins[i]) });
@@ -362,25 +362,26 @@ function generateMicrocodeSignalBank(clock: clock,
     comStatusRegBuffer.outputPins.forEach((pin, index) => { new wire(pin, bus.inputGroups[6][index]) });
 
     //attach register outputs to buffer inputs.
-    comDataReg.outputPins.forEach((x, i) => new wire(x, comDataRegBuffer.inputs[i]));
-    comStatusReg.outputPins.forEach((x, i) => new wire(x, comStatusRegBuffer.inputs[i]));
+    comDataReg.outputPins.forEach((x, i) => new wire(x, comDataRegBuffer.dataPins[i]));
+    comStatusReg.outputPins.forEach((x, i) => new wire(x, comStatusRegBuffer.dataPins[i]));
 
 
     //comControlReg never outputs to the bus, only reads from the bus.
     new wire(clock.outputPin, comControlReg.clockPin);
-    new wire(signalBank.outputPins[6], comControlReg.enablePin);
+    new wire(signalBank.outputPins[24], comControlReg.enablePin);
 
     // comDataReg and comStatusReg enable are always off. - it never reads from the bus.
-    let comEnableOff = new VoltageRail("enableOff");
-    comEnableOff.outputPin.value = false;
+    //TODO - I think this should be always on!.
+    let comEnableOn = new VoltageRail("COMenableOn");
+    comEnableOn.outputPin.value = true;
 
     new wire(clock.outputPin, comStatusReg.clockPin);
-    new wire(comEnableOff.outputPin, comStatusReg.enablePin);
-    new wire(signalBank.outputPins[5], comStatusRegBuffer.outputEnablePin);
+    new wire(comEnableOn.outputPin, comStatusReg.enablePin);
+    new wire(signalBank.outputPins[23], comStatusRegBuffer.outputEnablePin);
 
     new wire(clock.outputPin, comDataReg.clockPin);
-    new wire(comEnableOff.outputPin, comDataReg.enablePin);
-    new wire(signalBank.outputPins[7], comDataRegBuffer.outputEnablePin);
+    new wire(comEnableOn.outputPin, comDataReg.enablePin);
+    new wire(signalBank.outputPins[25], comDataRegBuffer.outputEnablePin);
 
     //out register
     new wire(clock.outputPin, outReg.clockPin);
@@ -484,7 +485,7 @@ function generateMicrocodeSignalBank(clock: clock,
         ramOutInverter,
         programCounterCountInverter, outputOn, invertON, comparatorComp, invert1, invert2, loadInverter,
         flagsRegister, ANDAGB, ANDALB, ANDEB, OR1, OR2, AGTB,
-        comEnableOff, comControlReg, comStatusReg, comStatusRegBuffer, comDataReg, comDataRegBuffer, spi]
+        comEnableOn, comControlReg, comStatusReg, comStatusRegBuffer, comDataReg, comDataRegBuffer, spi]
 }
 
 export function generate8bitComputerDesign(): Ipart[] {
