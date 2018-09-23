@@ -36,6 +36,16 @@ export class verilogGenerator {
         return strings;
     }
 
+    //TODO make a command line assembler tool.
+    public generateHexArrayForArduinoFlashProgram(ram: staticRam, sliceSize: number): string {
+
+        let data = ram.data.slice(0, sliceSize);
+        let string = data.map(data => {
+            return "0x" + (parseInt(data.map(bool => bool as any * 1).join(""), 2).toString(16).padStart(4, "0"));
+        }).join(",\n ");
+        return string;
+    }
+
     public generateVerilog() {
 
         let sortedNodes = this.graph.topoSort();
@@ -799,7 +809,7 @@ export class verilogGenerator {
             return `SPIComPart #(.n(${DATA_WIDTH})) ${name} (
                 .i_controlReg(${i_controlReg}),
                 .o_dataReg(${o_dataReg}),
-                .o_statusReg(${o_statusReg}),
+                .o_statReg(${o_statusReg}),
                 .i_serial(${i_serial}),
                 .o_enable(${o_enable}),
                 .o_clock(${o_clock}),
@@ -1065,7 +1075,7 @@ export class verilogGenerator {
           if (!cs_ && !we_)
             mem[address_1] = data;
            Q_1 = (!cs_ && !oe_) ? mem[address_1] : {DATA_WIDTH{1'bz}};
-           Q_2 = mem[address_2];
+           //Q_2 = mem[address_2];
         end
 
         always@(posedge clock2) begin
@@ -1157,7 +1167,7 @@ export class verilogGenerator {
                 output reg [0:n-1] o_dataReg = 0,       //databits to write to
                 output reg [0:n-1] o_statReg = 0,       //status reg to write to
         
-                output reg enable = 0,                 // start comms on slave
+                output reg o_enable = 1,                 // start comms on slave
                 output reg o_clock = 0           // clock out for clock
                 );
         
@@ -1166,24 +1176,9 @@ export class verilogGenerator {
                 //for now lets just count to 16.
                 reg [0:7]internalcounter = 0;
                 reg  startcoms = 0;
-        
-              
-                //when our start bit goes high
-                //start a request for data.
-        
-                always@(posedge i_controlReg[0]) 
-                begin
-                startcoms = 1;
-                end
-        
-                //when clock goes low -
-                //output a low clock.
-        
-                always @(negedge i_clk)
-                begin
-                 o_clock <= i_clk;
-                end
-        
+                reg  startcomsRisingEdge = 0;
+                reg hold = 0;
+               
                 //when the clock goes high and start is high
                 //then generate n clock pulses.
                 //then drive start low.
@@ -1192,28 +1187,37 @@ export class verilogGenerator {
                 always @(posedge i_clk)
                 begin
                 
-                 //if coms is started, then we are not done
-                //if we finish, done bit will go high.
-                
-                        //if start coms is high
-                        //incrment counter
-                        if(internalcounter > 15)
+                 startcomsRisingEdge = i_controlReg[15] & !startcoms;              
+                 startcoms = i_controlReg[15];
+               
+                if((startcomsRisingEdge))begin
+                   hold = 1;
+                   o_statReg[15] = 0;
+                end
+               
+                        if(internalcounter > 31)
                         begin
                             internalcounter = 0;
-                            startcoms = 0;
-        
+                            hold = 0;
+                            o_enable = 1;
+                            o_statReg[15] = 1;
+                            o_clock = 0;
                         end
+                        
+                          
+                          
                         //if we have not yet reset the start flag
                         //then count on the clock
-                        if(startcoms == 1)begin
+                        if(hold == 1)begin
                             internalcounter = internalcounter + 1;
-                            assign enable = startcoms;
-                            assign o_clock = i_clk;
+                             o_enable = 0;
+                             o_clock = internalcounter[7];
                             //shift in data from the serial port
-                            o_dataReg <= o_dataReg << i_serial;
-        
+                            if(o_clock == 0) begin
+                            o_dataReg <= {i_serial,o_dataReg[0:n-2]};
+                            end
                         end
-                         o_statReg[0] = ~startcoms;
+                       
                 
                 end
         

@@ -73,13 +73,13 @@ export function generateVerilog() {
     //////////////////
     //our working data...
     ram.writeData(34, hex2BinArray("0x0000").map(x => Boolean(x))); //0 at memory location 34
-    ram.writeData(35, hex2BinArray("0x00FF").map(x => Boolean(x))); //255 at memory location 35 - ...all memory locations in our programs need 255 added to them... important!!!!
+    ram.writeData(35, hex2BinArray("0x00FE").map(x => Boolean(x))); //255 at memory location 35 - ...all memory locations in our programs need 255 added to them... important!!!!
     ram.writeData(36, hex2BinArray("0x0001").map(x => Boolean(x))); //1 at memory location 36
     ram.writeData(37, hex2BinArray("0x0000").map(x => Boolean(x))); //temp loc for new data
 
     //end prog - TODO THIS IS ONLY FOR DEBUGGING
     ram.writeData(255, hex2BinArray("0x0006").map(x => Boolean(x))); //aloadimm
-    ram.writeData(256, hex2BinArray("0x000F").map(x => Boolean(x))); //16
+    ram.writeData(256, hex2BinArray("0x000F").map(x => Boolean(x))); //15
     ram.writeData(257, hex2BinArray("0x0002").map(x => Boolean(x))); //aout
     ram.writeData(258, hex2BinArray("0x000F").map(x => Boolean(x))); //address 255
 
