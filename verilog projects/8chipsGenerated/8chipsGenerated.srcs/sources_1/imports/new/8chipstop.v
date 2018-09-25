@@ -320,12 +320,18 @@ module ORGATE(a,b,c);
                 );
         
                 parameter n=16;
-        
-                //for now lets just count to 16.
+                
+                reg [32:0]clockScaler = 0;
+                //output counter
                 reg [0:7]internalcounter = 0;
-                reg  startcoms = 0;
-                reg  startcomsRisingEdge = 0;
                 reg hold = 0;
+                reg slow_clock = 0;
+                
+                
+                reg  r1_pulse = 0;
+                reg  r2_pulse = 0;
+                reg  r3_pulse = 0;
+
                
                 //when the clock goes high and start is high
                 //then generate n clock pulses.
@@ -334,15 +340,23 @@ module ORGATE(a,b,c);
                 
                 always @(posedge i_clk)
                 begin
+                clockScaler <= clockScaler + 1;
+                slow_clock <= clockScaler[11];
+                end
                 
-                 startcomsRisingEdge = i_controlReg[15] & !startcoms;              
-                 startcoms = i_controlReg[15];
+                always@(posedge slow_clock) begin
+                
+                r1_pulse <= i_controlReg[15];
+                r2_pulse <= r1_pulse;
+                r3_pulse <= r2_pulse;
                
-                if((startcomsRisingEdge))begin
+               //start clocking out
+                if((r2_pulse && !r3_pulse))begin
                    hold = 1;
                    o_statReg[15] = 0;
                 end
                
+               //count up to 31 and reset all regs after that.
                         if(internalcounter > 31)
                         begin
                             internalcounter = 0;
@@ -355,20 +369,18 @@ module ORGATE(a,b,c);
                           
                           
                         //if we have not yet reset the start flag
-                        //then count on the clock
-                        if(hold == 1)begin
+                        //then count on the clock - input clock / preScaler / 2 
+                        if(hold == 1)begin //begin clock out 16 pulses
                             internalcounter = internalcounter + 1;
                              o_enable = 0;
                              o_clock = internalcounter[7];
-                            //shift in data from the serial port
+                            //shift in LSB data from the serial port into the MSB
                             if(o_clock == 0) begin
                             o_dataReg <= {i_serial,o_dataReg[0:n-2]};
-                            end
-                        end
+                            end //end shift in
+                        end //end clock out
                        
-                
-                end
-        
+                end // end always
                 endmodule
     
         (* DONT_TOUCH = "yes" *)
@@ -710,7 +722,7 @@ SPIComPart #(.n(16)) spi_testdc728842_03ae_4852_a4e9_876efe18753a (
                 .i_serial(SERIALIN),
                 .o_enable(ENABLEOUT),
                 .o_clock(CLOCKOUT),
-               .i_clk(clock[0]));
+               .i_clk(CLK));
 
 
 
@@ -914,13 +926,14 @@ vgaSignalGenerator sigGenbd21f964_f65d_44fa_b709_5dd900129dc1 (
         reg [32:0] counter = 32'b0;
             always @ (posedge CLK) 
             begin
+
                    LED = OUT_register0ae9533e_37a1_4cf7_b5d3_ee3e51eae0a4;
                    RGB3_Red   = spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[15];
                    OUT_AREG = comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[8:15];
 
                 counter <= counter + 1;
                 if(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[17] == 0) begin
-                clock[0] <= counter[11];
+                clock[0] <= counter[14];
                 end
                 ClockFaster[0] <= counter[3];
                
