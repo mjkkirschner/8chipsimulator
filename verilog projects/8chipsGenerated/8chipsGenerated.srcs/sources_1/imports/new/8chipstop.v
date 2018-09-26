@@ -329,8 +329,8 @@ module ORGATE(a,b,c);
                 
                 
                 reg  r1_pulse = 0;
-                reg  r2_pulse = 0;
-                reg  r3_pulse = 0;
+                //reg  r2_pulse = 0;
+                //reg  r3_pulse = 0;
 
                
                 //when the clock goes high and start is high
@@ -347,11 +347,11 @@ module ORGATE(a,b,c);
                 always@(posedge slow_clock) begin
                 
                 r1_pulse <= i_controlReg[15];
-                r2_pulse <= r1_pulse;
-                r3_pulse <= r2_pulse;
+                //r2_pulse <= r1_pulse;
+                //r3_pulse <= r2_pulse;
                
                //start clocking out
-                if((r2_pulse && !r3_pulse))begin
+                if((i_controlReg[15] && !r1_pulse))begin
                    hold = 1;
                    o_statReg[15] = 0;
                 end

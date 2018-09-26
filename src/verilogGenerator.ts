@@ -1172,13 +1172,14 @@ export class verilogGenerator {
                 );
         
                 parameter n=16;
-        
-                //for now lets just count to 16.
+                
+                reg [32:0]clockScaler = 0;
+                //output counter
                 reg [0:7]internalcounter = 0;
-                reg  startcoms = 0;
-                reg  startcomsRisingEdge = 0;
                 reg hold = 0;
-               
+                reg slow_clock = 0;
+                reg  r1_pulse = 0;
+
                 //when the clock goes high and start is high
                 //then generate n clock pulses.
                 //then drive start low.
@@ -1186,15 +1187,21 @@ export class verilogGenerator {
                 
                 always @(posedge i_clk)
                 begin
+                clockScaler <= clockScaler + 1;
+                slow_clock <= clockScaler[11];
+                end
                 
-                 startcomsRisingEdge = i_controlReg[15] & !startcoms;              
-                 startcoms = i_controlReg[15];
+                always@(posedge slow_clock) begin
+                
+                r1_pulse <= i_controlReg[15];
                
-                if((startcomsRisingEdge))begin
+               //start clocking out
+                if((i_controlReg[15] && !r1_pulse))begin
                    hold = 1;
                    o_statReg[15] = 0;
                 end
                
+               //count up to 31 and reset all regs after that.
                         if(internalcounter > 31)
                         begin
                             internalcounter = 0;
@@ -1207,20 +1214,18 @@ export class verilogGenerator {
                           
                           
                         //if we have not yet reset the start flag
-                        //then count on the clock
-                        if(hold == 1)begin
+                        //then count on the clock - input clock / preScaler / 2 
+                        if(hold == 1)begin //begin clock out 16 pulses
                             internalcounter = internalcounter + 1;
                              o_enable = 0;
                              o_clock = internalcounter[7];
-                            //shift in data from the serial port
+                            //shift in LSB data from the serial port into the MSB
                             if(o_clock == 0) begin
                             o_dataReg <= {i_serial,o_dataReg[0:n-2]};
-                            end
-                        end
+                            end //end shift in
+                        end //end clock out
                        
-                
-                end
-        
+                end // end always
                 endmodule
     `
 
