@@ -10,6 +10,8 @@ import { toggleButton } from '../buttons';
 import { ToggleButtonPartView } from './buttonViews';
 import { RegistersDebug } from '../debugParts/RegistersDebug';
 import { RegistersDebugView } from './RegistersDebugView';
+import { vgaMonitorPart } from '../debugParts/vgaMonitor';
+import { VGADataView } from './vgaMonitorView';
 
 export interface IPartViewState {
     selected: Boolean
@@ -135,9 +137,14 @@ export class PartView extends React.Component<IpartViewProps, IPartViewState> {
 
         }
 
-        if(model instanceof RegistersDebug){
+        if (model instanceof RegistersDebug) {
             return <RegistersDebugView simulator={window["evaluator"]}>
             </RegistersDebugView>
+        }
+
+        if (model instanceof vgaMonitorPart) {
+            return <VGADataView model={model}>
+            </VGADataView>
         }
     }
 
