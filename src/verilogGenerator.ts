@@ -1179,6 +1179,12 @@ export class verilogGenerator {
                 reg hold = 0;
                 reg slow_clock = 0;
                 reg  r1_pulse = 0;
+                
+                //we may want to use two more registers
+                //to sync this signal correctly
+
+                //reg r2_pulse = 0;
+                //reg r3_pulse = 0; 
 
                 //when the clock goes high and start is high
                 //then generate n clock pulses.
