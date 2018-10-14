@@ -118,7 +118,7 @@ export function generateVerilog() {
 
     //conditionally jump to 2 if A < B... if A < 16 keep looping 
     mockRam.writeData(8, hex2BinArray("0x0009").map(x => Boolean(x))); //jump to line:
-    mockRam.writeData(9, hex2BinArray("0x00101").map(x => Boolean(x))); //address 2
+    mockRam.writeData(9, hex2BinArray("0x0101").map(x => Boolean(x))); //address 2
 
     mockRam.writeData(10, hex2BinArray("0x0008").map(x => Boolean(x))); //jump to line:
     mockRam.writeData(11, hex2BinArray("0x00FF").map(x => Boolean(x))); //address 0
@@ -133,3 +133,41 @@ export function generateVerilog() {
 };
 
 generateVerilog();
+/*
+//no symbols
+
+LOADAIMMEDIATE
+0
+ADD
+355
+OUTA
+LOADBIMMEDIATE
+16
+UPDATEFLAGS
+JUMPIFLESS
+257
+JUMP
+255
+100 = 1 // this is an assembly only instruction -
+// put some data at a memory address directly.//these should go at end of program
+
+
+
+increment = 1
+//version with symbols:
+(START)
+LOADAIMMEDIATE
+0
+(ADD_1)
+ADD
+increment
+OUTA
+LOADBIMMEDIATE
+16
+UPDATEFLAGS
+JUMPIFLESS
+ADD_1
+JUMP
+START
+
+*/
