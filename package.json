@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc \n browserify src/main.js -o output.js \n ./node_modules/mocha/bin/mocha",
     "buildGlobal": "tsc \n browserify src/main.js -o output.js -s chips \n ./node_modules/mocha/bin/mocha",
-    "generateVerilog": "tsc \n browserify src/main.js -o output.js -s chips \n node ./tools/generateVerilog.js"
+    "generateVerilog": "tsc \n browserify src/main.js -o output.js -s chips \n node ./tools/generateVerilog.js",
+    "assemblerTests": "tsc \n browserify src/main.js -o output.js -s chips \n ./node_modules/mocha/bin/mocha ./test/assemblerTests.js"
   },
   "author": "",
   "license": "MIT",

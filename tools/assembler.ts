@@ -32,7 +32,7 @@ enum commandType {
 
 }
 
-class assembler {
+export class assembler {
 
     private bootLoaderOffset = 255;
     private symbolTableOffset = 500;
@@ -46,8 +46,8 @@ class assembler {
 
     private expandMacros(assemblyFilePath: fs.PathLike): string[] {
         let parser = new Parser(assemblyFilePath);
-        while (parser.hasMoreCommands()) {
-            parser.advance();
+        while (parser.hasMoreCommands() && parser.advance()) {
+
             //if the current command is a storage macro, we should do a conversion like:
 
             //symbol = 100
@@ -59,17 +59,21 @@ class assembler {
             //symbol
             ////////////////
 
-            if (parser.commandType() != commandType.ASSEM_STORE_MACRO) {
+            if (parser.commandType() == commandType.ASSEM_STORE_MACRO) {
 
                 parser.output.push(commandType[commandType.LOADAIMMEDIATE]);
-                parser.output.push(commandType[parser.operands()[1]]);
+                parser.output.push(parser.operands()[1]);
                 parser.output.push(commandType[commandType.STOREA]);
-                parser.output.push(commandType[parser.operands()[0]]);
+                parser.output.push(parser.operands()[0]);
 
             }
             //all other commands are unchanged
             else {
                 parser.output.push(parser.currentLine);
+                if (parser.hasOperands()) {
+                    parser.output = parser.output.concat(parser.operands());
+                }
+
             }
 
         }
@@ -80,8 +84,8 @@ class assembler {
         let outputLineCounter = 0;
 
         let parser = new Parser(null, code);
-        while (parser.hasMoreCommands()) {
-            parser.advance();
+        while (parser.hasMoreCommands() && parser.advance()) {
+
             //if the current command is a label - don't increment our counter.
             if (parser.commandType() != commandType.ASSEM_LABEL) {
                 let increment = parser.commandTypeToNumberOfLines[parser.commandType()];
@@ -92,6 +96,7 @@ class assembler {
             //if we see a label, add a symbol for the address it points to.
             else {
                 this.symbolTable[parser.labelText()] = outputLineCounter + this.bootLoaderOffset;
+                console.log("adding symbol", parser.labelText(), "at line ", outputLineCounter + this.bootLoaderOffset)
             }
         }
     }
@@ -100,8 +105,7 @@ class assembler {
         let parser = new Parser(null, code);
         let converter = new codeConverter();
 
-        while (parser.hasMoreCommands()) {
-            parser.advance();
+        while (parser.hasMoreCommands() && parser.advance()) {
 
             //dont do anything for labels - we already made symbols for them
             //in the first pass.
@@ -115,7 +119,7 @@ class assembler {
                     //store this as the next line in the output string array.
 
                     //TODO for now there is only ever 1;
-                    let symbol = parser.operands[0];
+                    let symbol = parser.operands()[0];
                     if (this.symbolTable[symbol] != null) {
                         parser.output.push(converter.numberAsHexString(this.symbolTable[symbol]));
                     }
@@ -126,11 +130,16 @@ class assembler {
                     //to increase this we just need to modify the bootloader - we have 64k address space to play with in the cpu.
                     //transfer time will just increase.
                     else {
+                        console.log("adding symbol", symbol, "at line ", this.bootLoaderOffset + this.symbolTableOffset)
                         this.symbolTable[symbol] = this.bootLoaderOffset + this.symbolTableOffset;
                         this.symbolTableOffset = this.symbolTableOffset + 1;
+                        parser.output.push(converter.numberAsHexString(this.symbolTable[symbol]));
                     }
                 }
-
+                //if no symbols check if it has any operands
+                else if (parser.hasOperands()) {
+                    parser.output = parser.output.concat(parser.operands().map(x => converter.numberAsHexString(parseInt(x))));
+                }
             }
 
         }
@@ -178,7 +187,7 @@ class codeConverter {
 
 class Parser {
 
-    output: string[];
+    output: string[] = [];
     currentLineIndex = -1;
     currentLine: string
     allInputLines: string[] = [];
@@ -198,11 +207,13 @@ class Parser {
         else {
             this.allInputLines = code;
         }
+        this.setInitialMaps();
 
     }
 
 
     private setInitialMaps() {
+        this.commandTypeToNumberOfLines = {};
         //set how many lines of code each instruction is
         this.commandTypeToNumberOfLines[commandType.NOP] = 1;
         this.commandTypeToNumberOfLines[commandType.LOADA] = 2;
@@ -228,8 +239,9 @@ class Parser {
         this.commandTypeToNumberOfLines[commandType.ASSEM_STORE_MACRO] = 1
     }
 
-
-    advance() {
+    //returns false if the current line is undefined...we're out
+    // of commands.
+    advance(): boolean {
         //for some commands we need to advance 2 or more lines.
         //if those commands take operands.
         //consult the map to determine how many lines to advance.
@@ -243,10 +255,14 @@ class Parser {
         this.currentLineIndex = this.currentLineIndex + increment;
         this.currentLine = this.allInputLines[this.currentLineIndex];
 
+        if (this.currentLine != null) {
+            return true;
+        }
+        return false;
     }
 
     hasMoreCommands(): boolean {
-        return this.currentLineIndex < this.allInputLines.length
+        return this.currentLineIndex < this.allInputLines.length;
     }
 
     commandType(): commandType {
@@ -264,7 +280,15 @@ class Parser {
     hasSymbols(): boolean {
         //return true that the current command has symbols if the command has operands and the operand is a alphabetic string.
         if (this.commandTypeToNumberOfLines[this.commandType()] > 1 &&
-            this.allInputLines[this.currentLineIndex + 1][0].match(/^[A-Za-z]+$/).length > 0) {
+            this.allInputLines[this.currentLineIndex + 1][0].match(/^[A-Za-z]+$/) != null) {
+            return true;
+        }
+        return false;
+    }
+
+    hasOperands(): boolean {
+        if (this.commandTypeToNumberOfLines[this.commandType()] > 1
+            || this.commandType() == commandType.ASSEM_STORE_MACRO) {
             return true;
         }
         return false;
@@ -282,7 +306,7 @@ class Parser {
 
 
     labelText(): string {
-        if (this.commandType() == commandType.LABEL) {
+        if (this.commandType() == commandType.ASSEM_LABEL) {
             return this.currentLine.replace("(", "").replace(")", "");
         }
         else throw new Error("not a label");
@@ -300,8 +324,8 @@ class Parser {
 
     parse(format: outputFormat) {
         let converter = new codeConverter();
-        while (this.hasMoreCommands()) {
-            this.advance();
+        while (this.hasMoreCommands() && this.advance()) {
+
             if (format == outputFormat.hex) {
                 this.output.push(converter.instructionAsHexString(this.commandType()));
 

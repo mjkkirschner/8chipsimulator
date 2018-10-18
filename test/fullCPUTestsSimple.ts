@@ -229,6 +229,7 @@ describe("testing a full cpu/computer verilog generation", () => {
         let memoryFiles = generator.generateBinaryMemoryFiles();
         console.log(memoryFiles);
         memoryFiles.forEach((x, i) => fs.writeFileSync("./memoryFile" + i, x));
+        done();
 
     });
 });
