@@ -77,7 +77,7 @@ export function generate_MAR_RAM_DATAINPUTS(buscomponent: bus, clock: clockWithM
     ramBuffer.outputPins.forEach((pin, index) => { new wire(pin, buscomponent.inputGroups[3][index]) });
 
 
-    //attach ram and intru inputs to bus.
+    //attach ram and address inputs to bus.
     memoryAddressREG.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
     ram.InputOutputPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin.internalInput) });
 

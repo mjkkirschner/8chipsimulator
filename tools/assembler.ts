@@ -27,6 +27,7 @@ enum commandType {
     STORECOMSTATUS,
     STORECOMDATA,
     STOREAATPOINTER,
+    LOADAATPOINTER,
     ASSEM_LABEL = -1,
     ASSEM_STORE_MACRO = -2,
 
@@ -200,7 +201,8 @@ class Parser {
             //open the file
             let data = fs.readFileSync(assemblyFile);
             let dataString = data.toString();
-            this.allInputLines = dataString.split(os.EOL);
+            //split on end of line, and filter blank lines or comment lines out.
+            this.allInputLines = dataString.split(os.EOL).filter(x => x != "" && !(x.startsWith("//")));
 
         }
         //if client passes code directly just ignore the file path.
@@ -236,7 +238,8 @@ class Parser {
         this.commandTypeToNumberOfLines[commandType.STORECOMDATA] = 2;
         this.commandTypeToNumberOfLines[commandType.STOREAATPOINTER] = 2;
         this.commandTypeToNumberOfLines[commandType.ASSEM_LABEL] = 1// TODO ??
-        this.commandTypeToNumberOfLines[commandType.ASSEM_STORE_MACRO] = 1
+        this.commandTypeToNumberOfLines[commandType.ASSEM_STORE_MACRO] = 1;
+        this.commandTypeToNumberOfLines[commandType.LOADAATPOINTER] = 2;
     }
 
     //returns false if the current line is undefined...we're out
