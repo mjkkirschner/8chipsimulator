@@ -167,7 +167,7 @@ module ORGATE(a,b,c);
             
             always @(posedge clock)
             begin
-              if (!cs_ && !we_) 
+              if (!cs_ && !we_)
                 mem[address] = data;
                Q = (!cs_ && !oe_) ? mem[address] : {DATA_WIDTH{1'bz}};
             end
@@ -221,12 +221,8 @@ module ORGATE(a,b,c);
         
         always @(posedge clock)
         begin
-          if (!cs_ && !we_) begin
-               #1 $display("writing");
-                       #1 $display("%d",address_1);
-                      #1 $display("%d",data);
+          if (!cs_ && !we_)
             mem[address_1] = data;
-            end
            Q_1 = (!cs_ && !oe_) ? mem[address_1] : {DATA_WIDTH{1'bz}};
            //Q_2 = mem[address_2];
         end
@@ -326,13 +322,14 @@ module ORGATE(a,b,c);
                 reg [0:7]internalcounter = 0;
                 reg hold = 0;
                 reg slow_clock = 0;
-                
-                
                 reg  r1_pulse = 0;
-                //reg  r2_pulse = 0;
-                //reg  r3_pulse = 0;
+                
+                //we may want to use two more registers
+                //to sync this signal correctly
 
-               
+                //reg r2_pulse = 0;
+                //reg r3_pulse = 0; 
+
                 //when the clock goes high and start is high
                 //then generate n clock pulses.
                 //then drive start low.
@@ -347,8 +344,6 @@ module ORGATE(a,b,c);
                 always@(posedge slow_clock) begin
                 
                 r1_pulse <= i_controlReg[15];
-                //r2_pulse <= r1_pulse;
-                //r3_pulse <= r2_pulse;
                
                //start clocking out
                 if((i_controlReg[15] && !r1_pulse))begin
@@ -385,191 +380,192 @@ module ORGATE(a,b,c);
     
         (* DONT_TOUCH = "yes" *)
         module top(   
-        input CLK,
-            input SERIALIN,
-            
-            output wire ENABLEOUT,
-            output wire CLOCKOUT,
-            output reg RGB3_Red,
-            output reg [0:3] LED,
-            output wire VGA_HS_O,       // horizontal sync output
-            output wire VGA_VS_O,       // vertical sync output
-            output wire [3:0] VGA_R,    // 4-bit VGA red output
-            output wire [3:0] VGA_G,    // 4-bit VGA green output
-            output wire [3:0] VGA_B,     // 4-bit VGA blue output);
-            output reg  [0:7] OUT_AREG) ; //debugging
-               
-            reg HIGH = 1;
-            reg LOW = 0;
-            reg SUBMODE = 0;
-            reg UNCONNECTED = 0;
+                input CLK,
+                input SERIALIN,
+                
+                output wire ENABLEOUT,
+                output wire CLOCKOUT,
+                output reg RGB3_Red,
+                output reg [0:3] LED,
+                output wire VGA_HS_O,       // horizontal sync output
+                output wire VGA_VS_O,       // vertical sync output
+                output wire [3:0] VGA_R,    // 4-bit VGA red output
+                output wire [3:0] VGA_G,    // 4-bit VGA green output
+                output wire [3:0] VGA_B,     // 4-bit VGA blue output);
+                output reg  [0:7] OUT_AREG) ; //debugging
+                   
+                reg HIGH = 1;
+                reg LOW = 0;
+                reg SUBMODE = 0;
+                reg UNCONNECTED = 0;
+    
+                reg [0:0]clock;
+                reg [0:0]ClockFaster;
+                reg pix_stb = 0;
 
-            reg [0:0]clock;
-            reg [0:0]ClockFaster;
-            reg pix_stb;
         
         
-        wire [0:1-1] COMenableOnc3a85782_e2e0_4639_ac8a_9ce5bca64494;
-wire [0:1-1] invertONdef2138c_5bdb_4a1f_b83b_0105d64a6713;
-wire [0:1-1] signalBankOutputOn1a14a4da_840c_4e79_a85b_56d211fa6ff5;
-wire [0:1-1] invertOn940cd0df_9440_441d_9ade_e002e62176bc;
-wire [0:1-1] eepromChipEnableee2a7fc2_e908_4bf4_9e70_246d2c0aa8d3;
-wire [0:1-1] eepromOutEnable84354f6f_aabe_4a16_a175_3c1a06391ee8;
-wire [0:1-1] eepromWriteDisabled0d6fab58_aac8_4a39_9715_4059440820ae;
-wire [0:1-1] load_disableda8be4d0a_e738_4280_9ecb_2dccfe072047;
-wire [0:1-1] count_enable_microcode_counter2bf2cb35_b6ad_4a73_b4ff_461cafc32e71;
-wire [0:1-1] invert_clock_signal_enablea83332fd_9d04_42c1_8608_0ab519e05e9e;
-wire [0:1-1] clearPC80e12f3a_b0e3_4a07_b82a_a0028b0b638c;
-wire [0:1-1] ram_chipEnablec606de19_5448_432f_bb4a_9524c7ad9c49;
+        wire [0:1-1] COMenableOna6ce3d3e_2799_42fd_b62c_941ebd3c3bc5;
+wire [0:1-1] invertONd4dc9909_beb3_4517_bab6_b305ba85f881;
+wire [0:1-1] signalBankOutputOn6390dfb5_c218_4453_b020_1adb140034d8;
+wire [0:1-1] invertOn2ad9ae95_2552_4efb_89fb_3a3229f30394;
+wire [0:1-1] eepromChipEnable3a7be011_4eeb_4357_bbee_2263e2edd2f2;
+wire [0:1-1] eepromOutEnable48142b48_6297_4a61_8cd4_8b601e96412b;
+wire [0:1-1] eepromWriteDisablede9b0c820_c4ca_4c2b_8f44_d2b42988bb58;
+wire [0:1-1] load_disabledfca3419a_405b_47ba_ae74_397f8861f45c;
+wire [0:1-1] count_enable_microcode_counter64270aad_7e56_4cf1_b13f_8786d462b7f4;
+wire [0:1-1] invert_clock_signal_enabled5939afa_e831_467d_bc99_8ca02c85a595;
+wire [0:1-1] clearPC9187ee38_7fa0_4534_949f_4f06021a5d1b;
+wire [0:1-1] ram_chipEnable1a694d58_b217_46e0_b8e3_4e3659cfbf3a;
 
 
 
-wire [0:16-1] comDataRegd07c63fd_faea_4234_860a_56d17308e8d5;
-wire [0:16-1] allInputsFord599ab72_75ab_45e9_a781_ab19010092e5= {spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[0],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[1],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[2],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[3],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[4],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[5],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[6],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[7],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[8],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[9],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[10],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[11],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[12],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[13],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[14],spi_testb2b3a930_fc5f_47b8_b45b_efeade294464[15]};
-wire [0:16-1] comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d;
-wire [0:16-1] allInputsFor831d6bd2_4f35_424e_834e_f51252d27ff0= {spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[0],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[1],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[2],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[3],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[4],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[5],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[6],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[7],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[8],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[9],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[10],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[11],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[12],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[13],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[14],spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[15]};
+wire [0:16-1] comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9;
+wire [0:16-1] allInputsFor4d8de3c1_c630_4839_91fb_e6edce08ef11_comDataReg= {spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[0],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[1],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[2],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[3],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[4],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[5],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[6],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[7],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[8],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[9],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[10],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[11],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[12],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[13],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[14],spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b[15]};
+wire [0:16-1] comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759;
+wire [0:16-1] allInputsFord9ab60e9_f786_421d_9383_fd8df6bc92d0_comStatusReg= {spi_testb3413355_1dce_42de_92f1_95ba91a08248[0],spi_testb3413355_1dce_42de_92f1_95ba91a08248[1],spi_testb3413355_1dce_42de_92f1_95ba91a08248[2],spi_testb3413355_1dce_42de_92f1_95ba91a08248[3],spi_testb3413355_1dce_42de_92f1_95ba91a08248[4],spi_testb3413355_1dce_42de_92f1_95ba91a08248[5],spi_testb3413355_1dce_42de_92f1_95ba91a08248[6],spi_testb3413355_1dce_42de_92f1_95ba91a08248[7],spi_testb3413355_1dce_42de_92f1_95ba91a08248[8],spi_testb3413355_1dce_42de_92f1_95ba91a08248[9],spi_testb3413355_1dce_42de_92f1_95ba91a08248[10],spi_testb3413355_1dce_42de_92f1_95ba91a08248[11],spi_testb3413355_1dce_42de_92f1_95ba91a08248[12],spi_testb3413355_1dce_42de_92f1_95ba91a08248[13],spi_testb3413355_1dce_42de_92f1_95ba91a08248[14],spi_testb3413355_1dce_42de_92f1_95ba91a08248[15]};
 
-wire [0:1-1] invert_clock_signalb236601f_97ca_46ac_8417_e73c533fa21c;
-wire [0:3-1] microcode_step_countere45279e6_3731_4073_8c48_3bb833485882;
-wire [0:1-1] decodeInverterde002a2e_7251_488e_b3c2_ea6f4791603c;
+wire [0:1-1] invert_clock_signale7f23b2f_5905_4e19_ae45_0d40ded814b5;
+wire [0:3-1] microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca;
+wire [0:1-1] decodeInverterefa5749b_763d_42d5_a0fd_cae627dceac6;
 
-wire decoder289d6f8db_a433_4119_8718_18cabb38b201;
-wire decoder217253679_598b_45cd_8173_acd1cb38fd57;
-wire decoder261a13d37_3bce_4d7b_8432_9ef2725b44e3;
-wire decoder2a6ed30ee_fad2_40ea_8a18_e262ad4adb8c;
-wire decoder1a3de65b0_c076_411d_8551_80946281b2de;
-wire decoder150477a52_4743_4ee0_b689_5a37c3e02778;
-wire decoder17235598b_b198_480f_a68a_b0b90c6c9444;
-wire decoder1696580cd_cec7_4431_a264_c62a03e07289;
-wire [0:16-1] Program_Counter1c341a13_6da5_44a9_b028_72be756161af;
-wire [0:16-1] pc_buffer48bcfc7d_abef_43b0_8986_22232dffdffa;
-wire [0:16-1] allInputsFor49723356_773a_40d7_b901_711c91add572= {Program_Counter1c341a13_6da5_44a9_b028_72be756161af[0],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[1],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[2],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[3],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[4],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[5],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[6],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[7],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[8],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[9],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[10],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[11],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[12],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[13],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[14],Program_Counter1c341a13_6da5_44a9_b028_72be756161af[15]};
-wire [0:16-1] main_bus21eacba7_a403_4826_ad41_70185f7dc7a7;
-wire [0:112-1] allInputsForbd72946f_bbdb_476d_bcd8_0916cfba57bd= {A_reg_buffer5d8f0526_6738_4d27_a515_087c610d4647,B_reg_buffer591c187f_37b8_4a1c_b28c_58e00009d245,adder_buffer332d6aea_f4f9_41dd_9c38_9c1fc2310755,ram_output_buffer8ea2b86a_486b_4320_8dac_cf964cb9c43d,pc_buffer48bcfc7d_abef_43b0_8986_22232dffdffa,comDataRegBufferf8f9dac3_f267_4f0c_9c1c_cd533f62eed4,comStatusRegBuffer18fd87f7_289e_4be0_a0ec_917d0b040e64};
-wire [0:7-1] allSelectsForbd72946f_bbdb_476d_bcd8_0916cfba57bd= {microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[8],microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[15],microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[9],microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[1],microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[4],microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[25],microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[23]};
-wire [0:16-1] instruction_register65677589_db75_4de8_a007_cbe7a34e0db6;
-wire [0:16-1] allInputsFor945af85a_2d78_4093_be8b_e1cb3f43d6b0= {main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[0],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[1],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[2],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[3],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[4],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[5],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[6],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[7],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[8],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[9],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[10],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[11],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[12],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[13],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[14],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[15]};
-wire [0:32-1] microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858;
-wire [0:8-1] allAddressInputsFor501d374a_9172_497f_96a3_7d11b982fa92= {instruction_register65677589_db75_4de8_a007_cbe7a34e0db6[11],instruction_register65677589_db75_4de8_a007_cbe7a34e0db6[12],instruction_register65677589_db75_4de8_a007_cbe7a34e0db6[13],instruction_register65677589_db75_4de8_a007_cbe7a34e0db6[14],instruction_register65677589_db75_4de8_a007_cbe7a34e0db6[15],microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[0],microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[1],microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[2]};
-wire [0:32-1] allDataInputsFor501d374a_9172_497f_96a3_7d11b982fa92= {UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED};
-wire [0:32-1] microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691;
-wire [0:32-1] allInputsFor90109ee4_4a46_4c7e_888e_669dfd173fbd= {microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[0],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[1],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[2],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[3],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[4],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[5],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[6],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[7],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[8],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[9],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[10],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[11],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[12],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[13],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[14],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[15],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[16],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[17],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[18],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[19],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[20],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[21],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[22],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[23],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[24],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[25],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[26],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[27],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[28],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[29],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[30],microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858[31]};
-wire [0:16-1] comDataRegBufferf8f9dac3_f267_4f0c_9c1c_cd533f62eed4;
-wire [0:16-1] allInputsFor0c2983d4_f1d8_4817_acf5_b1d99aa3747f= {comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[0],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[1],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[2],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[3],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[4],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[5],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[6],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[7],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[8],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[9],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[10],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[11],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[12],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[13],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[14],comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[15]};
-wire [0:16-1] comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4;
-wire [0:16-1] allInputsFor30345804_e089_409f_9881_14e3f5e3dce2= {main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[0],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[1],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[2],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[3],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[4],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[5],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[6],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[7],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[8],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[9],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[10],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[11],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[12],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[13],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[14],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[15]};
-wire [0:16-1] spi_testb2b3a930_fc5f_47b8_b45b_efeade294464;
-wire [0:16-1] spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae;
-wire [0:16-1] AllControlInputsFordc728842_03ae_4852_a4e9_876efe18753a= {comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[0],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[1],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[2],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[3],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[4],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[5],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[6],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[7],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[8],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[9],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[10],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[11],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[12],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[13],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[14],comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4[15]};
-wire [0:16-1] comStatusRegBuffer18fd87f7_289e_4be0_a0ec_917d0b040e64;
-wire [0:16-1] allInputsForfd1ff0fd_41d9_4a20_8256_2bbd88129b64= {comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[0],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[1],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[2],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[3],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[4],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[5],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[6],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[7],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[8],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[9],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[10],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[11],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[12],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[13],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[14],comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d[15]};
-wire [0:1-1] countEnableInverter9235f07f_22e4_443c_861a_d435b2e6074e;
-wire [0:1-1] ramOutInverter46f6784d_9768_4d7b_99b8_3c2eb57e6b13;
-wire [0:1-1] ramInInverter9dc5a0ef_0abb_4526_bc0c_ca500aae0311;
-wire [0:16-1] memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8;
-wire [0:16-1] allInputsForee43d09e_e8ae_4eba_9cc9_c8eb5db712b6= {main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[0],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[1],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[2],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[3],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[4],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[5],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[6],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[7],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[8],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[9],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[10],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[11],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[12],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[13],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[14],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[15]};
-wire [0:16-1] main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd;
-wire [0:16-1] main_ram1f517116_4526_48df_ac19_1d8c75147dd4;
-wire [0:16-1] allAddress1InputsForad144c31_5eab_45d0_93f7_15625fc502f8= {memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[0],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[1],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[2],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[3],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[4],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[5],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[6],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[7],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[8],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[9],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[10],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[11],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[12],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[13],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[14],memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8[15]};
-wire [0:16-1] allAddress2InputsForad144c31_5eab_45d0_93f7_15625fc502f8= {UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED};
-wire [0:16-1] allDataInputsForad144c31_5eab_45d0_93f7_15625fc502f8= {main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[0],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[1],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[2],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[3],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[4],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[5],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[6],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[7],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[8],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[9],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[10],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[11],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[12],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[13],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[14],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[15]};
-wire [0:16-1] ram_output_buffer8ea2b86a_486b_4320_8dac_cf964cb9c43d;
-wire [0:16-1] allInputsFor65bc6be6_f2ce_49d7_a3d4_4fe6d53aab33= {main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[0],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[1],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[2],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[3],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[4],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[5],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[6],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[7],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[8],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[9],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[10],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[11],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[12],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[13],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[14],main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd[15]};
-wire [0:16-1] OUT_register0ae9533e_37a1_4cf7_b5d3_ee3e51eae0a4;
-wire [0:16-1] allInputsFor450cfe1a_084a_4337_8446_6a1c8377a57b= {main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[0],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[1],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[2],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[3],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[4],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[5],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[6],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[7],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[8],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[9],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[10],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[11],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[12],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[13],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[14],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[15]};
-wire [0:16-1] B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272;
-wire [0:16-1] allInputsForabbfa68e_bc26_4f96_aa3d_767b3679170d= {main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[0],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[1],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[2],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[3],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[4],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[5],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[6],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[7],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[8],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[9],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[10],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[11],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[12],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[13],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[14],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[15]};
-wire [0:16-1] B_reg_buffer591c187f_37b8_4a1c_b28c_58e00009d245;
-wire [0:16-1] allInputsFor627b30dc_8429_4c41_837b_96330d47524c= {B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[0],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[1],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[2],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[3],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[4],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[5],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[6],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[7],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[8],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[9],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[10],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[11],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[12],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[13],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[14],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[15]};
-wire [0:16-1] A_register2c04495b_d5ca_448a_9673_2e0ad353f509;
-wire [0:16-1] allInputsFor72ee5950_1355_4ac0_9a56_d2d4fb2d6827= {main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[0],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[1],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[2],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[3],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[4],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[5],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[6],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[7],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[8],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[9],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[10],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[11],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[12],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[13],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[14],main_bus21eacba7_a403_4826_ad41_70185f7dc7a7[15]};
-wire [0:0] A_B_Comparator92c9603a_8695_4901_92a5_61ae28886dab;
-wire [0:16-1] allADataInputsFor5ed275b9_a827_4965_9b1b_342413460c6a= {A_register2c04495b_d5ca_448a_9673_2e0ad353f509[0],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[1],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[2],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[3],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[4],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[5],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[6],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[7],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[8],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[9],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[10],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[11],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[12],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[13],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[14],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[15]};
-wire [0:16-1] allBDataInputsFor5ed275b9_a827_4965_9b1b_342413460c6a= {B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[0],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[1],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[2],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[3],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[4],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[5],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[6],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[7],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[8],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[9],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[10],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[11],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[12],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[13],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[14],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[15]};
-wire [0:0] A_B_Comparator3f7f8a35_15cd_4a23_8f82_5ee1b0c13278;
-wire [0:1-1] invertALESSB6642ecfb_095a_4504_b80e_65ea77ab0deb;
-wire [0:1-1] invertAEQUALB6aec92d6_e96d_4082_9e9f_d3f8660df7e1;
-wire [0:1-1] AGREATERB69084d4f_872b_4bd3_99e6_0ff8e97c9f68;
-wire [0:4-1] flags_register31d51a31_fb68_4b6b_a011_c119149bf7bb;
-wire [0:4-1] allInputsFor1e7e95fa_5b0a_482d_8f38_ee209a1a0f43= {AGREATERB69084d4f_872b_4bd3_99e6_0ff8e97c9f68[0],A_B_Comparator92c9603a_8695_4901_92a5_61ae28886dab[0],A_B_Comparator3f7f8a35_15cd_4a23_8f82_5ee1b0c13278[0],UNCONNECTED};
-wire [0:1-1] ANDALESSB2a968654_5a96_40ff_b090_ce24535a6c39;
-wire [0:1-1] ANDAEQUALB4d8c7a77_206f_46c0_a59a_7c4a62744d0f;
-wire [0:1-1] ANDAGBd42780bb_52ee_46ab_9da1_5c5210599119;
-wire [0:1-1] OR1eb7afeb0_f683_4b5e_ac00_f1a1215b4956;
-wire [0:1-1] OR237a0ef81_a43e_4674_9fc9_d5aa6ff294d8;
-wire [0:1-1] loadInverter506f3558_d72a_4e1f_a22b_5c5adb70e8b1;
-wire [0:16-1] A_reg_buffer5d8f0526_6738_4d27_a515_087c610d4647;
-wire [0:16-1] allInputsFor9face0ff_b07a_40cc_beb3_03e9c083f9a3= {A_register2c04495b_d5ca_448a_9673_2e0ad353f509[0],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[1],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[2],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[3],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[4],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[5],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[6],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[7],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[8],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[9],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[10],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[11],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[12],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[13],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[14],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[15]};
-wire [0:16-1] adder5f681b73_8a1c_426e_bd44_583b3eeb2939;
-wire adderff06cf60_1a40_4699_b825_e475f8399297;
-wire [0:16-1] allADataInputsFordb5c05b3_3a6d_4a9b_8e0d_86f1013a348e= {A_register2c04495b_d5ca_448a_9673_2e0ad353f509[0],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[1],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[2],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[3],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[4],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[5],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[6],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[7],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[8],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[9],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[10],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[11],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[12],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[13],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[14],A_register2c04495b_d5ca_448a_9673_2e0ad353f509[15]};
-wire [0:16-1] allBDataInputsFordb5c05b3_3a6d_4a9b_8e0d_86f1013a348e= {B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[0],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[1],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[2],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[3],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[4],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[5],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[6],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[7],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[8],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[9],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[10],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[11],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[12],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[13],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[14],B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272[15]};
-wire [0:16-1] adder_buffer332d6aea_f4f9_41dd_9c38_9c1fc2310755;
-wire [0:16-1] allInputsFor8dba51fd_129d_4412_819f_c315fe5f014a= {adder5f681b73_8a1c_426e_bd44_583b3eeb2939[0],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[1],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[2],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[3],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[4],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[5],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[6],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[7],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[8],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[9],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[10],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[11],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[12],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[13],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[14],adder5f681b73_8a1c_426e_bd44_583b3eeb2939[15]};
-wire [0:10-1] sigGen7f0a4f9a_c4b3_4a7a_9311_c0f1ad8ae9c5;
-wire [0:9-1] sigGenbd78ac15_d51a_47ff_a2e7_227f0acb9fdd;
-wire sigGen47203e0a_5c3a_42a3_8caa_ea473a75ee52;
-wire sigGen4a36c076_0de5_40bc_b28a_d1d029b05610;
+wire decoder29a0bb26a_e858_4667_93c0_c0b4a5d2f07a;
+wire decoder2cf4b4c70_6152_46c0_81d9_08575ba2dc78;
+wire decoder298abaf74_87a2_441d_87b1_adb023db0706;
+wire decoder25d2f6765_8e95_44dd_ba20_2d8079a1f81d;
+wire decoder1f2b0fff7_2203_4c10_841d_63e0f9e6f639;
+wire decoder1637298ab_dc89_4b89_8328_dc6337eb95e7;
+wire decoder1db254d4c_2d97_4afa_8dd4_ed6debdda9fc;
+wire decoder1188f3d0a_83a1_4a0a_a595_ba8c7a832dd3;
+wire [0:16-1] Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc;
+wire [0:16-1] pc_buffer56ae585a_7c60_4db5_aaf8_f503af608735;
+wire [0:16-1] allInputsFor75c1064c_c0bb_46a2_84e3_9e4711358e9b_pc_buffer= {Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[0],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[1],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[2],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[3],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[4],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[5],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[6],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[7],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[8],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[9],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[10],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[11],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[12],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[13],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[14],Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc[15]};
+wire [0:16-1] main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928;
+wire [0:112-1] allInputsFord678947b_53c5_4d22_8722_bdf0e0f1783b_main_bus= {A_reg_bufferce95afe0_a007_4119_96d6_5e07d45124f6,B_reg_bufferae7cac2f_fcef_4397_a830_c400e5fe8b4b,adder_buffer76d54fe1_6c23_4ccd_b43c_b297a762963d,ram_output_buffer7f4e104d_0124_4dec_85d2_e843d2843366,pc_buffer56ae585a_7c60_4db5_aaf8_f503af608735,comDataRegBuffer6255fd38_cafe_4243_8c84_0c463cc5d552,comStatusRegBuffer3b66b407_2d91_4178_9c6b_0562e87d5cad};
+wire [0:7-1] allSelectsFord678947b_53c5_4d22_8722_bdf0e0f1783b_main_bus= {microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[8],microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[15],microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[9],microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[1],microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[4],microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[25],microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[23]};
+wire [0:16-1] instruction_registeref263682_c3c9_4070_8d84_84ab80338c8c;
+wire [0:16-1] allInputsForde079a87_4200_4fd9_be8f_77620cb330d0_instruction_register= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
+wire [0:32-1] microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825;
+wire [0:8-1] allAddressInputsFor558fc34e_cb4f_4477_a6ce_3611c2137b04_microcode_rom= {instruction_registeref263682_c3c9_4070_8d84_84ab80338c8c[11],instruction_registeref263682_c3c9_4070_8d84_84ab80338c8c[12],instruction_registeref263682_c3c9_4070_8d84_84ab80338c8c[13],instruction_registeref263682_c3c9_4070_8d84_84ab80338c8c[14],instruction_registeref263682_c3c9_4070_8d84_84ab80338c8c[15],microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[0],microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[1],microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[2]};
+wire [0:32-1] allDataInputsFor558fc34e_cb4f_4477_a6ce_3611c2137b04_microcode_rom= {UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED,UNCONNECTED};
+wire [0:32-1] microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73;
+wire [0:32-1] allInputsFor42a7e49c_5b4a_4979_ab9d_6b4ffd802b04_microCode_SIGNAL_bank= {microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[0],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[1],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[2],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[3],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[4],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[5],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[6],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[7],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[8],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[9],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[10],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[11],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[12],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[13],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[14],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[15],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[16],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[17],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[18],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[19],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[20],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[21],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[22],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[23],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[24],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[25],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[26],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[27],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[28],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[29],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[30],microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825[31]};
+wire [0:16-1] comDataRegBuffer6255fd38_cafe_4243_8c84_0c463cc5d552;
+wire [0:16-1] allInputsForf0ad7468_0d74_409f_83d6_f91902afb7eb_comDataRegBuffer= {comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[0],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[1],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[2],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[3],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[4],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[5],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[6],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[7],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[8],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[9],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[10],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[11],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[12],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[13],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[14],comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[15]};
+wire [0:16-1] comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf;
+wire [0:16-1] allInputsForb56b4867_2ad5_4579_8909_580394c8ed16_comControlReg= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
+wire [0:16-1] spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b;
+wire [0:16-1] spi_testb3413355_1dce_42de_92f1_95ba91a08248;
+wire [0:16-1] AllControlInputsFor59e32e52_f2fa_41d5_8595_63c5b93ae17a_spi_test= {comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[0],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[1],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[2],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[3],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[4],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[5],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[6],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[7],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[8],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[9],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[10],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[11],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[12],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[13],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[14],comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf[15]};
+wire [0:16-1] comStatusRegBuffer3b66b407_2d91_4178_9c6b_0562e87d5cad;
+wire [0:16-1] allInputsFor80be5f4c_c843_420d_b691_d747ab8b7c7c_comStatusRegBuffer= {comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[0],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[1],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[2],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[3],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[4],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[5],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[6],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[7],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[8],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[9],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[10],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[11],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[12],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[13],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[14],comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759[15]};
+wire [0:1-1] countEnableInverterc657340d_09fb_40a8_9bb1_cff0a11805ff;
+wire [0:1-1] ramOutInverter0980be50_239a_4cab_adbc_00e5c68f108c;
+wire [0:1-1] ramInInverterf6e82919_c6f3_4ae5_a2bd_f4cce10a86bf;
+wire [0:16-1] memory_address_register32e58028_e945_45bc_b2be_c34ba619063d;
+wire [0:16-1] allInputsFor70382e12_73ff_4189_9b16_62bdecf528df_memory_address_register= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
+wire [0:16-1] main_rama9781169_e25b_4053_87b7_81c917387ad5;
+wire [0:16-1] main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7;
+wire [0:16-1] allAddress1InputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram= {memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[0],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[1],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[2],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[3],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[4],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[5],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[6],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[7],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[8],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[9],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[10],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[11],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[12],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[13],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[14],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[15]};
+wire [0:16-1] allAddress2InputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram= {sigGen99308565_dedb_4212_82bc_6ed8eef6cb62[0:5],sigGen3905f924_d585_4385_83e1_0f6dc61906ff};
+wire [0:16-1] allDataInputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
+wire [0:16-1] ram_output_buffer7f4e104d_0124_4dec_85d2_e843d2843366;
+wire [0:16-1] allInputsForb537dbe8_5eb8_4bda_8afc_6e8e11081fc2_ram_output_buffer= {main_rama9781169_e25b_4053_87b7_81c917387ad5[0],main_rama9781169_e25b_4053_87b7_81c917387ad5[1],main_rama9781169_e25b_4053_87b7_81c917387ad5[2],main_rama9781169_e25b_4053_87b7_81c917387ad5[3],main_rama9781169_e25b_4053_87b7_81c917387ad5[4],main_rama9781169_e25b_4053_87b7_81c917387ad5[5],main_rama9781169_e25b_4053_87b7_81c917387ad5[6],main_rama9781169_e25b_4053_87b7_81c917387ad5[7],main_rama9781169_e25b_4053_87b7_81c917387ad5[8],main_rama9781169_e25b_4053_87b7_81c917387ad5[9],main_rama9781169_e25b_4053_87b7_81c917387ad5[10],main_rama9781169_e25b_4053_87b7_81c917387ad5[11],main_rama9781169_e25b_4053_87b7_81c917387ad5[12],main_rama9781169_e25b_4053_87b7_81c917387ad5[13],main_rama9781169_e25b_4053_87b7_81c917387ad5[14],main_rama9781169_e25b_4053_87b7_81c917387ad5[15]};
+wire [0:16-1] OUT_registercada2531_4081_41e2_8c5f_8ce024d2c282;
+wire [0:16-1] allInputsForb23150f3_85b2_479b_9f7b_abe20d7431cc_OUT_register= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
+wire [0:16-1] B_registerae893324_23f0_4e4c_8849_42ce5b23373a;
+wire [0:16-1] allInputsForb84f7fea_dbf6_4145_8db3_8bce2dde1ce1_B_register= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
+wire [0:16-1] B_reg_bufferae7cac2f_fcef_4397_a830_c400e5fe8b4b;
+wire [0:16-1] allInputsForfd5653c3_5395_4f49_9ef6_0a245a15d63e_B_reg_buffer= {B_registerae893324_23f0_4e4c_8849_42ce5b23373a[0],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[1],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[2],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[3],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[4],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[5],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[6],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[7],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[8],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[9],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[10],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[11],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[12],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[13],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[14],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[15]};
+wire [0:16-1] A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60;
+wire [0:16-1] allInputsFor91962c85_0244_4528_9d36_ae82fd552e9e_A_register= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
+wire [0:0] A_B_Comparator95a9c70b_c0e7_432a_b0fe_c16124e3b0e0;
+wire [0:16-1] allADataInputsForba7d753e_78c0_408c_a2bb_9528a64dfd8f_A_B_Comparator= {A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[0],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[1],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[2],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[3],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[4],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[5],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[6],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[7],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[8],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[9],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[10],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[11],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[12],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[13],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[14],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[15]};
+wire [0:16-1] allBDataInputsForba7d753e_78c0_408c_a2bb_9528a64dfd8f_A_B_Comparator= {B_registerae893324_23f0_4e4c_8849_42ce5b23373a[0],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[1],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[2],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[3],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[4],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[5],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[6],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[7],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[8],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[9],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[10],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[11],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[12],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[13],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[14],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[15]};
+wire [0:0] A_B_Comparator075b8e98_6b90_4a03_b997_41166450d8e1;
+wire [0:1-1] invertALESSB797075a8_c1e9_4367_88d8_dfc628eaea79;
+wire [0:1-1] invertAEQUALB6eca266d_9151_433a_b523_d0d96b46a86e;
+wire [0:1-1] AGREATERBa6cf7035_0a0c_42a7_a3eb_57f27df1bd78;
+wire [0:4-1] flags_register30fded88_1e6b_42d1_845a_76f7b332eba8;
+wire [0:4-1] allInputsFor5c66143d_621e_4cfa_bc7c_d25c1117baed_flags_register= {AGREATERBa6cf7035_0a0c_42a7_a3eb_57f27df1bd78[0],A_B_Comparator95a9c70b_c0e7_432a_b0fe_c16124e3b0e0[0],A_B_Comparator075b8e98_6b90_4a03_b997_41166450d8e1[0],UNCONNECTED};
+wire [0:1-1] ANDALESSBf4ef4104_6dfb_4dfd_bf36_d2d523f4e5ef;
+wire [0:1-1] ANDAEQUALB21cc6361_65d1_45ae_8f25_c60fb2b82a10;
+wire [0:1-1] ANDAGB9e610485_92b5_4184_9f0a_4edcbcb48652;
+wire [0:1-1] OR12ffd1432_b7b2_4aa9_907b_8cd14946c938;
+wire [0:1-1] OR231666e7c_6b9c_4eb7_8a28_e45419a329dc;
+wire [0:1-1] loadInverter710986e6_3336_4b16_84fe_b767ef4ec548;
+wire [0:16-1] A_reg_bufferce95afe0_a007_4119_96d6_5e07d45124f6;
+wire [0:16-1] allInputsForea97df4c_3162_4ac4_87e3_93476beb9c2d_A_reg_buffer= {A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[0],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[1],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[2],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[3],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[4],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[5],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[6],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[7],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[8],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[9],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[10],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[11],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[12],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[13],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[14],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[15]};
+wire [0:16-1] adder7abc65cd_1ac0_4824_a20e_1113780edd92;
+wire adder05f17e67_7785_4ad1_98d7_e528c893e15d;
+wire [0:16-1] allADataInputsFor79c2bc75_f760_4f9a_a79f_e125953379b7_adder= {A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[0],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[1],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[2],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[3],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[4],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[5],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[6],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[7],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[8],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[9],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[10],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[11],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[12],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[13],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[14],A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60[15]};
+wire [0:16-1] allBDataInputsFor79c2bc75_f760_4f9a_a79f_e125953379b7_adder= {B_registerae893324_23f0_4e4c_8849_42ce5b23373a[0],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[1],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[2],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[3],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[4],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[5],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[6],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[7],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[8],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[9],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[10],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[11],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[12],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[13],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[14],B_registerae893324_23f0_4e4c_8849_42ce5b23373a[15]};
+wire [0:16-1] adder_buffer76d54fe1_6c23_4ccd_b43c_b297a762963d;
+wire [0:16-1] allInputsFor91e8fae8_cd81_4e89_a979_53d7d16ab13f_adder_buffer= {adder7abc65cd_1ac0_4824_a20e_1113780edd92[0],adder7abc65cd_1ac0_4824_a20e_1113780edd92[1],adder7abc65cd_1ac0_4824_a20e_1113780edd92[2],adder7abc65cd_1ac0_4824_a20e_1113780edd92[3],adder7abc65cd_1ac0_4824_a20e_1113780edd92[4],adder7abc65cd_1ac0_4824_a20e_1113780edd92[5],adder7abc65cd_1ac0_4824_a20e_1113780edd92[6],adder7abc65cd_1ac0_4824_a20e_1113780edd92[7],adder7abc65cd_1ac0_4824_a20e_1113780edd92[8],adder7abc65cd_1ac0_4824_a20e_1113780edd92[9],adder7abc65cd_1ac0_4824_a20e_1113780edd92[10],adder7abc65cd_1ac0_4824_a20e_1113780edd92[11],adder7abc65cd_1ac0_4824_a20e_1113780edd92[12],adder7abc65cd_1ac0_4824_a20e_1113780edd92[13],adder7abc65cd_1ac0_4824_a20e_1113780edd92[14],adder7abc65cd_1ac0_4824_a20e_1113780edd92[15]};
+wire [0:10-1] sigGen3905f924_d585_4385_83e1_0f6dc61906ff;
+wire [0:9-1] sigGen99308565_dedb_4212_82bc_6ed8eef6cb62;
+wire sigGen535bef02_465d_40b1_a3ae_a1d4745f6b7d;
+wire sigGencb62e8b5_684b_4e67_a8b0_f01f0e89de95;
 
 
-voltageRail COMenableOne0a267f7_48b8_446d_8087_94720353fd07 ( 
+voltageRail COMenableOn897b3c11_8c68_41fd_84f2_e7bd844f0a70 ( 
                 .data(HIGH), 
-                .Q(COMenableOnc3a85782_e2e0_4639_ac8a_9ce5bca64494) );
+                .Q(COMenableOna6ce3d3e_2799_42fd_b62c_941ebd3c3bc5) );
 
 
-voltageRail invertON26d00e84_dbf5_492e_b345_14e571abfb11 ( 
+voltageRail invertON747c8201_9b31_479e_b62a_e2529d3e91ed ( 
                 .data(HIGH), 
-                .Q(invertONdef2138c_5bdb_4a1f_b83b_0105d64a6713) );
+                .Q(invertONd4dc9909_beb3_4517_bab6_b305ba85f881) );
 
 
-voltageRail signalBankOutputOnd6b9ddb0_91c9_4b53_9846_30eaaad97a3b ( 
+voltageRail signalBankOutputOnac175a32_740c_4f55_80ad_5c3ab8a7f153 ( 
                 .data(HIGH), 
-                .Q(signalBankOutputOn1a14a4da_840c_4e79_a85b_56d211fa6ff5) );
+                .Q(signalBankOutputOn6390dfb5_c218_4453_b020_1adb140034d8) );
 
 
-voltageRail invertOnb997cb02_05d9_47eb_846a_4759586206ac ( 
+voltageRail invertOna01f287f_20dd_44b5_ad89_bc480c6337f4 ( 
                 .data(HIGH), 
-                .Q(invertOn940cd0df_9440_441d_9ade_e002e62176bc) );
+                .Q(invertOn2ad9ae95_2552_4efb_89fb_3a3229f30394) );
 
 
-voltageRail eepromChipEnableb18f16eb_bb23_4b83_94e7_bfefa9bc5d1a ( 
+voltageRail eepromChipEnabled1298cd5_02cd_4618_adb5_866655e053db ( 
                 .data(LOW), 
-                .Q(eepromChipEnableee2a7fc2_e908_4bf4_9e70_246d2c0aa8d3) );
+                .Q(eepromChipEnable3a7be011_4eeb_4357_bbee_2263e2edd2f2) );
 
 
-voltageRail eepromOutEnable8c497d97_c9cc_4a45_9af5_d51fdbbd6e6f ( 
+voltageRail eepromOutEnable0341acef_eda1_48b3_a5c5_c281abfb9b29 ( 
                 .data(LOW), 
-                .Q(eepromOutEnable84354f6f_aabe_4a16_a175_3c1a06391ee8) );
+                .Q(eepromOutEnable48142b48_6297_4a61_8cd4_8b601e96412b) );
 
 
-voltageRail eepromWriteDisabled73334163_faa4_4a41_a9ac_8fcf2b93d97f ( 
+voltageRail eepromWriteDisabledb7bd8463_066d_473a_8021_b659969efe4a ( 
                 .data(HIGH), 
-                .Q(eepromWriteDisabled0d6fab58_aac8_4a39_9715_4059440820ae) );
+                .Q(eepromWriteDisablede9b0c820_c4ca_4c2b_8f44_d2b42988bb58) );
 
 
-voltageRail load_disabled8b976b83_1ed2_4aab_bbdd_525b8526a88b ( 
+voltageRail load_disabled77b28bd6_c560_4711_b571_87b6baf8359e ( 
                 .data(HIGH), 
-                .Q(load_disableda8be4d0a_e738_4280_9ecb_2dccfe072047) );
+                .Q(load_disabledfca3419a_405b_47ba_ae74_397f8861f45c) );
 
 
-voltageRail count_enable_microcode_counter844451cd_d042_4ad5_a081_5d13f6b0b89c ( 
+voltageRail count_enable_microcode_counter22666e8e_10fc_432c_8e8f_dfc1f6766f05 ( 
                 .data(LOW), 
-                .Q(count_enable_microcode_counter2bf2cb35_b6ad_4a73_b4ff_461cafc32e71) );
+                .Q(count_enable_microcode_counter64270aad_7e56_4cf1_b13f_8786d462b7f4) );
 
 
-voltageRail invert_clock_signal_enable4e282fbf_19e6_44b9_ae17_ae9b49d1148b ( 
+voltageRail invert_clock_signal_enabled5b21e98_1fd4_44d4_95ee_44c3eb3fd19e ( 
                 .data(HIGH), 
-                .Q(invert_clock_signal_enablea83332fd_9d04_42c1_8608_0ab519e05e9e) );
+                .Q(invert_clock_signal_enabled5939afa_e831_467d_bc99_8ca02c85a595) );
 
 
-voltageRail clearPC97c59049_7b5d_4589_a6c6_d733c17c8e27 ( 
+voltageRail clearPC9c160c16_b4fe_498c_9072_82fc813b78ec ( 
                 .data(HIGH), 
-                .Q(clearPC80e12f3a_b0e3_4a07_b82a_a0028b0b638c) );
+                .Q(clearPC9187ee38_7fa0_4534_949f_4f06021a5d1b) );
 
 
-voltageRail ram_chipEnable0f986f83_26e6_466d_b081_5b8bc365a001 ( 
+voltageRail ram_chipEnablea9dd6bfc_3fcc_40a8_a38b_452a2609685a ( 
                 .data(LOW), 
-                .Q(ram_chipEnablec606de19_5448_432f_bb4a_9524c7ad9c49) );
+                .Q(ram_chipEnable1a694d58_b217_46e0_b8e3_4e3659cfbf3a) );
 
 
 
@@ -579,146 +575,146 @@ voltageRail ram_chipEnable0f986f83_26e6_466d_b081_5b8bc365a001 (
 
 
 
-nRegister #(.n(16)) comDataRegd599ab72_75ab_45e9_a781_ab19010092e5 ( 
-                .data(allInputsFord599ab72_75ab_45e9_a781_ab19010092e5), 
+nRegister #(.n(16)) comDataReg4d8de3c1_c630_4839_91fb_e6edce08ef11 ( 
+                .data(allInputsFor4d8de3c1_c630_4839_91fb_e6edce08ef11_comDataReg), 
                 .clock(clock[0]), 
-                .enable(COMenableOnc3a85782_e2e0_4639_ac8a_9ce5bca64494[0]),
-                 .Q(comDataRegd07c63fd_faea_4234_860a_56d17308e8d5) );
+                .enable(COMenableOna6ce3d3e_2799_42fd_b62c_941ebd3c3bc5[0]),
+                 .Q(comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9) );
 
 
 
-nRegister #(.n(16)) comStatusReg831d6bd2_4f35_424e_834e_f51252d27ff0 ( 
-                .data(allInputsFor831d6bd2_4f35_424e_834e_f51252d27ff0), 
+nRegister #(.n(16)) comStatusRegd9ab60e9_f786_421d_9383_fd8df6bc92d0 ( 
+                .data(allInputsFord9ab60e9_f786_421d_9383_fd8df6bc92d0_comStatusReg), 
                 .clock(clock[0]), 
-                .enable(COMenableOnc3a85782_e2e0_4639_ac8a_9ce5bca64494[0]),
-                 .Q(comStatusReg641d0b6b_46eb_4a3e_aaa7_2b841f7cbd6d) );
+                .enable(COMenableOna6ce3d3e_2799_42fd_b62c_941ebd3c3bc5[0]),
+                 .Q(comStatusReg9ec25660_332c_4f6c_9f1f_b96f4b901759) );
 
 
 
 
-inverter invert_clock_signal40952150_db24_417c_a3d0_b092b4b4a5f4 ( 
+inverter invert_clock_signale555f1b0_2389_4b56_8cea_22b9bb76af67 ( 
                 .data(clock[0]), 
-                .Q(invert_clock_signalb236601f_97ca_46ac_8417_e73c533fa21c), 
-                .outputEnable(invert_clock_signal_enablea83332fd_9d04_42c1_8608_0ab519e05e9e[0]) );
+                .Q(invert_clock_signale7f23b2f_5905_4e19_ae45_0d40ded814b5), 
+                .outputEnable(invert_clock_signal_enabled5939afa_e831_467d_bc99_8ca02c85a595[0]) );
 
 
-binaryCounter #(.n(3)) microcode_step_counterc33991a1_b929_4872_b815_7eaab37e1042 (
+binaryCounter #(.n(3)) microcode_step_counter22c6618a_e5cf_4b4f_9b92_178492c608fd (
                 .D(UNCONNECTED),
-                .clr_(invert_clock_signal_enablea83332fd_9d04_42c1_8608_0ab519e05e9e[0]),
-                .load_(load_disableda8be4d0a_e738_4280_9ecb_2dccfe072047[0]),
-                .clock(invert_clock_signalb236601f_97ca_46ac_8417_e73c533fa21c[0]),
-                .enable1_(count_enable_microcode_counter2bf2cb35_b6ad_4a73_b4ff_461cafc32e71[0]),
-                .enable2_(count_enable_microcode_counter2bf2cb35_b6ad_4a73_b4ff_461cafc32e71[0]),
-                .Q(microcode_step_countere45279e6_3731_4073_8c48_3bb833485882));
+                .clr_(invert_clock_signal_enabled5939afa_e831_467d_bc99_8ca02c85a595[0]),
+                .load_(load_disabledfca3419a_405b_47ba_ae74_397f8861f45c[0]),
+                .clock(invert_clock_signale7f23b2f_5905_4e19_ae45_0d40ded814b5[0]),
+                .enable1_(count_enable_microcode_counter64270aad_7e56_4cf1_b13f_8786d462b7f4[0]),
+                .enable2_(count_enable_microcode_counter64270aad_7e56_4cf1_b13f_8786d462b7f4[0]),
+                .Q(microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca));
 
 
-inverter decodeInverter9a4a44c6_a219_4666_9f0d_d1c7c580987f ( 
-                .data(microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[2]), 
-                .Q(decodeInverterde002a2e_7251_488e_b3c2_ea6f4791603c), 
-                .outputEnable(invert_clock_signal_enablea83332fd_9d04_42c1_8608_0ab519e05e9e[0]) );
-
-
-
-
-
-
-
-twoLineToFourLineDecoder decoder2beb564a6_bfc2_49a0_a9ca_710e150ea0a9 (
-                 microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[0],
-                  microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[1],
-                   microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[2],
-                    decoder289d6f8db_a433_4119_8718_18cabb38b201,
-                    decoder217253679_598b_45cd_8173_acd1cb38fd57,
-                    decoder261a13d37_3bce_4d7b_8432_9ef2725b44e3,
-                    decoder2a6ed30ee_fad2_40ea_8a18_e262ad4adb8c);
+inverter decodeInverterc86f48cb_6f51_4bbc_9bff_91e041c8712c ( 
+                .data(microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[2]), 
+                .Q(decodeInverterefa5749b_763d_42d5_a0fd_cae627dceac6), 
+                .outputEnable(invert_clock_signal_enabled5939afa_e831_467d_bc99_8ca02c85a595[0]) );
 
 
 
 
 
-twoLineToFourLineDecoder decoder158030c4e_31b9_440d_95e7_0f5042fe39d5 (
-                 microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[0],
-                  microcode_step_countere45279e6_3731_4073_8c48_3bb833485882[1],
-                   decodeInverterde002a2e_7251_488e_b3c2_ea6f4791603c[0],
-                    decoder1a3de65b0_c076_411d_8551_80946281b2de,
-                    decoder150477a52_4743_4ee0_b689_5a37c3e02778,
-                    decoder17235598b_b198_480f_a68a_b0b90c6c9444,
-                    decoder1696580cd_cec7_4431_a264_c62a03e07289);
 
 
-binaryCounter #(.n(16)) Program_Counter4f71d7ee_07a5_42db_9998_93fecc29ecc2 (
-                .D(main_bus21eacba7_a403_4826_ad41_70185f7dc7a7),
-                .clr_(clearPC80e12f3a_b0e3_4a07_b82a_a0028b0b638c[0]),
-                .load_(loadInverter506f3558_d72a_4e1f_a22b_5c5adb70e8b1[0]),
+twoLineToFourLineDecoder decoder2cabc5332_9181_4387_bfdd_61e86b089b05 (
+                 microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[0],
+                  microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[1],
+                   microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[2],
+                    decoder29a0bb26a_e858_4667_93c0_c0b4a5d2f07a,
+                    decoder2cf4b4c70_6152_46c0_81d9_08575ba2dc78,
+                    decoder298abaf74_87a2_441d_87b1_adb023db0706,
+                    decoder25d2f6765_8e95_44dd_ba20_2d8079a1f81d);
+
+
+
+
+
+twoLineToFourLineDecoder decoder1927cb490_576c_408e_8f3f_685b967eaf32 (
+                 microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[0],
+                  microcode_step_counter22856748_8cc1_42c0_b081_e2a797fb83ca[1],
+                   decodeInverterefa5749b_763d_42d5_a0fd_cae627dceac6[0],
+                    decoder1f2b0fff7_2203_4c10_841d_63e0f9e6f639,
+                    decoder1637298ab_dc89_4b89_8328_dc6337eb95e7,
+                    decoder1db254d4c_2d97_4afa_8dd4_ed6debdda9fc,
+                    decoder1188f3d0a_83a1_4a0a_a595_ba8c7a832dd3);
+
+
+binaryCounter #(.n(16)) Program_Counter758ca93b_bb4e_42a6_9f88_5301aed9d53e (
+                .D(main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928),
+                .clr_(clearPC9187ee38_7fa0_4534_949f_4f06021a5d1b[0]),
+                .load_(loadInverter710986e6_3336_4b16_84fe_b767ef4ec548[0]),
                 .clock(clock[0]),
-                .enable1_(countEnableInverter9235f07f_22e4_443c_861a_d435b2e6074e[0]),
-                .enable2_(countEnableInverter9235f07f_22e4_443c_861a_d435b2e6074e[0]),
-                .Q(Program_Counter1c341a13_6da5_44a9_b028_72be756161af));
+                .enable1_(countEnableInverterc657340d_09fb_40a8_9bb1_cff0a11805ff[0]),
+                .enable2_(countEnableInverterc657340d_09fb_40a8_9bb1_cff0a11805ff[0]),
+                .Q(Program_Counterf7d5952d_736d_4916_94b9_c84a48576fcc));
 
 
 
-nBuffer  #(.n(16)) pc_buffer49723356_773a_40d7_b901_711c91add572 (
-                  .data(allInputsFor49723356_773a_40d7_b901_711c91add572),
-                  .Q(pc_buffer48bcfc7d_abef_43b0_8986_22232dffdffa), 
-                  .outputEnable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[4]) );
+nBuffer  #(.n(16)) pc_buffer75c1064c_c0bb_46a2_84e3_9e4711358e9b (
+                  .data(allInputsFor75c1064c_c0bb_46a2_84e3_9e4711358e9b_pc_buffer),
+                  .Q(pc_buffer56ae585a_7c60_4db5_aaf8_f503af608735), 
+                  .outputEnable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[4]) );
 
 
 
 
-bus_mux #(.bus_count(7),.mux_width(16)) main_busbd72946f_bbdb_476d_bcd8_0916cfba57bd (
-                .selects(allSelectsForbd72946f_bbdb_476d_bcd8_0916cfba57bd),
-                .data_in(allInputsForbd72946f_bbdb_476d_bcd8_0916cfba57bd),
-                .data_out(main_bus21eacba7_a403_4826_ad41_70185f7dc7a7));
+bus_mux #(.bus_count(7),.mux_width(16)) main_busd678947b_53c5_4d22_8722_bdf0e0f1783b (
+                .selects(allSelectsFord678947b_53c5_4d22_8722_bdf0e0f1783b_main_bus),
+                .data_in(allInputsFord678947b_53c5_4d22_8722_bdf0e0f1783b_main_bus),
+                .data_out(main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928));
 
 
 
-nRegister #(.n(16)) instruction_register945af85a_2d78_4093_be8b_e1cb3f43d6b0 ( 
-                .data(allInputsFor945af85a_2d78_4093_be8b_e1cb3f43d6b0), 
+nRegister #(.n(16)) instruction_registerde079a87_4200_4fd9_be8f_77620cb330d0 ( 
+                .data(allInputsForde079a87_4200_4fd9_be8f_77620cb330d0_instruction_register), 
                 .clock(clock[0]), 
-                .enable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[2]),
-                 .Q(instruction_register65677589_db75_4de8_a007_cbe7a34e0db6) );
+                .enable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[2]),
+                 .Q(instruction_registeref263682_c3c9_4070_8d84_84ab80338c8c) );
 
 
 
 
-staticRamDiscretePorts #(.ROMFILE("microcode.mem"),.DATA_WIDTH(32),.ADDR_WIDTH(8)) microcode_rom501d374a_9172_497f_96a3_7d11b982fa92 (
-                 .address(allAddressInputsFor501d374a_9172_497f_96a3_7d11b982fa92),
-                  .data(allDataInputsFor501d374a_9172_497f_96a3_7d11b982fa92), 
-                  .cs_(eepromChipEnableee2a7fc2_e908_4bf4_9e70_246d2c0aa8d3[0]),
-                   .we_(eepromWriteDisabled0d6fab58_aac8_4a39_9715_4059440820ae[0]),
-                   .oe_(eepromOutEnable84354f6f_aabe_4a16_a175_3c1a06391ee8[0]),
+staticRamDiscretePorts #(.ROMFILE("microcode.mem"),.DATA_WIDTH(32),.ADDR_WIDTH(8)) microcode_rom558fc34e_cb4f_4477_a6ce_3611c2137b04 (
+                 .address(allAddressInputsFor558fc34e_cb4f_4477_a6ce_3611c2137b04_microcode_rom),
+                  .data(allDataInputsFor558fc34e_cb4f_4477_a6ce_3611c2137b04_microcode_rom), 
+                  .cs_(eepromChipEnable3a7be011_4eeb_4357_bbee_2263e2edd2f2[0]),
+                   .we_(eepromWriteDisablede9b0c820_c4ca_4c2b_8f44_d2b42988bb58[0]),
+                   .oe_(eepromOutEnable48142b48_6297_4a61_8cd4_8b601e96412b[0]),
                     .clock(ClockFaster[0]),
-                   .Q(microcode_rom60998e5c_abe1_47c0_b628_2f81b7288858));
+                   .Q(microcode_rom86f4dab6_1b83_4bda_b4cf_9327425da825));
 
 
 
-nBuffer  #(.n(32)) microCode_SIGNAL_bank90109ee4_4a46_4c7e_888e_669dfd173fbd (
-                  .data(allInputsFor90109ee4_4a46_4c7e_888e_669dfd173fbd),
-                  .Q(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691), 
-                  .outputEnable(signalBankOutputOn1a14a4da_840c_4e79_a85b_56d211fa6ff5[0]) );
+nBuffer  #(.n(32)) microCode_SIGNAL_bank42a7e49c_5b4a_4979_ab9d_6b4ffd802b04 (
+                  .data(allInputsFor42a7e49c_5b4a_4979_ab9d_6b4ffd802b04_microCode_SIGNAL_bank),
+                  .Q(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73), 
+                  .outputEnable(signalBankOutputOn6390dfb5_c218_4453_b020_1adb140034d8[0]) );
 
 
 
-nBuffer  #(.n(16)) comDataRegBuffer0c2983d4_f1d8_4817_acf5_b1d99aa3747f (
-                  .data(allInputsFor0c2983d4_f1d8_4817_acf5_b1d99aa3747f),
-                  .Q(comDataRegBufferf8f9dac3_f267_4f0c_9c1c_cd533f62eed4), 
-                  .outputEnable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[25]) );
+nBuffer  #(.n(16)) comDataRegBufferf0ad7468_0d74_409f_83d6_f91902afb7eb (
+                  .data(allInputsForf0ad7468_0d74_409f_83d6_f91902afb7eb_comDataRegBuffer),
+                  .Q(comDataRegBuffer6255fd38_cafe_4243_8c84_0c463cc5d552), 
+                  .outputEnable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[25]) );
 
 
 
-nRegister #(.n(16)) comControlReg30345804_e089_409f_9881_14e3f5e3dce2 ( 
-                .data(allInputsFor30345804_e089_409f_9881_14e3f5e3dce2), 
+nRegister #(.n(16)) comControlRegb56b4867_2ad5_4579_8909_580394c8ed16 ( 
+                .data(allInputsForb56b4867_2ad5_4579_8909_580394c8ed16_comControlReg), 
                 .clock(clock[0]), 
-                .enable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[24]),
-                 .Q(comControlReg3adc0e05_a9cb_474a_85f5_7d4e985abcd4) );
+                .enable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[24]),
+                 .Q(comControlRegaab69a2f_f9b5_4d1a_aa30_b827d85364bf) );
 
 
 
 
-SPIComPart #(.n(16)) spi_testdc728842_03ae_4852_a4e9_876efe18753a (
-                .i_controlReg(AllControlInputsFordc728842_03ae_4852_a4e9_876efe18753a),
-                .o_dataReg(spi_testb2b3a930_fc5f_47b8_b45b_efeade294464),
-                .o_statReg(spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae),
+SPIComPart #(.n(16)) spi_test59e32e52_f2fa_41d5_8595_63c5b93ae17a (
+                .i_controlReg(AllControlInputsFor59e32e52_f2fa_41d5_8595_63c5b93ae17a_spi_test),
+                .o_dataReg(spi_test7d5c204c_5be6_4cf8_8573_8cae3425365b),
+                .o_statReg(spi_testb3413355_1dce_42de_92f1_95ba91a08248),
                 .i_serial(SERIALIN),
                 .o_enable(ENABLEOUT),
                 .o_clock(CLOCKOUT),
@@ -726,216 +722,224 @@ SPIComPart #(.n(16)) spi_testdc728842_03ae_4852_a4e9_876efe18753a (
 
 
 
-nBuffer  #(.n(16)) comStatusRegBufferfd1ff0fd_41d9_4a20_8256_2bbd88129b64 (
-                  .data(allInputsForfd1ff0fd_41d9_4a20_8256_2bbd88129b64),
-                  .Q(comStatusRegBuffer18fd87f7_289e_4be0_a0ec_917d0b040e64), 
-                  .outputEnable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[23]) );
+nBuffer  #(.n(16)) comStatusRegBuffer80be5f4c_c843_420d_b691_d747ab8b7c7c (
+                  .data(allInputsFor80be5f4c_c843_420d_b691_d747ab8b7c7c_comStatusRegBuffer),
+                  .Q(comStatusRegBuffer3b66b407_2d91_4178_9c6b_0562e87d5cad), 
+                  .outputEnable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[23]) );
 
 
-inverter countEnableInverterf55dcb72_5e5f_48b3_94f6_901d6fa112c8 ( 
-                .data(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[6]), 
-                .Q(countEnableInverter9235f07f_22e4_443c_861a_d435b2e6074e), 
-                .outputEnable(invertOn940cd0df_9440_441d_9ade_e002e62176bc[0]) );
+inverter countEnableInverterfed341c8_9cbf_4376_8b43_82f7c41e7ae5 ( 
+                .data(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[6]), 
+                .Q(countEnableInverterc657340d_09fb_40a8_9bb1_cff0a11805ff), 
+                .outputEnable(invertOn2ad9ae95_2552_4efb_89fb_3a3229f30394[0]) );
 
 
-inverter ramOutInvertera3ac5298_16dd_4a7f_b629_61514480ebbb ( 
-                .data(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[1]), 
-                .Q(ramOutInverter46f6784d_9768_4d7b_99b8_3c2eb57e6b13), 
-                .outputEnable(invertOn940cd0df_9440_441d_9ade_e002e62176bc[0]) );
+inverter ramOutInverter5b9c68c8_9809_486e_bca8_48556e83c063 ( 
+                .data(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[1]), 
+                .Q(ramOutInverter0980be50_239a_4cab_adbc_00e5c68f108c), 
+                .outputEnable(invertOn2ad9ae95_2552_4efb_89fb_3a3229f30394[0]) );
 
 
-inverter ramInInverterd8131701_c47b_4e14_95bb_3e6c86a53f06 ( 
-                .data(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[0]), 
-                .Q(ramInInverter9dc5a0ef_0abb_4526_bc0c_ca500aae0311), 
-                .outputEnable(invertOn940cd0df_9440_441d_9ade_e002e62176bc[0]) );
+inverter ramInInverter15e236aa_be5d_4af1_acbd_1a7906d190d2 ( 
+                .data(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[0]), 
+                .Q(ramInInverterf6e82919_c6f3_4ae5_a2bd_f4cce10a86bf), 
+                .outputEnable(invertOn2ad9ae95_2552_4efb_89fb_3a3229f30394[0]) );
 
 
 
-nRegister #(.n(16)) memory_address_registeree43d09e_e8ae_4eba_9cc9_c8eb5db712b6 ( 
-                .data(allInputsForee43d09e_e8ae_4eba_9cc9_c8eb5db712b6), 
+nRegister #(.n(16)) memory_address_register70382e12_73ff_4189_9b16_62bdecf528df ( 
+                .data(allInputsFor70382e12_73ff_4189_9b16_62bdecf528df_memory_address_register), 
                 .clock(clock[0]), 
-                .enable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[18]),
-                 .Q(memory_address_register585f6d07_9d90_4ed1_812e_48d997c618a8) );
+                .enable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[18]),
+                 .Q(memory_address_register32e58028_e945_45bc_b2be_c34ba619063d) );
 
 
 
 
 
 
-dualPortStaticRam #(.ROMFILE("staticram.mem"),.DATA_WIDTH(16),.ADDR_WIDTH(16)) main_ramad144c31_5eab_45d0_93f7_15625fc502f8 (
-                .address_1(allAddress1InputsForad144c31_5eab_45d0_93f7_15625fc502f8),
-                .address_2(allAddress2InputsForad144c31_5eab_45d0_93f7_15625fc502f8),
-                 .data(allDataInputsForad144c31_5eab_45d0_93f7_15625fc502f8), 
-                 .cs_(ram_chipEnablec606de19_5448_432f_bb4a_9524c7ad9c49[0]),
-                  .we_(ramInInverter9dc5a0ef_0abb_4526_bc0c_ca500aae0311[0]),
-                  .oe_(ramOutInverter46f6784d_9768_4d7b_99b8_3c2eb57e6b13[0]),
+dualPortStaticRam #(.ROMFILE("staticram.mem"),.DATA_WIDTH(16),.ADDR_WIDTH(16)) main_ram46401ae1_cdc0_4c5d_b2cb_3401abb0c018 (
+                .address_1(allAddress1InputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram),
+                .address_2(allAddress2InputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram),
+                 .data(allDataInputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram), 
+                 .cs_(ram_chipEnable1a694d58_b217_46e0_b8e3_4e3659cfbf3a[0]),
+                  .we_(ramInInverterf6e82919_c6f3_4ae5_a2bd_f4cce10a86bf[0]),
+                  .oe_(ramOutInverter0980be50_239a_4cab_adbc_00e5c68f108c[0]),
                   .clock(ClockFaster[0]),
                   .clock2(ClockFaster[0]),
-                  .Q_1(main_ramdd2142a4_e9eb_479a_8996_910acf61fcbd),
-                  .Q_2(main_ram1f517116_4526_48df_ac19_1d8c75147dd4));
+                  .Q_1(main_rama9781169_e25b_4053_87b7_81c917387ad5),
+                  .Q_2(main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7));
 
 
 
-nBuffer  #(.n(16)) ram_output_buffer65bc6be6_f2ce_49d7_a3d4_4fe6d53aab33 (
-                  .data(allInputsFor65bc6be6_f2ce_49d7_a3d4_4fe6d53aab33),
-                  .Q(ram_output_buffer8ea2b86a_486b_4320_8dac_cf964cb9c43d), 
-                  .outputEnable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[1]) );
+nBuffer  #(.n(16)) ram_output_bufferb537dbe8_5eb8_4bda_8afc_6e8e11081fc2 (
+                  .data(allInputsForb537dbe8_5eb8_4bda_8afc_6e8e11081fc2_ram_output_buffer),
+                  .Q(ram_output_buffer7f4e104d_0124_4dec_85d2_e843d2843366), 
+                  .outputEnable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[1]) );
 
 
 
-nRegister #(.n(16)) OUT_register450cfe1a_084a_4337_8446_6a1c8377a57b ( 
-                .data(allInputsFor450cfe1a_084a_4337_8446_6a1c8377a57b), 
+nRegister #(.n(16)) OUT_registerb23150f3_85b2_479b_9f7b_abe20d7431cc ( 
+                .data(allInputsForb23150f3_85b2_479b_9f7b_abe20d7431cc_OUT_register), 
                 .clock(clock[0]), 
-                .enable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[16]),
-                 .Q(OUT_register0ae9533e_37a1_4cf7_b5d3_ee3e51eae0a4) );
+                .enable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[16]),
+                 .Q(OUT_registercada2531_4081_41e2_8c5f_8ce024d2c282) );
 
 
 
-nRegister #(.n(16)) B_registerabbfa68e_bc26_4f96_aa3d_767b3679170d ( 
-                .data(allInputsForabbfa68e_bc26_4f96_aa3d_767b3679170d), 
+nRegister #(.n(16)) B_registerb84f7fea_dbf6_4145_8db3_8bce2dde1ce1 ( 
+                .data(allInputsForb84f7fea_dbf6_4145_8db3_8bce2dde1ce1_B_register), 
                 .clock(clock[0]), 
-                .enable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[14]),
-                 .Q(B_registerfe884a39_9e8f_47f6_b404_ee0a936ed272) );
+                .enable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[14]),
+                 .Q(B_registerae893324_23f0_4e4c_8849_42ce5b23373a) );
 
 
 
-nBuffer  #(.n(16)) B_reg_buffer627b30dc_8429_4c41_837b_96330d47524c (
-                  .data(allInputsFor627b30dc_8429_4c41_837b_96330d47524c),
-                  .Q(B_reg_buffer591c187f_37b8_4a1c_b28c_58e00009d245), 
-                  .outputEnable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[15]) );
+nBuffer  #(.n(16)) B_reg_bufferfd5653c3_5395_4f49_9ef6_0a245a15d63e (
+                  .data(allInputsForfd5653c3_5395_4f49_9ef6_0a245a15d63e_B_reg_buffer),
+                  .Q(B_reg_bufferae7cac2f_fcef_4397_a830_c400e5fe8b4b), 
+                  .outputEnable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[15]) );
 
 
 
-nRegister #(.n(16)) A_register72ee5950_1355_4ac0_9a56_d2d4fb2d6827 ( 
-                .data(allInputsFor72ee5950_1355_4ac0_9a56_d2d4fb2d6827), 
+nRegister #(.n(16)) A_register91962c85_0244_4528_9d36_ae82fd552e9e ( 
+                .data(allInputsFor91962c85_0244_4528_9d36_ae82fd552e9e_A_register), 
                 .clock(clock[0]), 
-                .enable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[7]),
-                 .Q(A_register2c04495b_d5ca_448a_9673_2e0ad353f509) );
+                .enable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[7]),
+                 .Q(A_registerc9802523_a9d1_4181_bb88_f57aa3e9ef60) );
 
 
 
 
 
-nbitComparator #(.n(16)) A_B_Comparator5ed275b9_a827_4965_9b1b_342413460c6a (
-                .a(allADataInputsFor5ed275b9_a827_4965_9b1b_342413460c6a),
-                .b(allBDataInputsFor5ed275b9_a827_4965_9b1b_342413460c6a),
-                .equal(A_B_Comparator92c9603a_8695_4901_92a5_61ae28886dab),
-                .lower(A_B_Comparator3f7f8a35_15cd_4a23_8f82_5ee1b0c13278));
+nbitComparator #(.n(16)) A_B_Comparatorba7d753e_78c0_408c_a2bb_9528a64dfd8f (
+                .a(allADataInputsForba7d753e_78c0_408c_a2bb_9528a64dfd8f_A_B_Comparator),
+                .b(allBDataInputsForba7d753e_78c0_408c_a2bb_9528a64dfd8f_A_B_Comparator),
+                .equal(A_B_Comparator95a9c70b_c0e7_432a_b0fe_c16124e3b0e0),
+                .lower(A_B_Comparator075b8e98_6b90_4a03_b997_41166450d8e1));
 
 
-inverter invertALESSB2c8bf031_8f23_4d8a_abfa_186326927020 ( 
-                .data(A_B_Comparator3f7f8a35_15cd_4a23_8f82_5ee1b0c13278[0]), 
-                .Q(invertALESSB6642ecfb_095a_4504_b80e_65ea77ab0deb), 
-                .outputEnable(invertONdef2138c_5bdb_4a1f_b83b_0105d64a6713[0]) );
+inverter invertALESSB6ce6bae7_c818_425e_b20c_b683eb016cc6 ( 
+                .data(A_B_Comparator075b8e98_6b90_4a03_b997_41166450d8e1[0]), 
+                .Q(invertALESSB797075a8_c1e9_4367_88d8_dfc628eaea79), 
+                .outputEnable(invertONd4dc9909_beb3_4517_bab6_b305ba85f881[0]) );
 
 
-inverter invertAEQUALB90c1338f_2add_41da_9ada_102b6b1447ba ( 
-                .data(A_B_Comparator92c9603a_8695_4901_92a5_61ae28886dab[0]), 
-                .Q(invertAEQUALB6aec92d6_e96d_4082_9e9f_d3f8660df7e1), 
-                .outputEnable(invertONdef2138c_5bdb_4a1f_b83b_0105d64a6713[0]) );
+inverter invertAEQUALB163b1a43_0821_4634_ade0_7cc48efe5197 ( 
+                .data(A_B_Comparator95a9c70b_c0e7_432a_b0fe_c16124e3b0e0[0]), 
+                .Q(invertAEQUALB6eca266d_9151_433a_b523_d0d96b46a86e), 
+                .outputEnable(invertONd4dc9909_beb3_4517_bab6_b305ba85f881[0]) );
 
 
-ANDGATE AGREATERB50a58d0f_c5f8_4e13_beba_0c60c07b00f4 ( 
-                invertAEQUALB6aec92d6_e96d_4082_9e9f_d3f8660df7e1[0], 
-                invertALESSB6642ecfb_095a_4504_b80e_65ea77ab0deb[0], 
-                AGREATERB69084d4f_872b_4bd3_99e6_0ff8e97c9f68 );
+ANDGATE AGREATERBa0df0a4a_ee10_445c_9061_b91dd76e1620 ( 
+                invertAEQUALB6eca266d_9151_433a_b523_d0d96b46a86e[0], 
+                invertALESSB797075a8_c1e9_4367_88d8_dfc628eaea79[0], 
+                AGREATERBa6cf7035_0a0c_42a7_a3eb_57f27df1bd78 );
 
 
 
-nRegister #(.n(4)) flags_register1e7e95fa_5b0a_482d_8f38_ee209a1a0f43 ( 
-                .data(allInputsFor1e7e95fa_5b0a_482d_8f38_ee209a1a0f43), 
+nRegister #(.n(4)) flags_register5c66143d_621e_4cfa_bc7c_d25c1117baed ( 
+                .data(allInputsFor5c66143d_621e_4cfa_bc7c_d25c1117baed_flags_register), 
                 .clock(clock[0]), 
-                .enable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[22]),
-                 .Q(flags_register31d51a31_fb68_4b6b_a011_c119149bf7bb) );
+                .enable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[22]),
+                 .Q(flags_register30fded88_1e6b_42d1_845a_76f7b332eba8) );
 
 
-ANDGATE ANDALESSB3215d35b_f3dd_40f7_8c26_31991e584387 ( 
-                flags_register31d51a31_fb68_4b6b_a011_c119149bf7bb[2], 
-                microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[19], 
-                ANDALESSB2a968654_5a96_40ff_b090_ce24535a6c39 );
+ANDGATE ANDALESSBd84142c9_e36e_4520_a275_0da3a7e7bad7 ( 
+                flags_register30fded88_1e6b_42d1_845a_76f7b332eba8[2], 
+                microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[19], 
+                ANDALESSBf4ef4104_6dfb_4dfd_bf36_d2d523f4e5ef );
 
 
-ANDGATE ANDAEQUALBa4c7210c_abaa_43d8_8415_15395ec3cfb7 ( 
-                flags_register31d51a31_fb68_4b6b_a011_c119149bf7bb[1], 
-                microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[20], 
-                ANDAEQUALB4d8c7a77_206f_46c0_a59a_7c4a62744d0f );
+ANDGATE ANDAEQUALBa5fb33ef_6ea4_4545_8f9b_be78feb41a92 ( 
+                flags_register30fded88_1e6b_42d1_845a_76f7b332eba8[1], 
+                microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[20], 
+                ANDAEQUALB21cc6361_65d1_45ae_8f25_c60fb2b82a10 );
 
 
-ANDGATE ANDAGB1ab3bf93_3b1d_4541_8b86_1ebe9e8bbb81 ( 
-                flags_register31d51a31_fb68_4b6b_a011_c119149bf7bb[0], 
-                microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[21], 
-                ANDAGBd42780bb_52ee_46ab_9da1_5c5210599119 );
+ANDGATE ANDAGB85f32e04_ea50_40c0_9486_18ffad89d7d3 ( 
+                flags_register30fded88_1e6b_42d1_845a_76f7b332eba8[0], 
+                microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[21], 
+                ANDAGB9e610485_92b5_4184_9f0a_4edcbcb48652 );
 
 
-ORGATE OR14b02fe43_7287_4e08_a911_4fc42ac20de6 ( 
-                ANDAGBd42780bb_52ee_46ab_9da1_5c5210599119[0], 
-                ANDAEQUALB4d8c7a77_206f_46c0_a59a_7c4a62744d0f[0],
-                OR1eb7afeb0_f683_4b5e_ac00_f1a1215b4956);
+ORGATE OR19385dfd2_4bc9_4e6c_b125_fd068a31fdfb ( 
+                ANDAGB9e610485_92b5_4184_9f0a_4edcbcb48652[0], 
+                ANDAEQUALB21cc6361_65d1_45ae_8f25_c60fb2b82a10[0],
+                OR12ffd1432_b7b2_4aa9_907b_8cd14946c938);
 
 
-ORGATE OR27f8fb59f_4b57_4286_a64b_e69b3f1ddc92 ( 
-                OR1eb7afeb0_f683_4b5e_ac00_f1a1215b4956[0], 
-                ANDALESSB2a968654_5a96_40ff_b090_ce24535a6c39[0],
-                OR237a0ef81_a43e_4674_9fc9_d5aa6ff294d8);
+ORGATE OR29f9a5dd4_5c18_4f17_8db4_1a51606aa344 ( 
+                OR12ffd1432_b7b2_4aa9_907b_8cd14946c938[0], 
+                ANDALESSBf4ef4104_6dfb_4dfd_bf36_d2d523f4e5ef[0],
+                OR231666e7c_6b9c_4eb7_8a28_e45419a329dc);
 
 
-inverter loadInverterec0e4160_3492_40e0_b107_de0e314ab68b ( 
-                .data(OR237a0ef81_a43e_4674_9fc9_d5aa6ff294d8[0]), 
-                .Q(loadInverter506f3558_d72a_4e1f_a22b_5c5adb70e8b1), 
-                .outputEnable(invertONdef2138c_5bdb_4a1f_b83b_0105d64a6713[0]) );
-
-
-
-nBuffer  #(.n(16)) A_reg_buffer9face0ff_b07a_40cc_beb3_03e9c083f9a3 (
-                  .data(allInputsFor9face0ff_b07a_40cc_beb3_03e9c083f9a3),
-                  .Q(A_reg_buffer5d8f0526_6738_4d27_a515_087c610d4647), 
-                  .outputEnable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[8]) );
+inverter loadInverter9df66340_fcdd_4869_a9a5_671fbd7f4217 ( 
+                .data(OR231666e7c_6b9c_4eb7_8a28_e45419a329dc[0]), 
+                .Q(loadInverter710986e6_3336_4b16_84fe_b767ef4ec548), 
+                .outputEnable(invertONd4dc9909_beb3_4517_bab6_b305ba85f881[0]) );
 
 
 
+nBuffer  #(.n(16)) A_reg_bufferea97df4c_3162_4ac4_87e3_93476beb9c2d (
+                  .data(allInputsForea97df4c_3162_4ac4_87e3_93476beb9c2d_A_reg_buffer),
+                  .Q(A_reg_bufferce95afe0_a007_4119_96d6_5e07d45124f6), 
+                  .outputEnable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[8]) );
 
 
-nbitAdder #(.n(16)) adderdb5c05b3_3a6d_4a9b_8e0d_86f1013a348e (
+
+
+
+nbitAdder #(.n(16)) adder79c2bc75_f760_4f9a_a79f_e125953379b7 (
                  .sub(SUBMODE),
                 .cin(UNCONNECTED),
-                .x(allADataInputsFordb5c05b3_3a6d_4a9b_8e0d_86f1013a348e),
-                .y(allBDataInputsFordb5c05b3_3a6d_4a9b_8e0d_86f1013a348e),
-                .sum(adder5f681b73_8a1c_426e_bd44_583b3eeb2939),
-                .cout(adderff06cf60_1a40_4699_b825_e475f8399297));
+                .x(allADataInputsFor79c2bc75_f760_4f9a_a79f_e125953379b7_adder),
+                .y(allBDataInputsFor79c2bc75_f760_4f9a_a79f_e125953379b7_adder),
+                .sum(adder7abc65cd_1ac0_4824_a20e_1113780edd92),
+                .cout(adder05f17e67_7785_4ad1_98d7_e528c893e15d));
 
 
 
-nBuffer  #(.n(16)) adder_buffer8dba51fd_129d_4412_819f_c315fe5f014a (
-                  .data(allInputsFor8dba51fd_129d_4412_819f_c315fe5f014a),
-                  .Q(adder_buffer332d6aea_f4f9_41dd_9c38_9c1fc2310755), 
-                  .outputEnable(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[9]) );
+nBuffer  #(.n(16)) adder_buffer91e8fae8_cd81_4e89_a979_53d7d16ab13f (
+                  .data(allInputsFor91e8fae8_cd81_4e89_a979_53d7d16ab13f_adder_buffer),
+                  .Q(adder_buffer76d54fe1_6c23_4ccd_b43c_b297a762963d), 
+                  .outputEnable(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[9]) );
 
 
 
-/*
 
-vgaSignalGenerator sigGenbd21f964_f65d_44fa_b709_5dd900129dc1 (
-                .i_clk(clock[0]),
-                .i_pix_stb(25MHZCLOCK),
-                .o_hs(sigGen47203e0a_5c3a_42a3_8caa_ea473a75ee52),
-                .o_vs(sigGen4a36c076_0de5_40bc_b28a_d1d029b05610),
-                .o_x(sigGen7f0a4f9a_c4b3_4a7a_9311_c0f1ad8ae9c5),
-                .o_y(sigGenbd78ac15_d51a_47ff_a2e7_227f0acb9fdd)
+vgaSignalGenerator sigGen1ef2ddc2_efb0_44c6_b17b_873063e5c645 (
+                .i_clk(CLK),
+                .i_pix_stb(pix_stb),
+                .o_hs(sigGen535bef02_465d_40b1_a3ae_a1d4745f6b7d),
+                .o_vs(sigGencb62e8b5_684b_4e67_a8b0_f01f0e89de95),
+                .o_x(sigGen3905f924_d585_4385_83e1_0f6dc61906ff),
+                .o_y(sigGen99308565_dedb_4212_82bc_6ed8eef6cb62)
             );
-*/
+            
+            assign VGA_HS_O = sigGen535bef02_465d_40b1_a3ae_a1d4745f6b7d;
+            assign VGA_VS_O = sigGencb62e8b5_684b_4e67_a8b0_f01f0e89de95;
+            assign VGA_R = main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7[0:3];
+            assign VGA_G = main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7[4:7];
+            assign VGA_B = main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7[8:11];
+
         reg [32:0] counter = 32'b0;
+        reg [15:0] cnt;
             always @ (posedge CLK) 
             begin
-
-                   LED = OUT_register0ae9533e_37a1_4cf7_b5d3_ee3e51eae0a4;
-                   RGB3_Red   = spi_testfced2bc9_a603_4bb2_ab78_17d1b97a11ae[15];
-                   OUT_AREG = comDataRegd07c63fd_faea_4234_860a_56d17308e8d5[8:15];
+                LED =OUT_registercada2531_4081_41e2_8c5f_8ce024d2c282;
+                RGB3_Red   = spi_testb3413355_1dce_42de_92f1_95ba91a08248[15];
+                OUT_AREG = comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[8:15];
 
                 counter <= counter + 1;
-                if(microCode_SIGNAL_bankf02248bf_b13e_4a2a_8d6c_1db5fc363691[17] == 0) begin
-                clock[0] <= counter[14];
+                {pix_stb, cnt} <= cnt + 16'h4000;  // divide by 4: (2^16)/4 = 0x4000
+
+                if(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[17] == 0) begin
+                clock[0] <= counter[8];
                 end
-                ClockFaster[0] <= counter[3];
+               
+                ClockFaster[0] <= counter[0];
                
             end
 

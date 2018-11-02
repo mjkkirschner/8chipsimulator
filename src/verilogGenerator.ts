@@ -89,31 +89,46 @@ export class verilogGenerator {
 
         let customModules = Object.keys(this.moduleMap).map(x => this.moduleMap[x]).join("\n");
 
-        return this.generateTopModule(verilog.join("\n\n"), customModules);
+        return this.generateTopModule(verilog.join("\n\n"), customModules, sortedNodes.map(x => x.pointer));
 
     }
 
-    private generateTopModule(implementation: string, modules: string): string {
+    private generateTopModule(implementation: string, modules: string, parts: Ipart[]): string {
+
+        //TODO this doesn't help me much - I want the output wires not the parts themselves...
+        //maybe I can use the wire map.
+        this.wireMap[]
+        let microcodeSignals = parts.find(x => x.displayName == "microCode_SIGNAL_bank");
+        let outreg = parts.find(x => x.displayName == "OUT_register");
+        let spipart = parts.find(x => x.displayName == "spi_test");
+        let comDataReg = parts.find(x => x.displayName == "comDataReg");
+
         return `
         ${modules}
         (* DONT_TOUCH = "yes" *)
-        module top(input CLK,
-        
-            output reg [0:3] LED,
-            output wire VGA_HS_O,       // horizontal sync output
-            output wire VGA_VS_O,       // vertical sync output
-            output wire [3:0] VGA_R,    // 4-bit VGA red output
-            output wire [3:0] VGA_G,    // 4-bit VGA green output
-            output wire [3:0] VGA_B);     // 4-bit VGA blue output);
-               
-            reg HIGH = 1;
-            reg LOW = 0;
-            reg SUBMODE = 0;
-            reg UNCONNECTED = 0;
-
-            reg [0:0]clock;
-            reg [0:0]ClockFaster;
-            reg pix_stb;
+        module top(   
+                input CLK,
+                input SERIALIN,
+                
+                output wire ENABLEOUT,
+                output wire CLOCKOUT,
+                output reg RGB3_Red,
+                output reg [0:3] LED,
+                output wire VGA_HS_O,       // horizontal sync output
+                output wire VGA_VS_O,       // vertical sync output
+                output wire [3:0] VGA_R,    // 4-bit VGA red output
+                output wire [3:0] VGA_G,    // 4-bit VGA green output
+                output wire [3:0] VGA_B,     // 4-bit VGA blue output);
+                output reg  [0:7] OUT_AREG) ; //debugging
+                   
+                reg HIGH = 1;
+                reg LOW = 0;
+                reg SUBMODE = 0;
+                reg UNCONNECTED = 0;
+    
+                reg [0:0]clock;
+                reg [0:0]ClockFaster;
+                reg pix_stb;
 
         
         
@@ -122,14 +137,16 @@ export class verilogGenerator {
         reg [32:0] counter = 32'b0;
             always @ (posedge CLK) 
             begin
-                LED = REPLACE WITH OUT REG STRING;          
+            
+                LED = ${outreg.displayName}${outreg.id};
+                RGB3_Red   = ${spipart.displayName}${spipart.id}[15];
+                OUT_AREG = ${comDataReg.displayName}${comDataReg.id}[8:15];
+
                 counter <= counter + 1;
-                if(REPLACE WITH MICROCODE OUTPUT BANK[17] == 0) begin
+                if(${microcodeSignals.displayName}${microcodeSignals.id}[17] == 0) begin
                 clock[0] <= counter[9];
                 end
-                //TODO see if it works if we set strobe to counter[3 or 4];
-                 //{pix_stb, counter} <= counter + 32'h40000000;  // divide by 4: (2^16)/4 = 0x4000
-                 //RAM clock...
+               
                 ClockFaster[0] <= counter[5];
                
             end
@@ -156,7 +173,7 @@ export class verilogGenerator {
             // for its output.
 
             const n = part.dataPins.length;
-            let dataInputName = 'allInputsFor' + part.id;
+            let dataInputName = `allInputsFor${part.id}_${part.displayName}`;
 
             //this will generate a wire concatenation of all the input wires at the required indices. {wire1[0], wire2[0]} for example... if a part's inputs come from 2 different parts/wires.
             let concatenatedDatas = `wire [0:${n}-1] ` + dataInputName + '= {' + part.dataPins.map(x => {
@@ -201,7 +218,7 @@ export class verilogGenerator {
         nBuffer: (part: nBuffer) => {
 
             const n = part.dataPins.length;
-            let dataInputName = 'allInputsFor' + part.id;
+            let dataInputName = `allInputsFor${part.id}_${part.displayName}`;
 
             let concatenatedDatas = `wire [0:${n}-1] ` + dataInputName + '= {' + part.dataPins.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
 
@@ -275,7 +292,7 @@ export class verilogGenerator {
             //though it should be safe for now because all inputs come from buffers wire homogenous wires.
 
             //get all the dataInputs... this will be the concatenation of all the data input parts output wires...
-            let dataInputName = 'allInputsFor' + part.id;
+            let dataInputName = `allInputsFor${part.id}_${part.displayName}`;
 
             let n = part.outputPins.length;
             let m = part.inputGroups.length;
@@ -284,10 +301,11 @@ export class verilogGenerator {
             let outputName = part.displayName + part.outputPins[0].id;
             //for the select signals we need to generate a concatenation of all the outputEnable signals from the inputs.
             //similar to what we did for the inputs themselves
-            let selectInputName = 'allSelectsFor' + part.id;
+            let selectInputName = `allSelectsFor${part.id}_${part.displayName}`;
+
             // TODO this is crazy.
             // this feeds the input attached to the outputenable of the buffer attached each input group into the wiremap, gets the wire, and then gets the index in that wire....
-            // this mostly gets outputs from the microcode signal bang at the right index... the wires should be the same... mostly.
+            // this mostly gets outputs from the microcode signal bank at the right index... the wires should be the same... mostly.
 
             let concatenatedSelects = `wire [0:${m}-1] ` + selectInputName + '= {' + part.inputGroups.map(x => (this.wireMap[(((x[0].attachedWire.startPin.owner as nBuffer).outputEnablePin as inputPin).attachedWire.startPin.id)] + `[${((x[0].attachedWire.startPin.owner as nBuffer).outputEnablePin as inputPin).attachedWire.startPin.index}]`)).join(",") + '};';
 
@@ -305,8 +323,8 @@ export class verilogGenerator {
 
         nbitAdder: (part: nbitAdder) => {
 
-            let aInputName = 'allADataInputsFor' + part.id;
-            let bInputName = 'allBDataInputsFor' + part.id;
+            let aInputName = `allADataInputsFor${part.id}_${part.displayName}`;
+            let bInputName = `allBDataInputsFor${part.id}_${part.displayName}`;
 
             let n = part.dataPinsA.length;
 
@@ -338,8 +356,7 @@ export class verilogGenerator {
         },
 
         SPIComPart: (part: SPIComPart) => {
-
-            let controlRegInputName = 'AllControlInputsFor' + part.id;
+            let controlRegInputName = `AllControlInputsFor${part.id}_${part.displayName}`;
             let clockInputName = this.wireMap[part.clockPin.attachedWire.startPin.id] + `[${part.clockPin.attachedWire.startPin.index}]`
 
 
@@ -409,8 +426,8 @@ export class verilogGenerator {
 
         nbitComparator: (part: nbitComparator) => {
 
-            let aInputName = 'allADataInputsFor' + part.id;
-            let bInputName = 'allBDataInputsFor' + part.id;
+            let aInputName = `allADataInputsFor${part.id}_${part.displayName}`;
+            let bInputName = `allBDataInputsFor${part.id}_${part.displayName}`;
 
             let n = part.dataPinsA.length;
 
@@ -482,9 +499,8 @@ export class verilogGenerator {
             let weInputName = this.wireMap[part.writeEnable.attachedWire.startPin.id] + `[${part.writeEnable.attachedWire.startPin.index}]`
             let oeInputName = this.wireMap[part.outputEnable.attachedWire.startPin.id] + `[${part.outputEnable.attachedWire.startPin.index}]`
 
-
-            let addressInputName = 'allAddressInputsFor' + part.id;
-            let dataInputName = "allDataInputsFor" + part.id;
+            let addressInputName = `allAddressInputsFor${part.id}_${part.displayName}`;
+            let dataInputName = `allDataInputsFor${part.id}_${part.displayName}`;
 
             let n = part.wordSize;
             let concatenatedAddressPins = `wire [0:${part.addressPins.length}-1] ` + addressInputName + '= {' + part.addressPins.map(x => {
@@ -546,9 +562,9 @@ export class verilogGenerator {
             let oeInputName = this.wireMap[part.outputEnable.attachedWire.startPin.id] + `[${part.outputEnable.attachedWire.startPin.index}]`
 
 
-            let addressInputName1 = 'allAddress1InputsFor' + part.id;
-            let addressInputName2 = 'allAddress2InputsFor' + part.id;
-            let dataInputName = "allDataInputsFor" + part.id;
+            let addressInputName1 = `allAddress1InputsFor${part.id}_${part.displayName}`;
+            let addressInputName2 = `allAddress2InputsFor${part.id}_${part.displayName}`;
+            let dataInputName = `allDataInputsFor${part.id}_${part.displayName}`;
 
             let n = part.wordSize;
             let concatenatedAddress1Pins = `wire [0:${part.addressPins.length}-1] ` + addressInputName1 + '= {' + part.addressPins.map(x => {

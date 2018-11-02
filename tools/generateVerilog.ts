@@ -5,6 +5,8 @@ import { graph } from "../src/engine";
 import { clock } from "../src/clock";
 import { verilogGenerator } from "../src/verilogGenerator";
 import * as fs from 'fs';
+import { assembler } from "./assembler";
+import { EOL } from "os";
 
 export function generateVerilog() {
     let parts = testUtils.generate8bitComputerDesign();
@@ -126,8 +128,15 @@ export function generateVerilog() {
     mockRam.writeData(100, hex2BinArray("0x0001").map(x => Boolean(x))); //1 at memory location 100
 
     let memoryFiles = generator.generateBinaryMemoryFiles().concat(generator.generateHexArrayForArduinoFlashProgram(mockRam, 1000));
+    //generate hex file using assembler:
+    let path = "./vgaTestScan.asm";
+    let assem = new assembler(path);
+    let result = assem.convertToBinary();
+    let codeToRun = result.map(x=>x+",").join(EOL);
+    memoryFiles.push(codeToRun);
     console.log(memoryFiles);
     memoryFiles.forEach((x, i) => fs.writeFileSync("./memoryFile" + i, x));
+
 
 
 };
