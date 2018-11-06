@@ -392,7 +392,8 @@ module ORGATE(a,b,c);
                 output wire [3:0] VGA_R,    // 4-bit VGA red output
                 output wire [3:0] VGA_G,    // 4-bit VGA green output
                 output wire [3:0] VGA_B,     // 4-bit VGA blue output);
-                output reg  [0:7] OUT_AREG) ; //debugging
+                output reg  [0:7] OUT_AREG, //debugging
+                output wire PIX_STRB);
                    
                 reg HIGH = 1;
                 reg LOW = 0;
@@ -467,7 +468,7 @@ wire [0:16-1] allInputsFor70382e12_73ff_4189_9b16_62bdecf528df_memory_address_re
 wire [0:16-1] main_rama9781169_e25b_4053_87b7_81c917387ad5;
 wire [0:16-1] main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7;
 wire [0:16-1] allAddress1InputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram= {memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[0],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[1],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[2],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[3],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[4],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[5],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[6],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[7],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[8],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[9],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[10],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[11],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[12],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[13],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[14],memory_address_register32e58028_e945_45bc_b2be_c34ba619063d[15]};
-wire [0:16-1] allAddress2InputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram= {sigGen99308565_dedb_4212_82bc_6ed8eef6cb62[0:5],sigGen3905f924_d585_4385_83e1_0f6dc61906ff};
+wire [0:16-1] allAddress2InputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram= {sigGen99308565_dedb_4212_82bc_6ed8eef6cb62[3:8],sigGen3905f924_d585_4385_83e1_0f6dc61906ff};
 wire [0:16-1] allDataInputsFor46401ae1_cdc0_4c5d_b2cb_3401abb0c018_main_ram= {main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[0],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[1],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[2],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[3],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[4],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[5],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[6],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[7],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[8],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[9],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[10],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[11],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[12],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[13],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[14],main_bus500cefa6_0b9c_4eb7_90b5_f9dd9407e928[15]};
 wire [0:16-1] ram_output_buffer7f4e104d_0124_4dec_85d2_e843d2843366;
 wire [0:16-1] allInputsForb537dbe8_5eb8_4bda_8afc_6e8e11081fc2_ram_output_buffer= {main_rama9781169_e25b_4053_87b7_81c917387ad5[0],main_rama9781169_e25b_4053_87b7_81c917387ad5[1],main_rama9781169_e25b_4053_87b7_81c917387ad5[2],main_rama9781169_e25b_4053_87b7_81c917387ad5[3],main_rama9781169_e25b_4053_87b7_81c917387ad5[4],main_rama9781169_e25b_4053_87b7_81c917387ad5[5],main_rama9781169_e25b_4053_87b7_81c917387ad5[6],main_rama9781169_e25b_4053_87b7_81c917387ad5[7],main_rama9781169_e25b_4053_87b7_81c917387ad5[8],main_rama9781169_e25b_4053_87b7_81c917387ad5[9],main_rama9781169_e25b_4053_87b7_81c917387ad5[10],main_rama9781169_e25b_4053_87b7_81c917387ad5[11],main_rama9781169_e25b_4053_87b7_81c917387ad5[12],main_rama9781169_e25b_4053_87b7_81c917387ad5[13],main_rama9781169_e25b_4053_87b7_81c917387ad5[14],main_rama9781169_e25b_4053_87b7_81c917387ad5[15]};
@@ -923,18 +924,18 @@ vgaSignalGenerator sigGen1ef2ddc2_efb0_44c6_b17b_873063e5c645 (
             assign VGA_R = main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7[0:3];
             assign VGA_G = main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7[4:7];
             assign VGA_B = main_rama79bcb85_fbf1_4744_9d2e_72e5e1a151c7[8:11];
+            assign PIX_STRB = pix_stb;
 
         reg [32:0] counter = 32'b0;
         reg [15:0] cnt;
             always @ (posedge CLK) 
             begin
-                LED =OUT_registercada2531_4081_41e2_8c5f_8ce024d2c282;
-                RGB3_Red   = spi_testb3413355_1dce_42de_92f1_95ba91a08248[15];
-                OUT_AREG = comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[8:15];
+                LED <= OUT_registercada2531_4081_41e2_8c5f_8ce024d2c282;
+                RGB3_Red   <= spi_testb3413355_1dce_42de_92f1_95ba91a08248[15];
+                OUT_AREG <= comDataRegd4e590e2_a4d5_4c29_a305_f4c75b8763e9[8:15];
 
                 counter <= counter + 1;
                 {pix_stb, cnt} <= cnt + 16'h4000;  // divide by 4: (2^16)/4 = 0x4000
-
                 if(microCode_SIGNAL_bank7dff668b_8383_494d_9114_717e114dca73[17] == 0) begin
                 clock[0] <= counter[8];
                 end
