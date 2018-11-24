@@ -96,9 +96,11 @@ module ORGATE(a,b,c);
     output cout;
 
     reg  [0:n-1] ALU_Result = 0 ;
-    assign out = ALU_Result[0:n-1];
-    assign cout =0;
+    wire[0:n-1] onesComplement;
+    
+    assign {cout,out} = {1'b0,x} + {1'b0,y};
 
+/*
     always @(*)
     begin
         case(mode)
@@ -115,6 +117,7 @@ module ORGATE(a,b,c);
           default: ALU_Result = x + y ; 
         endcase
     end
+   */
     endmodule
     
  (* DONT_TOUCH = "yes" *)
@@ -349,16 +352,13 @@ module ORGATE(a,b,c);
                 
                 reg [32:0]clockScaler = 0;
                 //output counter
-                reg [0:7]internalcounter = 0;
+                reg [0:15]internalcounter = 0;
                 reg hold = 0;
                 reg slow_clock = 0;
                 reg  r1_pulse = 0;
                 reg  r2_pulse = 0;
-                reg  r3_pulse = 0;
-                reg [0:7] stretch_counter = 0;
-                wire stretched;
-
-                assign stretched = stretch_counter > 0 ? 1:0;
+                
+                reg [0:n-1] intermediate_data_out = 0;
 
                 //when the clock goes high and start is high
                 //then generate n clock pulses.
@@ -367,51 +367,51 @@ module ORGATE(a,b,c);
                 
                 always @(posedge i_clk)
                 begin
-                    clockScaler <= clockScaler + 1;
-                    slow_clock <= clockScaler[11];
-
-                    if(i_controlReg[15] == 1)begin
-                        stretch_counter <= 4096;
-                     end
-                    else if (stretch_counter > 0) begin
-                        stretch_counter <= stretch_counter - 1;
-                     end
-
+                clockScaler <= clockScaler + 1;
+                slow_clock <= clockScaler[11];
+                
+                 if((r1_pulse == 0) && (i_controlReg[15] == 1))begin
+                     hold = 1;
+                     o_statReg[15] = 0;
+                   end
+                   
+                   if(internalcounter > 31)begin
+                        hold = 0;
+                   end
+                   if(internalcounter > 200)begin
+                        o_statReg[15] = 1;
+                   end
                 end
                 
-            always@(posedge slow_clock) begin
-               
-               r1_pulse <= stretched;
-               r2_pulse <= r1_pulse;
-               r3_pulse <= r2_pulse;
-               //start clocking out -
-               //r2 is current, r3 is old...
-                if((r3_pulse == 1) && (r2_pulse == 0))begin
-                   hold = 1;
-                   o_statReg[15] = 0;
-                end
-               
+                
+                
+                always@(posedge slow_clock) begin
+                //detect edge of control register starting the SPI clock/read cycle
+                r1_pulse <= i_controlReg[15];
                //count up to 31 and reset all regs after that.
                         if(internalcounter > 31)
                         begin
-                            internalcounter = 0;
-                            hold = 0;
                             o_enable = 1;
-                            o_statReg[15] = 1;
                             o_clock = 0;
+                            //keep counting for a bit.
+                             internalcounter = internalcounter + 1;
+                             if(internalcounter > 200) 
+                                begin
+                                 o_dataReg = intermediate_data_out;
+                                 internalcounter = 0;
+                                end
                         end
                         
-                          
-                          
                         //if we have not yet reset the start flag
                         //then count on the clock - input clock / preScaler / 2 
                         if(hold == 1)begin //begin clock out 16 pulses
-                            internalcounter = internalcounter + 1;
+                             //count
+                             internalcounter = internalcounter + 1;
                              o_enable = 0;
-                             o_clock = internalcounter[7];
+                             o_clock = internalcounter[15];
                             //shift in LSB data from the serial port into the MSB
                             if(o_clock == 0) begin
-                            o_dataReg <= {i_serial,o_dataReg[0:n-2]};
+                            intermediate_data_out <= {i_serial,intermediate_data_out[0:n-2]};
                             end //end shift in
                         end //end clock out
                        
@@ -432,7 +432,7 @@ module ORGATE(a,b,c);
                 output wire [3:0] VGA_R,    // 4-bit VGA red output
                 output wire [3:0] VGA_G,    // 4-bit VGA green output
                 output wire [3:0] VGA_B,     // 4-bit VGA blue output);
-                output reg  [0:7] OUT_AREG, //debugging
+                output reg  [0:15] OUT_AREG, //debugging
                 output wire PIX_STRB);
                    
                 reg HIGH = 1;
@@ -725,7 +725,7 @@ staticRamDiscretePorts #(.ROMFILE("microcode.mem"),.DATA_WIDTH(32),.ADDR_WIDTH(8
                   .cs_(eepromChipEnablea930e9f4_4938_4f91_a44b_167413eee42c[0]),
                    .we_(eepromWriteDisableda6cc829e_fefc_4df6_8f28_1b47f4d3f3f4[0]),
                    .oe_(eepromOutEnable0062137e_6d0f_4476_81fc_855fa66662b3[0]),
-                    .clock(ClockFaster[0]),
+                    .clock(CLK),
                    .Q(microcode_rom2a319154_0758_49a4_a6d6_5bb0d9d38594));
 
 
@@ -807,8 +807,8 @@ dualPortStaticRam #(.ROMFILE("staticram.mem"),.DATA_WIDTH(16),.ADDR_WIDTH(16)) m
                  .cs_(ram_chipEnable43d7cabe_4b0c_4478_b243_98b6d0bae8d5[0]),
                   .we_(ramInInverter7db13039_fe8f_4d11_9b2d_0197b2548a9b[0]),
                   .oe_(ramOutInverter6702f03d_ff50_4f9e_9b53_8669861592f7[0]),
-                  .clock(ClockFaster[0]),
-                  .clock2(ClockFaster[0]),
+                  .clock(CLK),
+                  .clock2(CLK),
                   .Q_1(main_rama8f06042_bc1f_4f6a_bce0_bd4cb3a98f61),
                   .Q_2(main_ram853ef005_a0ed_483e_82f5_58840b92f31d));
 
@@ -977,12 +977,15 @@ vgaSignalGenerator sigGenaf5f0cb8_1872_4de2_8cd7_1a186a23e66e (
             
                 LED = OUT_registercc60b3a9_54ff_42c1_9019_03c4a115ca7c;
                 RGB3_Red   = spi_testb30e98c2_3771_4b0c_a19d_ba35517ba799[15];
-                OUT_AREG = comDataRegb62144ea_0203_4f34_a7b4_3584eabeb913[8:15];
-
+                //output the com data reg
+                //OUT_AREG = comDataRegb62144ea_0203_4f34_a7b4_3584eabeb913[0:15];
+                //output the main bus wires
+                OUT_AREG = main_bus0cf65478_5900_4fc6_aa9d_b902a761c87f[0:15];
+                
                 counter <= counter + 1;
                 {pix_stb, cnt} <= cnt + 16'h4000;  // divide by 4: (2^16)/4 = 0x4000
                 if(microCode_SIGNAL_bank569f267e_5f69_43a2_aa01_b10fbb04f406[17] == 0) begin
-                clock[0] <= counter[8];
+                clock[0] <= counter[7];
                 end
                
                 ClockFaster[0] <= counter[0];
