@@ -369,28 +369,22 @@ module ORGATE(a,b,c);
                 begin
                 clockScaler <= clockScaler + 1;
                 slow_clock <= clockScaler[11];
-                
-                 if((r1_pulse == 0) && (i_controlReg[15] == 1))begin
-                     hold = 1;
-                     o_statReg[15] = 0;
-                   end
-                   
-                   if(internalcounter > 31)begin
-                        hold = 0;
-                   end
-                   if(internalcounter > 200)begin
-                        o_statReg[15] = 1;
-                   end
                 end
                 
                 
                 
                 always@(posedge slow_clock) begin
+                
                 //detect edge of control register starting the SPI clock/read cycle
-                r1_pulse <= i_controlReg[15];
+                              r1_pulse <= i_controlReg[15];
+                              if((r1_pulse == 0) && (i_controlReg[15] == 1))begin
+                                  hold = 1;
+                                  o_statReg[15] = 0;
+                                end
                //count up to 31 and reset all regs after that.
                         if(internalcounter > 31)
                         begin
+                            hold = 0;
                             o_enable = 1;
                             o_clock = 0;
                             //keep counting for a bit.
@@ -398,6 +392,7 @@ module ORGATE(a,b,c);
                              if(internalcounter > 200) 
                                 begin
                                  o_dataReg = intermediate_data_out;
+                                 o_statReg[15] = 1;
                                  internalcounter = 0;
                                 end
                         end
@@ -985,7 +980,7 @@ vgaSignalGenerator sigGenaf5f0cb8_1872_4de2_8cd7_1a186a23e66e (
                 counter <= counter + 1;
                 {pix_stb, cnt} <= cnt + 16'h4000;  // divide by 4: (2^16)/4 = 0x4000
                 if(microCode_SIGNAL_bank569f267e_5f69_43a2_aa01_b10fbb04f406[17] == 0) begin
-                clock[0] <= counter[7];
+                clock[0] <= counter[8];
                 end
                
                 ClockFaster[0] <= counter[0];
