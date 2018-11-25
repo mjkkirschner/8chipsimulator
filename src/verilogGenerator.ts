@@ -2,7 +2,7 @@ import { graph } from "./engine";
 import { nRegister, nBuffer, inverter, ANDGATE, ORGATE, bus, Ipart } from "./primitives";
 import { inputPin } from "./pins_wires";
 import { VoltageRail } from "./main";
-import { nbitAdder } from "./ALU";
+import { nbitAdder, nbitALU } from "./ALU";
 import { binaryCounter } from "./counter";
 import { nbitComparator } from "./comparator";
 import { twoLineToFourLineDecoder } from "./Decoder";
@@ -97,11 +97,16 @@ export class verilogGenerator {
 
         //TODO this doesn't help me much - I want the output wires not the parts themselves...
         //maybe I can use the wire map.
-        this.wireMap[]
-        let microcodeSignals = parts.find(x => x.displayName == "microCode_SIGNAL_bank");
-        let outreg = parts.find(x => x.displayName == "OUT_register");
-        let spipart = parts.find(x => x.displayName == "spi_test");
-        let comDataReg = parts.find(x => x.displayName == "comDataReg");
+
+        let microcodeSignals = parts.find(x => x.displayName == "microCode_SIGNAL_bank") as nBuffer;
+        let outreg = parts.find(x => x.displayName == "OUT_register") as nRegister;
+        let spipart = parts.find(x => x.displayName == "spi_test") as SPIComPart;
+        let comDataReg = parts.find(x => x.displayName == "comDataReg") as nRegister;
+
+        let microcodeSignalOut = this.wireMap[microcodeSignals.outputPins[0].id];
+        let outregOutput = this.wireMap[outreg.outputPins[0].id];
+        let spiOut = this.wireMap[spipart.statusPins[0].id];
+        let comDataOut = this.wireMap[comDataReg.outputPins[0].id];
 
         return `
         ${modules}
@@ -119,7 +124,8 @@ export class verilogGenerator {
                 output wire [3:0] VGA_R,    // 4-bit VGA red output
                 output wire [3:0] VGA_G,    // 4-bit VGA green output
                 output wire [3:0] VGA_B,     // 4-bit VGA blue output);
-                output reg  [0:7] OUT_AREG) ; //debugging
+                output reg  [0:7] OUT_AREG, //debugging
+                output wire PIX_STRB);
                    
                 reg HIGH = 1;
                 reg LOW = 0;
@@ -138,16 +144,17 @@ export class verilogGenerator {
             always @ (posedge CLK) 
             begin
             
-                LED = ${outreg.displayName}${outreg.id};
-                RGB3_Red   = ${spipart.displayName}${spipart.id}[15];
-                OUT_AREG = ${comDataReg.displayName}${comDataReg.id}[8:15];
+                LED = ${outregOutput};
+                RGB3_Red   = ${spiOut}[15];
+                OUT_AREG = ${comDataOut}[8:15];
 
                 counter <= counter + 1;
-                if(${microcodeSignals.displayName}${microcodeSignals.id}[17] == 0) begin
-                clock[0] <= counter[9];
+                {pix_stb, cnt} <= cnt + 16'h4000;  // divide by 4: (2^16)/4 = 0x4000
+                if(${microcodeSignalOut}[17] == 0) begin
+                clock[0] <= counter[8];
                 end
                
-                ClockFaster[0] <= counter[5];
+                ClockFaster[0] <= counter[0];
                
             end
 
@@ -352,6 +359,40 @@ export class verilogGenerator {
             this.wireMap[part.carryOut.id] = carryOutputName;
 
             return [outputWireString, carryOutWire, concatenatedADatas, concatenatedBDatas, moduleInstanceString].join("\n");
+
+        },
+        nbitALU: (part: nbitALU) => {
+
+            let aInputName = `allADataInputsFor${part.id}_${part.displayName}`;
+            let bInputName = `allBDataInputsFor${part.id}_${part.displayName}`;
+            let modeInputName = `allDataForMode${part.id}_${part.displayName}`;
+
+
+            let n = part.dataPinsA.length;
+
+            let concatenatedADatas = `wire [0:${n}-1] ` + aInputName + '= {' + part.dataPinsA.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+            let concatenatedBDatas = `wire [0:${n}-1] ` + bInputName + '= {' + part.dataPinsB.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+            let concatenatedModes = `wire [0:3] ` + modeInputName + '= {' + part.modePins.map(x => this.wireMap[x.attachedWire.startPin.id] + `[${x.attachedWire.startPin.index}]`).join(",") + '};';
+
+
+
+            //I think this is left unconnected for now
+            let carryInInputName = "UNCONNECTED";
+            let carryOutputName = part.displayName + part.carryOut.id;
+            let carryOutWire = "wire " + carryOutputName + ";";
+
+            let outputName = part.displayName + part.computationResultPins[0].id;
+
+            let func = this.moduleConstructorMap.nbitALU;
+
+
+            let outputWireString = `wire [0:${n}-1] ${outputName};`
+            let moduleInstanceString = func(modeInputName, aInputName, bInputName, outputName, carryOutputName, n, part.displayName + part.id);
+
+            part.computationResultPins.forEach(x => this.wireMap[x.id] = outputName);
+            this.wireMap[part.carryOut.id] = carryOutputName;
+
+            return [outputWireString, carryOutWire,concatenatedModes, concatenatedADatas, concatenatedBDatas, moduleInstanceString].join("\n");
 
         },
 
@@ -830,6 +871,14 @@ export class verilogGenerator {
                 .o_enable(${o_enable}),
                 .o_clock(${o_clock}),
                .i_clk(${clk}));`
+        },
+        nbitALU: (mode, x, y, output, cout, DATA_WIDTH, name) => {
+            return `nbitALU #(.n(${DATA_WIDTH})) ${name} (
+                .mode(${mode}),
+                .x(${x}),
+                .y(${y}),
+                .out(${output}),
+                .cout(${cout}));`
         }
 
     }
@@ -945,6 +994,38 @@ export class verilogGenerator {
         assign {cout,sum} = {1'b0,x} + {1'b0,onesComplement} + cin;
         endmodule
         `,
+
+        "nbitALU":
+            ` (* DONT_TOUCH = "yes" *)
+    module nbitALU(mode,x,y,out,cout);
+    parameter n = 8;
+    input [0:3] mode;
+    input [0:n-1] x,y;
+    output [0:n-1]out;
+    output cout;
+
+    reg  [0:n] ALU_Result = 0 ;
+    assign out = ALU_Result[0:n-1];
+    assign cout = ALU_Result[n];
+
+    always @(*)
+    begin
+        case(mode)
+        4'b1001: // Addition
+           ALU_Result = x + y ; 
+        4'b0110: // Subtraction
+           ALU_Result = x - y ;
+        4'b1000: // Multiplication
+           ALU_Result = x * y;
+        4'b0100: // Division
+           ALU_Result = x/y;
+        4'b1100: // MOD
+           ALU_Result = x%y;
+          default: ALU_Result = x + y ; 
+        endcase
+    end
+    endmodule
+    `,
 
         "binaryCounter":
             ` (* DONT_TOUCH = "yes" *)
@@ -1162,7 +1243,7 @@ export class verilogGenerator {
                     v_count <= v_count + 1;
                 end
                 else 
-                    h_count <= h_count + 1;
+                    h_count <= h_count + 1; 
     
                 if (v_count == SCREEN)  // end of screen
                     begin

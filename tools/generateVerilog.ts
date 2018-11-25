@@ -15,10 +15,10 @@ export function generateVerilog() {
     //a bootloader!
 
     ram.writeData(0, hex2BinArray("0x0010").map(x => Boolean(x))); //Load SPI control reg.
-    ram.writeData(1, hex2BinArray("0x0001").map(x => Boolean(x))); //put a 1 in LSB... this is start coms.
+    ram.writeData(1, hex2BinArray("0x0000").map(x => Boolean(x))); //reset coms control.
 
     ram.writeData(2, hex2BinArray("0x0010").map(x => Boolean(x))); //Load SPI control reg.
-    ram.writeData(3, hex2BinArray("0x0000").map(x => Boolean(x))); //reset coms control.
+    ram.writeData(3, hex2BinArray("0x0001").map(x => Boolean(x))); //put a 1 in LSB... this is start coms.
 
     ram.writeData(4, hex2BinArray("0x0011").map(x => Boolean(x))); //check the status reg to see if we're done getting data.
     ram.writeData(5, hex2BinArray("0x0022").map(x => Boolean(x))); //store status result in FF (34)

@@ -28,6 +28,10 @@ enum commandType {
     STORECOMDATA,
     STOREAATPOINTER,
     LOADAATPOINTER,
+    MULTIPLY,
+    DIVIDE,
+    MODULO,
+
     ASSEM_LABEL = -1,
     ASSEM_STORE_MACRO = -2,
 
@@ -240,6 +244,10 @@ class Parser {
         this.commandTypeToNumberOfLines[commandType.ASSEM_LABEL] = 1// TODO ??
         this.commandTypeToNumberOfLines[commandType.ASSEM_STORE_MACRO] = 1;
         this.commandTypeToNumberOfLines[commandType.LOADAATPOINTER] = 2;
+        this.commandTypeToNumberOfLines[commandType.MULTIPLY] = 2;
+        this.commandTypeToNumberOfLines[commandType.DIVIDE] = 2;
+        this.commandTypeToNumberOfLines[commandType.MODULO] = 2;
+
     }
 
     //returns false if the current line is undefined...we're out
@@ -252,7 +260,7 @@ class Parser {
         //we need to increment based on the last command.
         if (this.currentLine != null) {
             increment = this.commandTypeToNumberOfLines[this.commandType()];
-            console.log("increment is", increment, "for commandType:", this.commandType());
+            console.log("increment is", increment, "for commandType:", this.commandType(), this.currentLine);
         }
 
         this.currentLineIndex = this.currentLineIndex + increment;

@@ -1,7 +1,7 @@
 import { Ipart, nRegister, VoltageRail, nBuffer, inverter, ANDGATE, ORGATE, bus } from "../src/primitives";
 import { clock, clockWithMode } from "../src/clock";
 import { wire, pin, outputPin } from "../src/pins_wires";
-import { nbitAdder } from "../src/ALU";
+import { nbitAdder, nbitALU } from "../src/ALU";
 import { staticRam, dualPortStaticRam } from "../src/sram";
 import { binaryCounter } from "../src/counter";
 import { microCodeData } from "../src/8bitCPUDesign/microcode";
@@ -24,7 +24,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     let regB = new nRegister(16, "B_register");
     let regBbuffer = new nBuffer(16, "B_reg_buffer");
 
-    let adder = new nbitAdder(16, "adder");
+    let adder = new nbitALU(16, "adder");
     let adderBbuffer = new nBuffer(16, "adder_buffer");
 
     let buscomponent = new bus(16, 7, "main_bus");
@@ -38,7 +38,7 @@ export function generate3Registers_Adder_Bus(): Ipart[] {
     regB.outputPins.forEach((pin, index) => { new wire(pin, regBbuffer.dataPins[index]) });
 
     //sum pins to buffers
-    adder.sumOutPins.forEach((pin, index) => { new wire(pin, adderBbuffer.dataPins[index]) });
+    adder.computationResultPins.forEach((pin, index) => { new wire(pin, adderBbuffer.dataPins[index]) });
 
     //attach register inputs to the bus.
     regA.dataPins.forEach((pin, index) => { new wire(buscomponent.outputPins[index], pin) });
@@ -243,7 +243,8 @@ function generateMicrocodeSignalBank(clock: clock,
     bReg: nRegister, bRegBuffer: nBuffer,
     outReg: nRegister,
     memoryReg: nRegister,
-    adderBbuffer: nBuffer, bus: bus): Ipart[] {
+    adderBbuffer: nBuffer, alu: nbitALU,
+    bus: bus): Ipart[] {
     let signalBank = new nBuffer(32, "microCode_SIGNAL_bank",
         [
             "RAMIN",
@@ -256,10 +257,10 @@ function generateMicrocodeSignalBank(clock: clock,
             "AIN",
             "AOUT",
             "SUMOUT",
-            "SUBTRACT_ALUMODE_",
-            "ALUMODE",
-            "ALUMODE",
-            "ALUMODE",
+            "ALUMODE_1",
+            "ALUMODE_2",
+            "ALUMODE_3",
+            "ALUMODE_4",
             "BIN",
             "BOUT",
             "OUTIN",
@@ -327,8 +328,12 @@ function generateMicrocodeSignalBank(clock: clock,
     new wire(signalBank.outputPins[7], aReg.enablePin);
     new wire(signalBank.outputPins[8], aRegBuffer.outputEnablePin);
 
-    //ALU //TODO ALU not fully implemented - signals unused until built.
     new wire(signalBank.outputPins[9], adderBbuffer.outputEnablePin);
+
+    new wire(signalBank.outputPins[10], alu.modePins[0]);
+    new wire(signalBank.outputPins[11], alu.modePins[1]);
+    new wire(signalBank.outputPins[12], alu.modePins[2]);
+    new wire(signalBank.outputPins[13], alu.modePins[3]);
 
 
     //B register
@@ -348,8 +353,8 @@ function generateMicrocodeSignalBank(clock: clock,
     //connect spi part pins to the related registers
     spi.dataoutputPins.forEach((x, i) => { new wire(x, comDataReg.dataPins[i]) });
     spi.statusPins.forEach((x, i) => { new wire(x, comStatusReg.dataPins[i]) });
-    new wire(clock.outputPin,spi.clockPin);
-    
+    new wire(clock.outputPin, spi.clockPin);
+
     comControlReg.outputPins.forEach((x, i) => { new wire(x, spi.controlPins[i]) });
 
     //attach the com registers to the bus....
@@ -510,7 +515,7 @@ export function generate8bitComputerDesign(): Ipart[] {
     var parts6 = generateMicrocodeSignalBank(
         clockcomp, parts4[0] as staticRam, parts3[0] as binaryCounter, parts3[1] as nBuffer, parts2[1] as staticRam, parts2[2] as nBuffer,
         parts4[4] as nRegister, parts1[0] as nRegister, parts1[2] as nBuffer, parts1[1] as nRegister, parts1[3] as nBuffer
-        , parts1[6] as nRegister, parts2[0] as nRegister, parts1[4] as nBuffer, bus)
+        , parts1[6] as nRegister, parts2[0] as nRegister, parts1[4] as nBuffer,parts1[5] as nbitALU, bus)
 
 
     var output = parts1.concat(parts2, parts3, parts4, parts5, parts6);

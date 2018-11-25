@@ -41,6 +41,53 @@ export class fullAdder extends basePart implements Ipart {
 
 }
 
+export class nbitALU extends basePart implements Ipart {
+    public dataPinsA: inputPin[] = [];
+    public dataPinsB: inputPin[] = [];
+    public modePins: inputPin[] = [
+        new inputPin("alu1", this, false, 0),
+        new inputPin("alu2", this, false, 1),
+        new inputPin("alu3", this, false, 2),
+        new inputPin("alu4", this, false, 3)
+    ];
+
+    public computationResultPins: outputPin[] = [];
+    public carryOut = new outputPin("carryOut", this);
+    private n: number;
+
+
+    constructor(n: number, name?: string) {
+        super(name);
+
+        this.n = n;
+
+        _.range(0, n).forEach((x, index) => {
+            this.dataPinsA[index] = new inputPin("inputA" + index, this, false, index);
+            this.dataPinsB[index] = new inputPin("inputB" + index, this, false, index);
+            this.computationResultPins[index] = new outputPin("output" + index, this, index);
+        });
+    }
+
+    public get inputs() {
+        return this.dataPinsA.concat(this.dataPinsB);
+    }
+
+    public get outputs() {
+        return this.computationResultPins//.concat(this.carryOut);
+    }
+
+    update() {
+        //TODO depending on mode
+        //do some math.
+        super.update();
+    }
+
+    getDataAsInteger(): number {
+        return parseInt(this.computationResultPins.map(pin => { return Number(pin.value) }).join(""), 2);
+    }
+
+}
+
 export class nbitAdder extends basePart implements Ipart, IAggregatePart {
 
     //0->N-1 are Apins, N -> (N*2)-1 are Bpins
@@ -79,7 +126,7 @@ export class nbitAdder extends basePart implements Ipart, IAggregatePart {
             let intDataWire = new internalWire(this.dataPinsA[index], part.datapins[0]);
             let intDataWire2 = new internalWire(this.dataPinsB[index], part.datapins[1]);
             //reversed...
-            let outWire = new internalWire(this.sumOutPins[index], part.sumPin, );
+            let outWire = new internalWire(this.sumOutPins[index], part.sumPin);
             this.internalWires.push(intDataWire, intDataWire2, outWire);
 
             return part;

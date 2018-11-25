@@ -29,20 +29,6 @@ DONECHECK
 (COLORWHITE)
 LOADA
 pixelindex
-MODULO
-width
-STOREA
-x
-LOADA
-pixelindex
-DIVIDE
-width
-STOREA
-y
-LOADA
-y
-MULTIPLY
-x
 STOREAATPOINTER
 pixelindex
 
